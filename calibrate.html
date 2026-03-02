@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Calibración - Mapa</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+    header{padding:10px 12px;border-bottom:1px solid #e5e7eb;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .pill{background:#f3f4f6;border:1px solid #e5e7eb;border-radius:999px;padding:6px 10px;font-size:12px}
+    button{height:34px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:0 10px;font-weight:600;cursor:pointer}
+    main{display:grid;grid-template-columns:1fr 360px;height:calc(100vh - 58px)}
+    #map{height:100%;background:#f3f4f6}
+    aside{border-left:1px solid #e5e7eb;padding:12px;overflow:auto}
+    pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#dbeafe;padding:10px;border-radius:10px;font-size:12px}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th,td{border-bottom:1px solid #e5e7eb;padding:6px 4px;text-align:left}
+    .muted{color:#6b7280;font-size:12px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="pill" id="modePill"></div>
+    <div class="pill">Da click en 4–6 puntos MUY claros (esquinas/cruces).</div>
+    <button id="copyBtn">Copiar JSON</button>
+    <button id="clearBtn">Borrar puntos</button>
+  </header>
+
+  <main>
+    <div id="map"></div>
+    <aside>
+      <h3 style="margin:0 0 6px 0;">Puntos capturados</h3>
+      <div class="muted">Cada punto es [x,y] en “pixeles” del mapa (x=horizontal, y=vertical).</div>
+      <div style="margin:8px 0">
+        <table>
+          <thead><tr><th>#</th><th>x</th><th>y</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <h3 style="margin:12px 0 6px 0;">JSON</h3>
+      <pre id="jsonOut">[]</pre>
+      <div class="muted">TIP: abre en otra pestaña <b>?img=old</b> y <b>?img=new</b> y captura los mismos puntos.</div>
+    </aside>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const imgMode = (params.get("img") || "new").toLowerCase(); // old | new
+
+    const IMG_OLD = "./assets/map/base-old.png";
+    const IMG_NEW = "./assets/map/base.png";
+    const IMG_URL = (imgMode === "old") ? IMG_OLD : IMG_NEW;
+
+    document.getElementById("modePill").textContent =
+      (imgMode === "old") ? "MODO: OLD (base-old.png)" : "MODO: NEW (base.png)";
+
+    const key = "calib_points_" + imgMode;
+    let pts = JSON.parse(localStorage.getItem(key) || "[]");
+
+    const map = L.map("map", { crs: L.CRS.Simple, minZoom: -3, maxZoom: 6, zoomSnap: 0.25 });
+    const img = new Image();
+    img.onload = () => {
+      const w = img.naturalWidth, h = img.naturalHeight;
+      const bounds = [[0,0],[h,w]];
+      L.imageOverlay(IMG_URL, bounds).addTo(map);
+      map.fitBounds(bounds);
+
+      // pintar puntos existentes
+      pts.forEach(p => L.circleMarker([p[1], p[0]], { radius: 5, weight: 2 }).addTo(map));
+      render();
+    };
+    img.src = IMG_URL;
+
+    function render(){
+      localStorage.setItem(key, JSON.stringify(pts));
+      const tbody = document.getElementById("rows");
+      tbody.innerHTML = pts.map((p,i)=>`<tr><td>${i+1}</td><td>${Math.round(p[0])}</td><td>${Math.round(p[1])}</td></tr>`).join("");
+      document.getElementById("jsonOut").textContent = JSON.stringify(pts.map(p=>[Math.round(p[0]), Math.round(p[1])]), null, 2);
+    }
+
+    map.on("click", (e) => {
+      const x = e.latlng.lng;
+      const y = e.latlng.lat;
+      pts.push([x,y]);
+      L.circleMarker([y,x], { radius: 5, weight: 2 }).addTo(map);
+      render();
+    });
+
+    document.getElementById("clearBtn").onclick = () => {
+      pts = [];
+      localStorage.removeItem(key);
+      location.reload();
+    };
+
+    document.getElementById("copyBtn").onclick = async () => {
+      const txt = document.getElementById("jsonOut").textContent;
+      try { await navigator.clipboard.writeText(txt); alert("Copiado."); }
+      catch { alert("No pude copiar. Copia manual del cuadro JSON."); }
+    };
+  </script>
+</body>
+</html>
