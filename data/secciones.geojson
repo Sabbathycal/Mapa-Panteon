@@ -543,8 +543,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          13632.393990881954,
-          3029.185170151597
+          13742.01894781873,
+          2990.0121276056066
         ]
       },
       "properties": {
@@ -554,7 +554,7 @@
         "lotesFile": "./data/lotes-SAN PEDRO VIP-B.geojson",
         "id": "SAN PEDRO VIP-B",
         "shape": "circle",
-        "radius": 110.61075531011163
+        "radius": 110.61075531011193
       }
     },
     {
@@ -581,8 +581,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          13461.268258807138,
-          3234.687580124506
+          13504.007406874594,
+          3158.023944246967
         ]
       },
       "properties": {
@@ -592,7 +592,7 @@
         "lotesFile": "./data/lotes-SAN PEDRO VIP-D.geojson",
         "id": "SAN PEDRO VIP-D",
         "shape": "circle",
-        "radius": 110.10926041909985
+        "radius": 110.10926041909988
       }
     },
     {
