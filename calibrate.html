@@ -50,12 +50,12 @@
     const params = new URLSearchParams(location.search);
     const imgMode = (params.get("img") || "new").toLowerCase(); // old | new
 
-    const IMG_OLD = "./assets/map/base-old.png";
+    const IMG_OLD = "./assets/map/base_old.png";
     const IMG_NEW = "./assets/map/base.png";
     const IMG_URL = (imgMode === "old") ? IMG_OLD : IMG_NEW;
 
     document.getElementById("modePill").textContent =
-      (imgMode === "old") ? "MODO: OLD (base-old.png)" : "MODO: NEW (base.png)";
+      (imgMode === "old") ? "MODO: OLD (base_old.png)" : "MODO: NEW (base.png)";
 
     const key = "calib_points_" + imgMode;
     let pts = JSON.parse(localStorage.getItem(key) || "[]");
