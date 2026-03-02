@@ -518,6 +518,139 @@
         "nombre": "ORO - N",
         "lotesFile": "./data/lotes/lotes-ORO-N.geojson"
       }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13530.586643207462,
+          2787.7481437482998
+        ]
+      },
+      "properties": {
+        "seccion": "SAN PEDRO VIP",
+        "manzana": "A",
+        "nombre": "SPV - A",
+        "lotesFile": "./data/lotes-SAN PEDRO VIP-A.geojson",
+        "id": "SAN PEDRO VIP-A",
+        "shape": "circle",
+        "radius": 110.74772074297664
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13895.648684773412,
+          2974.8085764598345
+        ]
+      },
+      "properties": {
+        "seccion": "SAN PEDRO VIP",
+        "manzana": "B",
+        "nombre": "SPV - B",
+        "lotesFile": "./data/lotes-SAN PEDRO VIP-B.geojson",
+        "id": "SAN PEDRO VIP-B",
+        "shape": "circle",
+        "radius": 109.55559968289717
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13632.393990881954,
+          3029.185170151597
+        ]
+      },
+      "properties": {
+        "seccion": "SAN PEDRO VIP",
+        "manzana": "C",
+        "nombre": "SPV - C",
+        "lotesFile": "./data/lotes-SAN PEDRO VIP-C.geojson",
+        "id": "SAN PEDRO VIP-C",
+        "shape": "circle",
+        "radius": 110.61075531011163
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13329.510572021587,
+          2952.5937706269874
+        ]
+      },
+      "properties": {
+        "seccion": "SAN PEDRO VIP",
+        "manzana": "D",
+        "nombre": "SPV - D",
+        "lotesFile": "./data/lotes-SAN PEDRO VIP-D.geojson",
+        "id": "SAN PEDRO VIP-D",
+        "shape": "circle",
+        "radius": 110.38871953441277
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13461.268258807138,
+          3234.687580124506
+        ]
+      },
+      "properties": {
+        "seccion": "SAN PEDRO VIP",
+        "manzana": "E",
+        "nombre": "SPV - E",
+        "lotesFile": "./data/lotes-SAN PEDRO VIP-E.geojson",
+        "id": "SAN PEDRO VIP-E",
+        "shape": "circle",
+        "radius": 110.10926041909985
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13720.27327567278,
+          3294.3072937323186
+        ]
+      },
+      "properties": {
+        "seccion": "SAN PEDRO VIP",
+        "manzana": "F",
+        "nombre": "SPV - F",
+        "lotesFile": "./data/lotes-SAN PEDRO VIP-F.geojson",
+        "id": "SAN PEDRO VIP-F",
+        "shape": "circle",
+        "radius": 110.25842208799739
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13617.144399982586,
+          3531.56129739699
+        ]
+      },
+      "properties": {
+        "seccion": "SAN PEDRO VIP",
+        "manzana": "G",
+        "nombre": "SPV - G",
+        "lotesFile": "./data/lotes-SAN PEDRO VIP-G.geojson",
+        "id": "SAN PEDRO VIP-G",
+        "shape": "circle",
+        "radius": 110.37716794664976
+      }
     }
   ]
 }
