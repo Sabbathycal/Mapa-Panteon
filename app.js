@@ -9,17 +9,17 @@ const DATA_COORD_WIDTH  = 21600;
 const DATA_COORD_HEIGHT = 14400;
 
 // Archivos de datos
-const SECCIONES_TOP_URL = "./data/secciones-top.geojson"; // editor ?edit=secciones + PUBLICO secciones
-const MANZANAS_URL      = "./data/secciones.geojson";     // tu archivo actual (MANZANAS)
+const SECCIONES_TOP_URL = "./data/secciones-top.geojson"; // editor ?edit=secciones
+const MANZANAS_URL      = "./data/secciones.geojson";     // tu archivo actual (ahora son MANZANAS)
 
 // Catálogos
 const LOTES_INFO_URL    = "./data/lotes.json";
 const PAQUETES_URL      = "./data/paquetes.json";
 
 // Edit modes:
-// ?edit=secciones  => EDITOR SECCIONES
-// ?edit=manzanas   => EDITOR MANZANAS
-// ?edit=lots       => EDITOR LOTES
+// ?edit=secciones  => EDITOR SECCIONES (nuevo)
+// ?edit=manzanas   => EDITOR MANZANAS (antes ?edit=sections)
+// ?edit=lots       => EDITOR LOTES (igual)
 const editMode = new URLSearchParams(location.search).get("edit"); // null | "secciones" | "manzanas" | "lots"
 const isEditSecciones = editMode === "secciones";
 const isEditManzanas  = editMode === "manzanas";
@@ -43,17 +43,14 @@ let seccionesTopRaw = null;   // SECCIONES (nuevo)
 let manzanasRaw = null;       // MANZANAS
 
 // Scaled a base actual (público)
-let seccionesTopScaled = null; // SECCIONES escaladas
-let manzanasScaled = null;     // MANZANAS escaladas
-let lotesScaled = null;        // LOTES escalados
+let manzanasScaled = null;    // MANZANAS escaladas
+let lotesScaled = null;       // LOTES escalados
 
-let seccionesLayer = null;    // editor secciones
-let seccionesLayerPublic = null; // PUBLICO secciones
+let seccionesLayer = null;    // para editor secciones
 let manzanasLayer = null;     // público + editor manzanas
 let lotesLayer = null;        // público + editor lotes
 
 let currentSeccion = null;          // "ORO"
-let currentSeccionFeature = null;   // feature seleccionada (scaled, público)
 let currentManzanaFeature = null;   // feature seleccionada (scaled en público, raw en edit)
 let currentLotesRaw = null;         // lotes raw del archivo de esa manzana (en edit lotes)
 
@@ -153,13 +150,21 @@ function applyCoordScaleToGeoJSON(data, sx, sy){
 
 /* =========================================================
    ANIMACIONES (en móvil se apagan para estabilidad)
+   - Cambiado: soporta maxZoom para evitar zoom extremo en círculos
    ========================================================= */
-function flyToBoundsSmooth(bounds, durationSeconds){
-  if (IS_MOBILE) { map.fitBounds(bounds); return; }
+function flyToBoundsSmooth(bounds, durationSeconds, maxZoom = null){
+  const opt = { animate: true, duration: durationSeconds, easeLinearity: 0.2 };
+  if (maxZoom !== null) opt.maxZoom = maxZoom;
+
+  if (IS_MOBILE) {
+    map.fitBounds(bounds, maxZoom !== null ? { maxZoom } : undefined);
+    return;
+  }
+
   try {
-    map.flyToBounds(bounds, { animate: true, duration: durationSeconds, easeLinearity: 0.2 });
+    map.flyToBounds(bounds, opt);
   } catch {
-    map.fitBounds(bounds);
+    map.fitBounds(bounds, maxZoom !== null ? { maxZoom } : undefined);
   }
 }
 
@@ -209,8 +214,7 @@ function updateToggleLotsButton(){
    UI helpers (dropdowns)
    ========================================================= */
 function getPropSeccion(f){
-  // ahora: usa seccion o id
-  return (f?.properties?.seccion || f?.properties?.id || "SIN-SECCION").toString().trim();
+  return (f?.properties?.seccion || "SIN-SECCION").toString().trim();
 }
 function getPropManzana(f){
   return (f?.properties?.manzana || f?.properties?.id || "").toString().trim();
@@ -268,9 +272,8 @@ function featureToLayerCircleAware(feature, latlng){
 }
 
 /* =========================================================
-   ================= PÚBLICO: SECCIONES → MANZANAS → LOTES =================
+   ================= PÚBLICO: MANZANAS + LOTES =================
    ========================================================= */
-let pinnedSeccionLayer = null;
 let pinnedManzanaLayer = null;
 let pinnedLotLayer = null;
 
@@ -278,118 +281,7 @@ function clearLotesLayer(){
   if (lotesLayer){ lotesLayer.remove(); lotesLayer = null; }
 }
 
-function clearManzanasLayer(){
-  if (manzanasLayer){ manzanasLayer.remove(); manzanasLayer = null; }
-}
-
-function clearSeccionesLayerPublic(){
-  if (seccionesLayerPublic){ seccionesLayerPublic.remove(); seccionesLayerPublic = null; }
-  pinnedSeccionLayer = null;
-}
-
-function showPublicLevelSecciones(){
-  // reset state
-  currentSeccion = null;
-  currentSeccionFeature = null;
-  currentManzanaFeature = null;
-  showAllLots = false;
-
-  $seccionSelect.value = "";
-  $manzanaSelect.innerHTML = `<option value="">MANZANA...</option>`;
-  $loteInput.value = "";
-
-  clearLotesLayer();
-  clearManzanasLayer();
-  clearSeccionesLayerPublic();
-  updateToggleLotsButton();
-
-  renderSeccionesLayerPublic();
-}
-
-function renderSeccionesLayerPublic(){
-  if (!seccionesTopScaled || !seccionesTopScaled.features || seccionesTopScaled.features.length === 0){
-    // fallback: si no hay secciones-top, volvemos al modo antiguo
-    setPanel("Sin SECCIONES", `<p>No hay secciones en <code>data/secciones-top.geojson</code>. Agrega al menos 1.</p>`);
-    return;
-  }
-
-  const fc = { type:"FeatureCollection", features: seccionesTopScaled.features };
-
-  seccionesLayerPublic = L.geoJSON(fc, {
-    style: () => hiddenStyle(),
-    pointToLayer: (feature, latlng) => {
-      const layer = featureToLayerCircleAware(feature, latlng);
-      try { layer.setStyle(hiddenStyle()); } catch {}
-      return layer;
-    },
-    onEachFeature: (feature, layer) => {
-      layer.on("mouseover", () => {
-        if (pinnedSeccionLayer !== layer) layer.setStyle(hoverStyle());
-      });
-      layer.on("mouseout", () => {
-        if (pinnedSeccionLayer !== layer) layer.setStyle(hiddenStyle());
-      });
-
-      layer.on("click", () => {
-        if (pinnedSeccionLayer && pinnedSeccionLayer !== layer){
-          pinnedSeccionLayer.setStyle(hiddenStyle());
-        }
-        pinnedSeccionLayer = layer;
-
-        const base = pinnedStyle();
-        layer.setStyle(base);
-        pulseLayer(layer, base, { ms: 220 });
-
-        selectSeccionPublic(feature, layer);
-      });
-    }
-  }).addTo(map);
-
-  setPanel("SECCIONES", `
-    <p>1) Selecciona una <b>SECCIÓN</b> en el mapa.</p>
-    <p>2) Luego seleccionarás una <b>MANZANA</b>.</p>
-    <p>3) Después un <b>LOTE</b>.</p>
-  `);
-}
-
-function selectSeccionPublic(feature, layer){
-  const sec = getPropSeccion(feature);
-  currentSeccion = sec;
-  currentSeccionFeature = feature;
-
-  $seccionSelect.value = sec;
-  $manzanaSelect.value = "";
-  $loteInput.value = "";
-
-  // zoom a sección
-  try { flyToBoundsSmooth(layer.getBounds().pad(0.10), 0.65); } catch {}
-
-  // pasar a manzanas de esta sección
-  showPublicLevelManzanas(sec);
-}
-
-function showPublicLevelManzanas(seccion){
-  currentSeccion = seccion;
-  currentManzanaFeature = null;
-  showAllLots = false;
-
-  clearLotesLayer();
-  clearManzanasLayer();
-  updateToggleLotsButton();
-
-  // ocultar secciones para no estorbar
-  clearSeccionesLayerPublic();
-
-  const manzanas = buildManzanasListBySeccion(manzanasScaled.features, seccion);
-  fillManzanaSelect(manzanas);
-
-  renderManzanasLayer(manzanas, {
-    panelTitle: `SECCIÓN ${safe(seccion)}`,
-    panelHtml: `<p>Selecciona una <b>MANZANA</b> en el mapa.</p>`
-  });
-}
-
-function renderManzanasLayer(filteredFeatures, opts){
+function renderManzanasLayer(filteredFeatures){
   if (manzanasLayer){ manzanasLayer.remove(); manzanasLayer = null; }
   pinnedManzanaLayer = null;
   currentManzanaFeature = null;
@@ -428,26 +320,26 @@ function renderManzanasLayer(filteredFeatures, opts){
     }
   }).addTo(map);
 
-  if (opts?.panelTitle){
-    setPanel(opts.panelTitle, opts.panelHtml || "");
-  } else {
-    setPanel("Selección", `
-      <p>1) Elige <b>SECCIÓN</b></p>
-      <p>2) Elige <b>MANZANA</b></p>
-      <p>3) Escribe <b>LOTE</b> (opcional) y presiona Buscar</p>
-    `);
-  }
+  setPanel("Selección", `
+    <p>1) Elige <b>SECCIÓN</b></p>
+    <p>2) Elige <b>MANZANA</b></p>
+    <p>3) Escribe <b>LOTE</b> (opcional) y presiona Buscar</p>
+  `);
 }
 
 async function selectManzana(feature, layer){
   currentManzanaFeature = feature;
 
-  // set dropdown
-  $manzanaSelect.value = getPropManzana(feature);
-
   try {
-    const b = layer.getBounds ? layer.getBounds().pad(0.20) : L.latLngBounds(layer.getLatLng(), layer.getLatLng()).pad(0.20);
-    flyToBoundsSmooth(b, 0.65);
+    const isCircle = isCircleFeature(feature);
+    const pad = isCircle ? 0.40 : 0.20;      // más padding en círculo
+    const mz  = isCircle ? 3 : null;         // limitar zoom máximo en círculo
+
+    const b = layer.getBounds
+      ? layer.getBounds().pad(pad)
+      : L.latLngBounds(layer.getLatLng(), layer.getLatLng()).pad(pad);
+
+    flyToBoundsSmooth(b, 0.65, mz);
   } catch {}
 
   await loadLotesForCurrentManzana();
@@ -506,7 +398,7 @@ async function loadLotesForCurrentManzana(){
         layer.setStyle(base);
         pulseLayer(layer, base, { ms: 200 });
 
-        flyToBoundsSmooth(layer.getBounds().pad(0.30), 0.45);
+        flyToBoundsSmooth(layer.getBounds().pad(0.30), 0.45, null);
         showLoteInfo(feature);
       });
     }
@@ -514,7 +406,7 @@ async function loadLotesForCurrentManzana(){
 
   updateToggleLotsButton();
 
-  const sec = currentSeccion || getPropSeccion(currentManzanaFeature);
+  const sec = getPropSeccion(currentManzanaFeature);
   const man = getPropManzana(currentManzanaFeature);
   setPanel(`SECCIÓN ${safe(sec)} — MANZANA ${safe(man)}`, `
     <p>Selecciona un lote o usa <b>Mostrar lotes</b>.</p>
@@ -528,7 +420,7 @@ function showLoteInfo(feature){
   const paqueteKey = (props.paquete || null);
 
   let html = `
-    <p><b>SECCIÓN:</b> ${safe(currentSeccion || getPropSeccion(currentManzanaFeature))}</p>
+    <p><b>SECCIÓN:</b> ${safe(getPropSeccion(currentManzanaFeature))}</p>
     <p><b>MANZANA:</b> ${safe(getPropManzana(currentManzanaFeature))}</p>
     <p><b>LOTE:</b> ${safe(loteVal)}</p>
     <p><b>Estatus:</b> ${safe(status)}</p>
@@ -580,11 +472,6 @@ function findLotLayerByInput(loteInput){
 }
 
 async function ensureManzanaSelected(sec, man){
-  // asegurar nivel MANZANAS
-  if (!currentSeccion || currentSeccion !== sec){
-    showPublicLevelManzanas(sec);
-  }
-
   if (currentManzanaFeature && getPropSeccion(currentManzanaFeature) === sec && getPropManzana(currentManzanaFeature) === man){
     if (!lotesLayer) await loadLotesForCurrentManzana();
     return;
@@ -597,8 +484,7 @@ async function ensureManzanaSelected(sec, man){
   }
 
   $seccionSelect.value = sec;
-  // reconstruye manzanas
-  showPublicLevelManzanas(sec);
+  rebuildManzanasUIForSeccion(sec);
   $manzanaSelect.value = man;
 
   currentManzanaFeature = f;
@@ -606,7 +492,9 @@ async function ensureManzanaSelected(sec, man){
 
   try {
     const temp = L.geoJSON({ type:"FeatureCollection", features:[f] });
-    flyToBoundsSmooth(temp.getBounds().pad(0.20), 0.65);
+    const pad = isCircleFeature(f) ? 0.40 : 0.20;
+    const mz  = isCircleFeature(f) ? 3 : null;
+    flyToBoundsSmooth(temp.getBounds().pad(pad), 0.65, mz);
   } catch {}
 }
 
@@ -629,7 +517,7 @@ function setupSearch(){
       return;
     }
 
-    flyToBoundsSmooth(layer.getBounds().pad(0.35), 0.45);
+    flyToBoundsSmooth(layer.getBounds().pad(0.35), 0.45, null);
 
     const st = layer.feature?.properties?.estatus;
     const base = lotPinnedStyle(st);
@@ -644,12 +532,20 @@ function setupSearch(){
 }
 
 /* =========================================================
-   DROPDOWNS (PUBLICO)
+   DROPDOWNS
    ========================================================= */
+function rebuildManzanasUIForSeccion(seccion){
+  currentSeccion = seccion;
+  const features = buildManzanasListBySeccion(manzanasScaled.features, seccion);
+  fillManzanaSelect(features);
+  renderManzanasLayer(features);
+
+  $loteInput.value = "";
+}
+
 function setupDropdowns(){
   $seccionSelect.onchange = () => {
     const sec = ($seccionSelect.value || "").trim();
-
     $loteInput.value = "";
     $manzanaSelect.value = "";
     currentManzanaFeature = null;
@@ -657,11 +553,10 @@ function setupDropdowns(){
     updateToggleLotsButton();
 
     if (!sec){
-      showPublicLevelSecciones();
+      renderManzanasLayer(manzanasScaled.features);
       return;
     }
-
-    showPublicLevelManzanas(sec);
+    rebuildManzanasUIForSeccion(sec);
   };
 
   $manzanaSelect.onchange = async () => {
@@ -674,30 +569,19 @@ function setupDropdowns(){
 }
 
 /* =========================================================
-   BOTONES (PUBLICO)
+   BOTONES
    ========================================================= */
 function setupButtons(){
   $backBtn.onclick = () => {
-    // Si estás viendo lotes -> volver a manzanas
-    if (lotesLayer){
-      clearLotesLayer();
-      pinnedLotLayer = null;
-      currentManzanaFeature = null;
-      showAllLots = false;
-      updateToggleLotsButton();
-      if (currentSeccion) showPublicLevelManzanas(currentSeccion);
-      else showPublicLevelSecciones();
-      return;
-    }
-
-    // Si estás viendo manzanas -> volver a secciones
-    if (manzanasLayer){
-      showPublicLevelSecciones();
-      return;
-    }
-
-    // ya estás en secciones
-    showPublicLevelSecciones();
+    currentSeccion = null;
+    currentManzanaFeature = null;
+    $seccionSelect.value = "";
+    $manzanaSelect.value = "";
+    $loteInput.value = "";
+    showAllLots = false;
+    clearLotesLayer();
+    updateToggleLotsButton();
+    renderManzanasLayer(manzanasScaled.features);
   };
 
   if ($toggleLotsBtn){
@@ -759,6 +643,212 @@ const editor = {
   })
 };
 
+/* =========================================================
+   NUEVO: Plantilla + duplicación (solo en ?edit=lots)
+   ========================================================= */
+let lotTemplate = null;           // { type:"Polygon"|"Circle", ringLatLngs|centerLatLng, radius, props }
+let customDupCenter = null;       // L.LatLng
+let pickCenterActive = false;     // para elegir centro con click
+
+function parseMaybeInt(x, fallback){
+  const n = parseInt(String(x||"").trim(), 10);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function getRingLatLngsFromPolygonCoords(coords){
+  // coords = [[x,y],...]
+  let pts = coords.map(xyToLatLng);
+  // quitar cierre duplicado si existe
+  if (pts.length >= 2){
+    const a = pts[0], b = pts[pts.length-1];
+    if (Math.abs(a.lat-b.lat)<1e-9 && Math.abs(a.lng-b.lng)<1e-9) pts.pop();
+  }
+  return pts;
+}
+
+function getManzanaCenterLatLng(){
+  // en edit lots, currentManzanaFeature es RAW (600 coords)
+  if (!currentManzanaFeature) return null;
+
+  // círculo: centro directo
+  if (isCircleFeature(currentManzanaFeature)){
+    return xyToLatLng(currentManzanaFeature.geometry.coordinates);
+  }
+
+  // polígono: centro aproximado = promedio de vertices
+  if (currentManzanaFeature.geometry?.type === "Polygon"){
+    const ring = currentManzanaFeature.geometry.coordinates?.[0] || [];
+    if (!ring.length) return null;
+    let sumX = 0, sumY = 0, count = 0;
+    for (const xy of ring){
+      if (!Array.isArray(xy) || xy.length < 2) continue;
+      sumX += xy[0];
+      sumY += xy[1];
+      count++;
+    }
+    if (!count) return null;
+    return xyToLatLng([sumX/count, sumY/count]);
+  }
+
+  return null;
+}
+
+function rotatePointAround(p, center, angRad){
+  // CRS.Simple: x=lng, y=lat
+  const x = p.lng - center.lng;
+  const y = p.lat - center.lat;
+  const c = Math.cos(angRad);
+  const s = Math.sin(angRad);
+  const xr = x*c - y*s;
+  const yr = x*s + y*c;
+  return L.latLng(center.lat + yr, center.lng + xr);
+}
+
+function translatePoint(p, dx, dy){
+  return L.latLng(p.lat + dy, p.lng + dx);
+}
+
+function makePolygonFeatureFromLatLngs(latlngs, props){
+  const coords = latlngs.map(latLngToXY);
+  coords.push(coords[0]); // cerrar
+  return {
+    type: "Feature",
+    geometry: { type: "Polygon", coordinates: [coords] },
+    properties: props
+  };
+}
+
+function setTemplateFromSelectedFeature(){
+  if (!editor.selectedFeature) return;
+
+  const f = editor.selectedFeature;
+  const props = {
+    estatus: f.properties?.estatus,
+    paquete: f.properties?.paquete
+  };
+
+  if (isCircleFeature(f)){
+    lotTemplate = {
+      type: "Circle",
+      centerLatLng: xyToLatLng(f.geometry.coordinates),
+      radius: f.properties.radius,
+      props
+    };
+  } else if (f.geometry?.type === "Polygon"){
+    const ring = f.geometry.coordinates?.[0] || [];
+    lotTemplate = {
+      type: "Polygon",
+      ringLatLngs: getRingLatLngsFromPolygonCoords(ring),
+      props
+    };
+  } else {
+    alert("Este lote no es polígono ni círculo. No se puede usar como plantilla.");
+    return;
+  }
+
+  alert("Plantilla guardada. Ahora puedes crear copias.");
+}
+
+function clearTemplate(){
+  lotTemplate = null;
+  alert("Plantilla borrada.");
+}
+
+function duplicateTemplateRadial(total, startLote, angleOffsetDeg, includeOriginal){
+  if (!currentLotesRaw) return alert("No hay archivo de lotes cargado.");
+  const src = lotTemplate || (editor.selectedFeature ? (() => { setTemplateFromSelectedFeature(); return lotTemplate; })() : null);
+  if (!src) return alert("No hay plantilla. Selecciona un lote y guarda como plantilla.");
+
+  // centro: manzana (si existe) o centro custom
+  const manzanaCenter = getManzanaCenterLatLng();
+  const center = customDupCenter || manzanaCenter;
+  if (!center) return alert("No pude calcular el centro. Usa 'Elegir centro (click en mapa)'.");
+
+  const n = Math.max(1, parseMaybeInt(total, 1));
+  const step = (2*Math.PI) / n;
+  const offset = (parseFloat(angleOffsetDeg)||0) * Math.PI/180;
+
+  // cuántas copias crear
+  const startIndex = includeOriginal ? 1 : 0;
+  let loteNum = parseMaybeInt(startLote, 1);
+
+  for (let i = startIndex; i < n; i++){
+    const ang = offset + step*i;
+
+    let newFeature = null;
+    let props = {
+      lote: String(loteNum),
+      id: String(loteNum),
+      estatus: src.props?.estatus ?? "disponible",
+      paquete: src.props?.paquete ?? null
+    };
+
+    if (src.type === "Polygon"){
+      const rotated = src.ringLatLngs.map(p => rotatePointAround(p, center, ang));
+      newFeature = makePolygonFeatureFromLatLngs(rotated, props);
+    } else {
+      // circle lot
+      const cRot = rotatePointAround(src.centerLatLng, center, ang);
+      newFeature = {
+        type: "Feature",
+        geometry: { type: "Point", coordinates: latLngToXY(cRot) },
+        properties: { ...props, shape: "circle", radius: src.radius }
+      };
+    }
+
+    currentLotesRaw.features.push(newFeature);
+    loteNum += 1;
+  }
+
+  alert("Copias creadas. Ahora copia el GeoJSON y pégalo en el archivo de lotes.");
+}
+
+function duplicateTemplateOffset(count, startLote, dx, dy, includeOriginal){
+  if (!currentLotesRaw) return alert("No hay archivo de lotes cargado.");
+  const src = lotTemplate || (editor.selectedFeature ? (() => { setTemplateFromSelectedFeature(); return lotTemplate; })() : null);
+  if (!src) return alert("No hay plantilla. Selecciona un lote y guarda como plantilla.");
+
+  const n = Math.max(1, parseMaybeInt(count, 1));
+  const stepX = parseFloat(dx)||0;
+  const stepY = parseFloat(dy)||0;
+
+  const startIndex = includeOriginal ? 1 : 0;
+  let loteNum = parseMaybeInt(startLote, 1);
+
+  for (let i = startIndex; i < n; i++){
+    const offX = stepX * i;
+    const offY = stepY * i;
+
+    let props = {
+      lote: String(loteNum),
+      id: String(loteNum),
+      estatus: src.props?.estatus ?? "disponible",
+      paquete: src.props?.paquete ?? null
+    };
+
+    let newFeature = null;
+    if (src.type === "Polygon"){
+      const moved = src.ringLatLngs.map(p => translatePoint(p, offX, offY));
+      newFeature = makePolygonFeatureFromLatLngs(moved, props);
+    } else {
+      const cMoved = translatePoint(src.centerLatLng, offX, offY);
+      newFeature = {
+        type: "Feature",
+        geometry: { type: "Point", coordinates: latLngToXY(cMoved) },
+        properties: { ...props, shape: "circle", radius: src.radius }
+      };
+    }
+
+    currentLotesRaw.features.push(newFeature);
+    loteNum += 1;
+  }
+
+  alert("Copias creadas. Ahora copia el GeoJSON y pégalo en el archivo de lotes.");
+}
+
+/* =========================================================
+   Editor internals
+   ========================================================= */
 function editorClearPoly(){
   editor.polyPoints = [];
   editor.polyMarkers.forEach(m => map.removeLayer(m));
@@ -920,6 +1010,56 @@ function renderEditSelectedPanel(){
               editor.selectedFeature?.properties?.lote ||
               "(sin id)");
 
+  // NUEVO: bloque de duplicación (solo en edit lots)
+  const dupBlock = isEditLotes ? `
+    <hr/>
+    <h3>Copiar/Duplicar lote</h3>
+    <p style="font-size:12px;color:#666;">
+      Ideal para VIP: dibuja 1 rectángulo, guárdalo como plantilla y crea 8 copias alrededor.
+    </p>
+
+    <p><b>Plantilla:</b> ${lotTemplate ? "✅ lista" : "— (no hay)"}</p>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;">
+      <button id="btnSetTemplate" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Guardar este lote como plantilla</button>
+      <button id="btnClearTemplate" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Borrar plantilla</button>
+      <button id="btnPickCenter" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Elegir centro (click en mapa)</button>
+    </div>
+
+    <label><b>Modo</b></label><br/>
+    <select id="dupMode" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;">
+      <option value="radial">Alrededor (radial)</option>
+      <option value="offset">En línea (desplazar)</option>
+    </select>
+
+    <label><b>Cantidad total</b></label><br/>
+    <input id="dupCount" value="8" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+    <label><b>Inicio LOTE (para nuevas copias)</b></label><br/>
+    <input id="dupStart" value="2" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+    <div id="radialFields">
+      <label><b>Ángulo offset (grados)</b></label><br/>
+      <input id="dupAngle" value="0" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+    </div>
+
+    <div id="offsetFields" style="display:none;">
+      <label><b>Desplazar X (pixeles)</b></label><br/>
+      <input id="dupDx" value="200" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+      <label><b>Desplazar Y (pixeles)</b></label><br/>
+      <input id="dupDy" value="0" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+    </div>
+
+    <label style="display:block;margin-top:6px;">
+      <input type="checkbox" id="dupInclude" checked />
+      Ya tengo el lote #1 (no lo vuelvas a crear)
+    </label>
+
+    <button id="btnDoDup" style="margin-top:10px;padding:10px 12px;border-radius:10px;border:1px solid #ccc;cursor:pointer;width:100%;">
+      Crear copias
+    </button>
+  ` : "";
+
   setPanel(`Editar ${kind}: ${safe(id)}`, `
     <p><b>Tipo:</b> ${editor.selectedIsCircle ? "Círculo" : "Polígono"}</p>
     <p>Mueve puntos (polígono) o centro/radio (círculo).</p>
@@ -931,6 +1071,8 @@ function renderEditSelectedPanel(){
       <button id="btnCopyGeo" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar GeoJSON</button>
       <button id="btnBack" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Volver</button>
     </div>
+
+    ${dupBlock}
   `);
 
   document.getElementById("btnSaveEdit").onclick = () => {
@@ -979,10 +1121,56 @@ function renderEditSelectedPanel(){
     else if (isEditManzanas) renderEditManzanasPanel();
     else renderEditLotesPanel();
   };
+
+  // handlers duplicación
+  if (isEditLotes) {
+    const modeEl = document.getElementById("dupMode");
+    const radialFields = document.getElementById("radialFields");
+    const offsetFields = document.getElementById("offsetFields");
+
+    modeEl.onchange = () => {
+      const m = modeEl.value;
+      radialFields.style.display = (m === "radial") ? "" : "none";
+      offsetFields.style.display = (m === "offset") ? "" : "none";
+    };
+
+    document.getElementById("btnSetTemplate").onclick = () => {
+      setTemplateFromSelectedFeature();
+      renderEditSelectedPanel();
+    };
+
+    document.getElementById("btnClearTemplate").onclick = () => {
+      clearTemplate();
+      renderEditSelectedPanel();
+    };
+
+    document.getElementById("btnPickCenter").onclick = () => {
+      pickCenterActive = true;
+      alert("Da 1 click en el mapa para guardar el centro.");
+    };
+
+    document.getElementById("btnDoDup").onclick = () => {
+      const mode = modeEl.value;
+      const total = parseMaybeInt(document.getElementById("dupCount").value, 8);
+      const start = parseMaybeInt(document.getElementById("dupStart").value, 1);
+      const includeOriginal = document.getElementById("dupInclude").checked;
+
+      if (mode === "radial") {
+        const ang = parseFloat(document.getElementById("dupAngle").value) || 0;
+        duplicateTemplateRadial(total, start, ang, includeOriginal);
+        rerenderLotes_Edit();
+      } else {
+        const dx = parseFloat(document.getElementById("dupDx").value) || 0;
+        const dy = parseFloat(document.getElementById("dupDy").value) || 0;
+        duplicateTemplateOffset(total, start, dx, dy, includeOriginal);
+        rerenderLotes_Edit();
+      }
+    };
+  }
 }
 
 /* =========================================================
-   EDIT panels
+   EDIT panels (IGUAL QUE TU VERSION)
    ========================================================= */
 function renderEditSeccionesPanel(){
   editor.mode = "edit";
@@ -1218,6 +1406,10 @@ function renderEditLotesPanel(){
     <p style="font-size:12px;color:#666;margin-top:10px;">
       Destino: <b>${safe(lotesFile)}</b>
     </p>
+
+    <p style="font-size:12px;color:#666;">
+      Plantilla: ${lotTemplate ? "✅ lista" : "— (no hay)"}
+    </p>
   `);
 
   const $editBody = document.getElementById("editBody");
@@ -1380,6 +1572,7 @@ function rerenderLotes_Edit(){
 
 /* =========================================================
    Map click handler for CREATE (polygon or circle)
+   - Modificado: si pickCenterActive está ON, primero guarda centro
    ========================================================= */
 let mapClickAttached = false;
 function attachEditorMapClick(){
@@ -1387,6 +1580,14 @@ function attachEditorMapClick(){
   mapClickAttached = true;
 
   map.on("click", (e) => {
+    // NUEVO: elegir centro para duplicación
+    if (pickCenterActive) {
+      customDupCenter = e.latlng;
+      pickCenterActive = false;
+      alert("Centro guardado.");
+      return;
+    }
+
     if (!(isEditSecciones || isEditManzanas || isEditLotes)) return;
     if (editor.mode !== "create") return;
 
@@ -1519,7 +1720,7 @@ async function main(){
         renderEditLotesPanel();
 
         const temp = L.geoJSON(f);
-        flyToBoundsSmooth(temp.getBounds().pad(0.15), 0.65);
+        flyToBoundsSmooth(temp.getBounds().pad(0.15), 0.65, null);
       };
 
       renderEditLotesPanel();
@@ -1527,22 +1728,15 @@ async function main(){
     }
 
     // ====== NORMAL (PÚBLICO) ======
-    // Escalar ambos (secciones-top y manzanas) al tamaño de base-public
-    seccionesTopScaled = deepCopy(seccionesTopRaw);
-    applyCoordScaleToGeoJSON(seccionesTopScaled, COORD_SCALE_X, COORD_SCALE_Y);
-
     manzanasScaled = deepCopy(manzanasRaw);
     applyCoordScaleToGeoJSON(manzanasScaled, COORD_SCALE_X, COORD_SCALE_Y);
 
-    // Dropdown SECCIÓN se llena con secciones-top (no con manzanas)
-    const secciones = buildSeccionesList(seccionesTopScaled.features.length ? seccionesTopScaled.features : manzanasScaled?.features || []);
+    const secciones = buildSeccionesList(manzanasScaled.features);
     fillSeccionSelect(secciones);
-    $manzanaSelect.innerHTML = `<option value="">MANZANA...</option>`;
+    fillManzanaSelect([]);
 
-    // Iniciar en nivel SECCIONES (mapa seleccionable)
-    showPublicLevelSecciones();
+    renderManzanasLayer(manzanasScaled.features);
 
-    // Handlers
     setupDropdowns();
     setupSearch();
     setupButtons();
