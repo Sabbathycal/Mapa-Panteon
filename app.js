@@ -19,11 +19,11 @@ const PAQUETES_URL      = "./data/paquetes.json";
 // Edit modes:
 // ?edit=secciones  => EDITOR SECCIONES (nuevo)
 // ?edit=manzanas   => EDITOR MANZANAS (antes ?edit=sections)
-// ?edit=lots       => EDITOR LOTES (igual)
-const editMode = new URLSearchParams(location.search).get("edit"); // null | "secciones" | "manzanas" | "lots"
+// ?edit=lotes       => EDITOR LOTES (igual)
+const editMode = new URLSearchParams(location.search).get("edit"); // null | "secciones" | "manzanas" | "lotes"
 const isEditSecciones = editMode === "secciones";
 const isEditManzanas  = editMode === "manzanas";
-const isEditLotes     = (editMode === "lots" || editMode === "lotes"); // tolerante
+const isEditLotes     = (editMode === "lotes" || editMode === "lotes"); // tolerante
 
 const BASE_IMAGE_URL = (isEditSecciones || isEditManzanas || isEditLotes) ? BASE_IMAGE_EDIT_URL : BASE_IMAGE_PUBLIC_URL;
 
@@ -54,7 +54,7 @@ let currentSeccion = null;          // "ORO"
 let currentManzanaFeature = null;   // feature seleccionada (scaled en público, raw en edit)
 let currentLotesRaw = null;         // lotes raw del archivo de esa manzana (en edit lotes)
 
-let showAllLots = false;
+let showAlllotes = false;
 
 // escala 600->baseActual
 let COORD_SCALE_X = 1;
@@ -70,7 +70,7 @@ const $manzanaSelect  = document.getElementById("manzanaSelect");
 const $loteInput      = document.getElementById("searchInput");
 const $searchBtn      = document.getElementById("searchBtn");
 const $backBtn        = document.getElementById("backBtn");
-const $toggleLotsBtn  = document.getElementById("toggleLotsBtn");
+const $togglelotesBtn  = document.getElementById("togglelotesBtn");
 
 /* =========================================================
    HELPERS
@@ -200,14 +200,14 @@ function styleByStatus(status){
   return { weight: 1, opacity: 1, fillOpacity: 0.25 };
 }
 function lotHiddenStyle(){ return { weight: 1, opacity: 0, fillOpacity: 0 }; }
-function lotBaseStyle(status){ return showAllLots ? styleByStatus(status) : lotHiddenStyle(); }
+function lotBaseStyle(status){ return showAlllotes ? styleByStatus(status) : lotHiddenStyle(); }
 function lotPinnedStyle(status){ const s = styleByStatus(status); return { ...s, weight: 2 }; }
 
-function updateToggleLotsButton(){
-  if (!$toggleLotsBtn) return;
+function updateTogglelotesButton(){
+  if (!$togglelotesBtn) return;
   const enabled = !!currentManzanaFeature && !(isEditSecciones || isEditManzanas || isEditLotes);
-  $toggleLotsBtn.disabled = !enabled;
-  $toggleLotsBtn.textContent = showAllLots ? "Ocultar lotes" : "Mostrar lotes";
+  $togglelotesBtn.disabled = !enabled;
+  $togglelotesBtn.textContent = showAlllotes ? "Ocultar lotes" : "Mostrar lotes";
 }
 
 /* =========================================================
@@ -286,7 +286,7 @@ function renderManzanasLayer(filteredFeatures){
   pinnedManzanaLayer = null;
   currentManzanaFeature = null;
   clearLotesLayer();
-  updateToggleLotsButton();
+  updateTogglelotesButton();
 
   const fc = { type:"FeatureCollection", features: filteredFeatures };
 
@@ -348,8 +348,8 @@ async function selectManzana(feature, layer){
 async function loadLotesForCurrentManzana(){
   clearLotesLayer();
   pinnedLotLayer = null;
-  showAllLots = false;
-  updateToggleLotsButton();
+  showAlllotes = false;
+  updateTogglelotesButton();
 
   const lotesFile = currentManzanaFeature?.properties?.lotesFile;
   if (!lotesFile){
@@ -404,7 +404,7 @@ async function loadLotesForCurrentManzana(){
     }
   }).addTo(map);
 
-  updateToggleLotsButton();
+  updateTogglelotesButton();
 
   const sec = getPropSeccion(currentManzanaFeature);
   const man = getPropManzana(currentManzanaFeature);
@@ -550,7 +550,7 @@ function setupDropdowns(){
     $manzanaSelect.value = "";
     currentManzanaFeature = null;
     clearLotesLayer();
-    updateToggleLotsButton();
+    updateTogglelotesButton();
 
     if (!sec){
       renderManzanasLayer(manzanasScaled.features);
@@ -578,16 +578,16 @@ function setupButtons(){
     $seccionSelect.value = "";
     $manzanaSelect.value = "";
     $loteInput.value = "";
-    showAllLots = false;
+    showAlllotes = false;
     clearLotesLayer();
-    updateToggleLotsButton();
+    updateTogglelotesButton();
     renderManzanasLayer(manzanasScaled.features);
   };
 
-  if ($toggleLotsBtn){
-    $toggleLotsBtn.onclick = () => {
-      showAllLots = !showAllLots;
-      updateToggleLotsButton();
+  if ($togglelotesBtn){
+    $togglelotesBtn.onclick = () => {
+      showAlllotes = !showAlllotes;
+      updateTogglelotesButton();
       if (!lotesLayer) return;
       lotesLayer.eachLayer(layer => {
         const st = layer.feature?.properties?.estatus;
@@ -644,7 +644,7 @@ const editor = {
 };
 
 /* =========================================================
-   NUEVO: Plantilla + duplicación (solo en ?edit=lots)
+   NUEVO: Plantilla + duplicación (solo en ?edit=lotes)
    ========================================================= */
 let lotTemplate = null;           // { type:"Polygon"|"Circle", ringLatLngs|centerLatLng, radius, props }
 let customDupCenter = null;       // L.LatLng
@@ -667,7 +667,7 @@ function getRingLatLngsFromPolygonCoords(coords){
 }
 
 function getManzanaCenterLatLng(){
-  // en edit lots, currentManzanaFeature es RAW (600 coords)
+  // en edit lotes, currentManzanaFeature es RAW (600 coords)
   if (!currentManzanaFeature) return null;
 
   // círculo: centro directo
@@ -1010,7 +1010,7 @@ function renderEditSelectedPanel(){
               editor.selectedFeature?.properties?.lote ||
               "(sin id)");
 
-  // NUEVO: bloque de duplicación (solo en edit lots)
+  // NUEVO: bloque de duplicación (solo en edit lotes)
   const dupBlock = isEditLotes ? `
     <hr/>
     <h3>Copiar/Duplicar lote</h3>
@@ -1662,7 +1662,7 @@ async function main(){
 
     // ====== EDIT SECCIONES ======
     if (isEditSecciones){
-      if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
+      if ($togglelotesBtn) $togglelotesBtn.disabled = true;
       if ($searchBtn) $searchBtn.disabled = true;
 
       $seccionSelect.innerHTML = `<option value="">(Edición SECCIONES)</option>`;
@@ -1675,7 +1675,7 @@ async function main(){
 
     // ====== EDIT MANZANAS ======
     if (isEditManzanas){
-      if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
+      if ($togglelotesBtn) $togglelotesBtn.disabled = true;
       if ($searchBtn) $searchBtn.disabled = true;
 
       $seccionSelect.innerHTML = `<option value="">(Edición MANZANAS)</option>`;
@@ -1688,7 +1688,7 @@ async function main(){
 
     // ====== EDIT LOTES ======
     if (isEditLotes){
-      if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
+      if ($togglelotesBtn) $togglelotesBtn.disabled = true;
       if ($searchBtn) $searchBtn.disabled = true;
 
       const secciones = buildSeccionesList(manzanasRaw.features);
@@ -1740,7 +1740,7 @@ async function main(){
     setupDropdowns();
     setupSearch();
     setupButtons();
-    updateToggleLotsButton();
+    updateTogglelotesButton();
   };
 
   img.onerror = () => {
