@@ -2,14 +2,14 @@
    CONFIG
    ========================================================= */
 const BASE_IMAGE_PUBLIC_URL = "./assets/map/base-public.webp"; // ligero (público)
-const BASE_IMAGE_EDIT_URL   = "./assets/map/base.png";         // 600dpi (edición)
+const BASE_IMAGE_EDIT_URL   = "./assets/map/base.png";         // 1200dpi (edición)
 
 // Versión para evitar cache (se define en index.html como window.APP_VERSION)
 const APP_VERSION = (window.APP_VERSION || "dev").toString();
 
-// Tus GeoJSON están guardados en coordenadas del mapa 600dpi (base.png)
-const DATA_COORD_WIDTH  = 5553;
-const DATA_COORD_HEIGHT = 4570;
+// Tus GeoJSON están guardados en coordenadas del mapa 1200dpi (base.png)
+const DATA_COORD_WIDTH  = 11045;
+const DATA_COORD_HEIGHT = 9079;
 
 // Archivos de datos
 const SECCIONES_TOP_URL = "./data/secciones-top.geojson"; // editor ?edit=secciones + PUBLICO secciones
@@ -70,7 +70,7 @@ let currentLotesRaw = null;
 
 let showAllLots = false;
 
-// escala 600->baseActual
+// escala 1200->baseActual
 let COORD_SCALE_X = 1;
 let COORD_SCALE_Y = 1;
 
