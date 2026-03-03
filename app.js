@@ -11,7 +11,7 @@ const DATA_COORD_HEIGHT = 9079;
 // Archivos de datos
 const SECCIONES_TOP_URL = "./data/secciones-top.geojson"; // editor ?edit=secciones + PUBLICO secciones
 const MANZANAS_URL      = "./data/secciones.geojson";     // tu archivo actual (MANZANAS)
-const NICHOS_ZONAS_URL  = "./data/nichos"
+const NICHOS_ZONAS_URL  = "./data/nichos-zonas.geojson";  // GeoJSON zonas clickeables de nichos
 
 // Catálogos
 const LOTES_INFO_URL    = "./data/lotes.json";
@@ -54,11 +54,12 @@ let manzanasLayer = null;          // público + editor manzanas
 let lotesLayer = null;             // público + editor lotes
 
 // NICHOS
-let nichosZonasRaw = null
-let nichosZonasScaled = null
-let nichosLayer = null
+let nichosZonasRaw = null;
+let nichosZonasScaled = null;
+let nichosLayer = null;
 
-let nichosSelection = { zonaId: null, cara: null, numero: null };
+// IMPORTANTE: nombre correcto (singular) para coincidir con openNichoModal()
+let nichoSelection = { zonaId: null, cara: null, numero: null };
 
 let currentSeccion = null;
 let currentSeccionFeature = null;
@@ -120,9 +121,8 @@ function isCircleFeature(f){
   );
 }
 
-// NUEVO: color default para secciones
+// Color default para secciones
 const DEFAULT_SECCION_COLOR = "#C9A227"; // dorado suave
-
 function getSeccionColor(feature){
   const c = feature?.properties?.color;
   if (typeof c === "string" && c.trim()) return c.trim();
@@ -207,13 +207,14 @@ function pulseLayer(layer, baseStyle, pulseAdd){
    STYLES
    ========================================================= */
 function hiddenStyle(){ return { weight: 2, opacity: 0, fillOpacity: 0 }; }
+
 function hoverStyle(c){
   return {
-    color: c || "#111827",      // borde
+    color: c || "#111827",
     weight: 2,
     opacity: 1,
-    fillColor: c || "#111827",  // relleno
-    fillOpacity: 0.28           // MÁS visible
+    fillColor: c || "#111827",
+    fillOpacity: 0.28
   };
 }
 
@@ -382,7 +383,10 @@ function renderSeccionesLayerPublic(){
     },
     pointToLayer: (feature, latlng) => {
       const layer = featureToLayerCircleAware(feature, latlng);
-      try { const col = getSeccionColor(feature); layer.setStyle({ ...hiddenStyle(), color: col, fillColor: col }); } catch {}
+      try {
+        const col = getSeccionColor(feature);
+        layer.setStyle({ ...hiddenStyle(), color: col, fillColor: col });
+      } catch {}
       return layer;
     },
     onEachFeature: (feature, layer) => {
@@ -611,6 +615,9 @@ function showLoteInfo(feature){
   if (btn) btn.onclick = () => alert("Aquí irá el login + consulta segura del saldo.");
 }
 
+/* =========================================================
+   NICHOS MODAL
+   ========================================================= */
 function openNichoModal(zonaFeature){
   const modal = document.getElementById("nichoModal");
   const sub   = document.getElementById("nichoModalSub");
@@ -632,9 +639,7 @@ function openNichoModal(zonaFeature){
 
   modal.style.display = "flex";
 
-  const close = () => {
-    modal.style.display = "none";
-  };
+  const close = () => { modal.style.display = "none"; };
 
   document.getElementById("nichoCloseBtn").onclick = close;
   modal.onclick = (e) => { if (e.target === modal) close(); };
@@ -643,7 +648,6 @@ function openNichoModal(zonaFeature){
     nichoSelection.cara = cara;
     sub.textContent = `Zona: ${zonaId} — Cara: ${cara} — Selecciona nicho`;
 
-    // Imagen depende de zona y cara
     const src = `./assets/nichos/${zonaId}-${cara}.png`;
     img.src = src;
     img.onload = () => {
@@ -661,26 +665,18 @@ function openNichoModal(zonaFeature){
   document.getElementById("caraConcavoBtn").onclick = () => setCara("concavo");
   document.getElementById("caraConvexoBtn").onclick = () => setCara("convexo");
 
-  // CLICK EN IMAGEN: por ahora guardamos coordenadas relativas; en el paso 2 lo convertimos a "número"
   layer.onclick = (ev) => {
     if (!nichoSelection.cara) return;
 
     const rect = layer.getBoundingClientRect();
-    const rx = (ev.clientX - rect.left) / rect.width;   // 0..1
-    const ry = (ev.clientY - rect.top) / rect.height;   // 0..1
+    const rx = (ev.clientX - rect.left) / rect.width;
+    const ry = (ev.clientY - rect.top) / rect.height;
 
-    // temporal: guardar "coordenada" hasta que tengamos una rejilla / mapa de hotspots
     nichoSelection.numero = `x=${rx.toFixed(3)}, y=${ry.toFixed(3)}`;
 
     debug.textContent = `Seleccionado: zona=${nichoSelection.zonaId}, cara=${nichoSelection.cara}, nicho=${nichoSelection.numero}`;
-
-    // Si quieres, aquí podríamos cerrar y mostrar en panel derecho
-    // modal.style.display = "none";
   };
 }
-
-
-
 
 /* =========================================================
    BÚSQUEDA (SECCIÓN → MANZANA → LOTE)
@@ -834,20 +830,17 @@ const editor = {
   mode: "edit",
   drawShape: "polygon",
 
-  // polygon draw
   polyPoints: [],
   polyMarkers: [],
   polyLine: null,
   polyPreview: null,
 
-  // circle draw
   circleCenter: null,
   circleCenterMarker: null,
   circleRadiusMarker: null,
   circlePreview: null,
   circleRadius: null,
 
-  // editing existing
   selectedLayer: null,
   selectedFeature: null,
   selectedIsCircle: false,
@@ -871,9 +864,6 @@ const editor = {
   })
 };
 
-/* =========================================================
-   Editor helpers
-   ========================================================= */
 function editorClearPoly(){
   editor.polyPoints = [];
   editor.polyMarkers.forEach(m => map.removeLayer(m));
@@ -1035,7 +1025,6 @@ function renderEditSelectedPanel(){
               editor.selectedFeature?.properties?.lote ||
               "(sin id)");
 
-  // NUEVO: si estás editando una SECCIÓN, mostrar color
   const showColor = isEditSecciones && editor.selectedFeature?.properties;
   const currentColor = showColor ? (editor.selectedFeature.properties.color || DEFAULT_SECCION_COLOR) : DEFAULT_SECCION_COLOR;
 
@@ -1064,14 +1053,14 @@ function renderEditSelectedPanel(){
 
   if (showColor){
     const $col = document.getElementById("editSeccionColor");
-    $col.oninput = () => {
-      editor.selectedFeature.properties.color = $col.value;
-
-      // refrescar estilo del layer seleccionado (si existe)
-      try {
-        editor.selectedLayer.setStyle({ weight: 2, opacity: 1, fillOpacity: 0.06, fillColor: $col.value });
-      } catch {}
-    };
+    if ($col){
+      $col.oninput = () => {
+        editor.selectedFeature.properties.color = $col.value;
+        try {
+          editor.selectedLayer.setStyle({ weight: 2, opacity: 1, fillOpacity: 0.06, fillColor: $col.value });
+        } catch {}
+      };
+    }
   }
 
   document.getElementById("btnSaveEdit").onclick = () => {
@@ -1149,6 +1138,90 @@ function renderEditSeccionesPanel(){
       Destino: <b>${safe(SECCIONES_TOP_URL)}</b>
     </p>
   `);
+
+  const $editBody = document.getElementById("editBody");
+
+  document.getElementById("btnEdit").onclick = () => {
+    editor.mode = "edit";
+    editorClearPoly(); editorClearCircle();
+    $editBody.innerHTML = `<p><b>Editar:</b> clic en una sección para editar (polígono o círculo). Ahora también puedes cambiar color.</p>`;
+    rerenderSecciones_Edit();
+  };
+
+  document.getElementById("btnCreate").onclick = () => {
+    editor.mode = "create";
+    editorStopEditing();
+    editorClearPoly(); editorClearCircle();
+
+    $editBody.innerHTML = `
+      <p><b>Crear:</b> elige forma:</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+        <button id="btnPoly" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Polígono</button>
+        <button id="btnCircle" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Círculo</button>
+        <button id="btnClear" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Limpiar</button>
+      </div>
+
+      <p><b>Puntos (polígono):</b> <span id="ptCount">0</span></p>
+
+      <label><b>SECCIÓN</b></label><br/>
+      <input id="newSeccion" placeholder="Ej. SAN ANDRES" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+      <label><b>Nombre (opcional)</b></label><br/>
+      <input id="newNombre" placeholder="Ej. Zona SAN ANDRES" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+      <label><b>Color</b></label><br/>
+      <input id="newColor" type="color" value="${DEFAULT_SECCION_COLOR}"
+        style="width:100%;height:44px;border:1px solid #ccc;border-radius:10px;padding:4px;cursor:pointer;" />
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+        <button id="btnSaveNew" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Guardar nueva</button>
+      </div>
+    `;
+
+    document.getElementById("btnPoly").onclick = () => { editor.drawShape = "polygon"; };
+    document.getElementById("btnCircle").onclick = () => { editor.drawShape = "circle"; };
+    document.getElementById("btnClear").onclick = () => { editorClearPoly(); editorClearCircle(); };
+
+    document.getElementById("btnSaveNew").onclick = () => {
+      const seccion = (document.getElementById("newSeccion").value || "").trim();
+      const nombre  = (document.getElementById("newNombre").value || "").trim();
+      const color   = (document.getElementById("newColor").value || "").trim() || DEFAULT_SECCION_COLOR;
+
+      if (!seccion) return alert("Falta SECCIÓN.");
+
+      const props = { seccion, nombre: nombre || seccion, id: seccion, color };
+
+      let feature = null;
+      if (editor.drawShape === "polygon"){
+        if (editor.polyPoints.length < 3) return alert("Polígono: mínimo 3 puntos.");
+        feature = { type:"Feature", geometry:{ type:"Polygon", coordinates:ringToGeoJsonCoords(editor.polyPoints) }, properties: props };
+      } else {
+        if (!editor.circleCenter || typeof editor.circleRadius !== "number") return alert("Círculo: clic centro y luego borde.");
+        feature = { type:"Feature", geometry:{ type:"Point", coordinates: latLngToXY(editor.circleCenter) }, properties:{ ...props, shape:"circle", radius: editor.circleRadius } };
+      }
+
+      seccionesTopRaw.features.push(feature);
+      editorClearPoly(); editorClearCircle();
+      rerenderSecciones_Edit();
+      alert("Sección creada en memoria. Copia el GeoJSON y pégalo en data/secciones-top.geojson");
+    };
+
+    rerenderSecciones_Edit();
+  };
+
+  document.getElementById("btnCopy").onclick = async () => {
+    const txt = JSON.stringify(seccionesTopRaw || { type:"FeatureCollection", features:[] }, null, 2);
+    try {
+      await navigator.clipboard.writeText(txt);
+      alert("Copiado. Pégalo en data/secciones-top.geojson (reemplazando contenido).");
+    } catch {
+      setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
+    }
+  };
+
+  document.getElementById("btnExit").onclick = () => location.href = "./";
+  document.getElementById("btnEdit").click();
+}
 
 function renderEditManzanasPanel(){
   editor.mode = "edit";
@@ -1414,90 +1487,6 @@ function rerenderLotes_Edit(){
       });
     }
   }).addTo(map);
-}  
-
-  const $editBody = document.getElementById("editBody");
-
-  document.getElementById("btnEdit").onclick = () => {
-    editor.mode = "edit";
-    editorClearPoly(); editorClearCircle();
-    $editBody.innerHTML = `<p><b>Editar:</b> clic en una sección para editar (polígono o círculo). Ahora también puedes cambiar color.</p>`;
-    rerenderSecciones_Edit();
-  };
-
-  document.getElementById("btnCreate").onclick = () => {
-    editor.mode = "create";
-    editorStopEditing();
-    editorClearPoly(); editorClearCircle();
-
-    $editBody.innerHTML = `
-      <p><b>Crear:</b> elige forma:</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-        <button id="btnPoly" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Polígono</button>
-        <button id="btnCircle" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Círculo</button>
-        <button id="btnClear" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Limpiar</button>
-      </div>
-
-      <p><b>Puntos (polígono):</b> <span id="ptCount">0</span></p>
-
-      <label><b>SECCIÓN</b></label><br/>
-      <input id="newSeccion" placeholder="Ej. SAN ANDRES" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
-
-      <label><b>Nombre (opcional)</b></label><br/>
-      <input id="newNombre" placeholder="Ej. Zona SAN ANDRES" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
-
-      <label><b>Color</b></label><br/>
-      <input id="newColor" type="color" value="${DEFAULT_SECCION_COLOR}"
-        style="width:100%;height:44px;border:1px solid #ccc;border-radius:10px;padding:4px;cursor:pointer;" />
-
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-        <button id="btnSaveNew" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Guardar nueva</button>
-      </div>
-    `;
-
-    document.getElementById("btnPoly").onclick = () => { editor.drawShape = "polygon"; };
-    document.getElementById("btnCircle").onclick = () => { editor.drawShape = "circle"; };
-    document.getElementById("btnClear").onclick = () => { editorClearPoly(); editorClearCircle(); };
-
-    document.getElementById("btnSaveNew").onclick = () => {
-      const seccion = (document.getElementById("newSeccion").value || "").trim();
-      const nombre  = (document.getElementById("newNombre").value || "").trim();
-      const color   = (document.getElementById("newColor").value || "").trim() || DEFAULT_SECCION_COLOR;
-
-      if (!seccion) return alert("Falta SECCIÓN.");
-
-      const props = { seccion, nombre: nombre || seccion, id: seccion, color };
-
-      let feature = null;
-      if (editor.drawShape === "polygon"){
-        if (editor.polyPoints.length < 3) return alert("Polígono: mínimo 3 puntos.");
-        feature = { type:"Feature", geometry:{ type:"Polygon", coordinates:ringToGeoJsonCoords(editor.polyPoints) }, properties: props };
-      } else {
-        if (!editor.circleCenter || typeof editor.circleRadius !== "number") return alert("Círculo: clic centro y luego borde.");
-        feature = { type:"Feature", geometry:{ type:"Point", coordinates: latLngToXY(editor.circleCenter) }, properties:{ ...props, shape:"circle", radius: editor.circleRadius } };
-      }
-
-      seccionesTopRaw.features.push(feature);
-      editorClearPoly(); editorClearCircle();
-      rerenderSecciones_Edit();
-      alert("Sección creada en memoria. Copia el GeoJSON y pégalo en data/secciones-top.geojson");
-    };
-
-    rerenderSecciones_Edit();
-  };
-
-  document.getElementById("btnCopy").onclick = async () => {
-    const txt = JSON.stringify(seccionesTopRaw || { type:"FeatureCollection", features:[] }, null, 2);
-    try {
-      await navigator.clipboard.writeText(txt);
-      alert("Copiado. Pégalo en data/secciones-top.geojson (reemplazando contenido).");
-    } catch {
-      setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
-    }
-  };
-
-  document.getElementById("btnExit").onclick = () => location.href = "./";
-  document.getElementById("btnEdit").click();
 }
 
 function rerenderSecciones_Edit(){
@@ -1580,128 +1569,136 @@ async function main(){
 
   const img = new Image();
   img.onload = async () => {
-    const w = img.naturalWidth;
-    const h = img.naturalHeight;
-    const bounds = [[0,0],[h,w]];
+    try {
+      const w = img.naturalWidth;
+      const h = img.naturalHeight;
+      const bounds = [[0,0],[h,w]];
 
-    COORD_SCALE_X = w / DATA_COORD_WIDTH;
-    COORD_SCALE_Y = h / DATA_COORD_HEIGHT;
+      COORD_SCALE_X = w / DATA_COORD_WIDTH;
+      COORD_SCALE_Y = h / DATA_COORD_HEIGHT;
 
-    L.imageOverlay(BASE_IMAGE_URL, bounds).addTo(map);
-    map.fitBounds(bounds);
+      L.imageOverlay(BASE_IMAGE_URL, bounds).addTo(map);
+      map.fitBounds(bounds);
 
-    attachEditorMapClick();
+      attachEditorMapClick();
 
-    manzanasRaw = await loadJson(MANZANAS_URL);
+      manzanasRaw = await loadJson(MANZANAS_URL);
 
-    try { seccionesTopRaw = await loadJson(SECCIONES_TOP_URL); }
-    catch { seccionesTopRaw = { type:"FeatureCollection", features: [] }; }
+      try { seccionesTopRaw = await loadJson(SECCIONES_TOP_URL); }
+      catch { seccionesTopRaw = { type:"FeatureCollection", features: [] }; }
 
-    if (isEditSecciones){
-      if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
-      if ($searchBtn) $searchBtn.disabled = true;
+      // ====== EDIT SECCIONES ======
+      if (isEditSecciones){
+        if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
+        if ($searchBtn) $searchBtn.disabled = true;
 
-      $seccionSelect.innerHTML = `<option value="">(Edición SECCIONES)</option>`;
-      $manzanaSelect.innerHTML = `<option value="">(Edición SECCIONES)</option>`;
+        $seccionSelect.innerHTML = `<option value="">(Edición SECCIONES)</option>`;
+        $manzanaSelect.innerHTML = `<option value="">(Edición SECCIONES)</option>`;
 
-      rerenderSecciones_Edit();
-      renderEditSeccionesPanel();
-      return;
-    }
+        rerenderSecciones_Edit();
+        renderEditSeccionesPanel();
+        return;
+      }
 
-    // ====== EDIT MANZANAS ======
-    if (isEditManzanas){
-      if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
-      if ($searchBtn) $searchBtn.disabled = true;
+      // ====== EDIT MANZANAS ======
+      if (isEditManzanas){
+        if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
+        if ($searchBtn) $searchBtn.disabled = true;
 
-      $seccionSelect.innerHTML = `<option value="">(Edición MANZANAS)</option>`;
-      $manzanaSelect.innerHTML = `<option value="">(Edición MANZANAS)</option>`;
+        $seccionSelect.innerHTML = `<option value="">(Edición MANZANAS)</option>`;
+        $manzanaSelect.innerHTML = `<option value="">(Edición MANZANAS)</option>`;
 
-      rerenderManzanas_Edit();
-      renderEditManzanasPanel();
-      return;
-    }
+        rerenderManzanas_Edit();
+        renderEditManzanasPanel();
+        return;
+      }
 
-    // ====== EDIT LOTES ======
-    if (isEditLotes){
-      if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
-      if ($searchBtn) $searchBtn.disabled = true;
+      // ====== EDIT LOTES ======
+      if (isEditLotes){
+        if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
+        if ($searchBtn) $searchBtn.disabled = true;
 
-      const secciones = buildSeccionesList(manzanasRaw.features);
+        const secciones = buildSeccionesList(manzanasRaw.features);
+        fillSeccionSelect(secciones);
+        $manzanaSelect.innerHTML = `<option value="">MANZANA...</option>`;
+
+        $seccionSelect.onchange = () => {
+          const sec = ($seccionSelect.value || "").trim();
+          const list = buildManzanasListBySeccion(manzanasRaw.features, sec);
+          fillManzanaSelect(list);
+        };
+
+        $manzanaSelect.onchange = async () => {
+          const sec = ($seccionSelect.value || "").trim();
+          const man = ($manzanaSelect.value || "").trim();
+          if (!sec || !man) return;
+
+          const f = manzanasRaw.features.find(x => getPropSeccion(x) === sec && getPropManzana(x) === man);
+          currentManzanaFeature = f;
+          if (!f) return;
+
+          const lotesFile = f.properties?.lotesFile;
+          if (!lotesFile) return alert("Esta manzana no tiene lotesFile.");
+
+          try { currentLotesRaw = await loadJson(lotesFile); }
+          catch { currentLotesRaw = { type:"FeatureCollection", features:[] }; }
+
+          rerenderLotes_Edit();
+          renderEditLotesPanel();
+
+          const temp = L.geoJSON(f);
+          flyToBoundsSmooth(temp.getBounds().pad(0.15), 0.65);
+        };
+
+        renderEditLotesPanel();
+        return;
+      }
+
+      // ====== NORMAL (público) ======
+      seccionesTopScaled = deepCopy(seccionesTopRaw);
+      applyCoordScaleToGeoJSON(seccionesTopScaled, COORD_SCALE_X, COORD_SCALE_Y);
+
+      manzanasScaled = deepCopy(manzanasRaw);
+      applyCoordScaleToGeoJSON(manzanasScaled, COORD_SCALE_X, COORD_SCALE_Y);
+
+      // === NICHOS (capa independiente) ===
+      try {
+        nichosZonasRaw = await loadJson(NICHOS_ZONAS_URL);
+        nichosZonasScaled = deepCopy(nichosZonasRaw);
+        applyCoordScaleToGeoJSON(nichosZonasScaled, COORD_SCALE_X, COORD_SCALE_Y);
+
+        if (nichosLayer) { nichosLayer.remove(); nichosLayer = null; }
+
+        nichosLayer = L.geoJSON(nichosZonasScaled, {
+          style: { weight: 2, opacity: 0, fillOpacity: 0 },
+          onEachFeature: (feature, layer) => {
+            layer.on("mouseover", () => layer.setStyle({ weight: 2, opacity: 1, fillOpacity: 0.05 }));
+            layer.on("mouseout",  () => layer.setStyle({ weight: 2, opacity: 0, fillOpacity: 0 }));
+            layer.on("click", () => openNichoModal(feature));
+          }
+        }).addTo(map);
+      } catch (e) {
+        console.warn("Nichos no cargados:", e);
+      }
+
+      const secciones = buildSeccionesList(
+        seccionesTopScaled.features.length
+          ? seccionesTopScaled.features
+          : (manzanasScaled?.features || [])
+      );
       fillSeccionSelect(secciones);
       $manzanaSelect.innerHTML = `<option value="">MANZANA...</option>`;
 
-      $seccionSelect.onchange = () => {
-        const sec = ($seccionSelect.value || "").trim();
-        const list = buildManzanasListBySeccion(manzanasRaw.features, sec);
-        fillManzanaSelect(list);
-      };
+      showPublicLevelSecciones();
 
-      $manzanaSelect.onchange = async () => {
-        const sec = ($seccionSelect.value || "").trim();
-        const man = ($manzanaSelect.value || "").trim();
-        if (!sec || !man) return;
-
-        const f = manzanasRaw.features.find(x => getPropSeccion(x) === sec && getPropManzana(x) === man);
-        currentManzanaFeature = f;
-        if (!f) return;
-
-        const lotesFile = f.properties?.lotesFile;
-        if (!lotesFile) return alert("Esta manzana no tiene lotesFile.");
-
-        try { currentLotesRaw = await loadJson(lotesFile); }
-        catch { currentLotesRaw = { type:"FeatureCollection", features:[] }; }
-
-        rerenderLotes_Edit();
-        renderEditLotesPanel();
-
-        const temp = L.geoJSON(f);
-        flyToBoundsSmooth(temp.getBounds().pad(0.15), 0.65);
-      };
-
-      renderEditLotesPanel();
-      return;
+      setupDropdowns();
+      setupSearch();
+      setupButtons();
+      updateToggleLotsButton();
+    } catch (err) {
+      console.error(err);
+      setPanel("Error en app.js", `<pre style="white-space:pre-wrap;color:#b91c1c;">${safe(err?.stack || err)}</pre>`);
     }
-
-    // NORMAL (público)
-    seccionesTopScaled = deepCopy(seccionesTopRaw);
-    applyCoordScaleToGeoJSON(seccionesTopScaled, COORD_SCALE_X, COORD_SCALE_Y);
-
-    manzanasScaled = deepCopy(manzanasRaw);
-    applyCoordScaleToGeoJSON(manzanasScaled, COORD_SCALE_X, COORD_SCALE_Y);
-
-    // === NICHOS (capa independiente) ===
-    try {
-      nichosZonasRaw = await loadJson(NICHOS_ZONAS_URL);
-      nichosZonasScaled = deepCopy(nichosZonasRaw);
-      applyCoordScaleToGeoJSON(nichosZonasScaled, COORD_SCALE_X, COORD_SCALE_Y);
-
-      if (nichosLayer) { nichosLayer.remove(); nichosLayer = null; }
-
-      nichosLayer = L.geoJSON(nichosZonasScaled, {
-        style: { weight: 2, opacity: 0, fillOpacity: 0 }, // invisible hasta hover
-        onEachFeature: (feature, layer) => {
-          layer.on("mouseover", () => layer.setStyle({ weight: 2, opacity: 1, fillOpacity: 0.05 }));
-          layer.on("mouseout",  () => layer.setStyle({ weight: 2, opacity: 0, fillOpacity: 0 }));
-          layer.on("click", () => openNichoModal(feature));
-        }
-      }).addTo(map);
-
-    } catch (e) {
-      // si no existe el archivo, no pasa nada
-      console.warn("Nichos no cargados:", e);
-    }
-
-    const secciones = buildSeccionesList(seccionesTopScaled.features.length ? seccionesTopScaled.features : manzanasScaled?.features || []);
-    fillSeccionSelect(secciones);
-    $manzanaSelect.innerHTML = `<option value="">MANZANA...</option>`;
-
-    showPublicLevelSecciones();
-
-    setupDropdowns();
-    setupSearch();
-    setupButtons();
-    updateToggleLotsButton();
   };
 
   img.onerror = () => {
