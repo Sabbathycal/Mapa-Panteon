@@ -199,11 +199,24 @@ function pulseLayer(layer, baseStyle, pulseAdd){
    STYLES
    ========================================================= */
 function hiddenStyle(){ return { weight: 2, opacity: 0, fillOpacity: 0 }; }
-function hoverStyle(color){
-  return { weight: 2, opacity: 1, fillOpacity: 0.10, fillColor: color || undefined };
+function hoverStyle(c){
+  return {
+    color: c || "#111827",      // borde
+    weight: 2,
+    opacity: 1,
+    fillColor: c || "#111827",  // relleno
+    fillOpacity: 0.28           // MÁS visible
+  };
 }
-function pinnedStyle(color){
-  return { weight: 3, opacity: 1, fillOpacity: 0.16, fillColor: color || undefined };
+
+function pinnedStyle(c){
+  return {
+    color: c || "#111827",
+    weight: 3,
+    opacity: 1,
+    fillColor: c || "#111827",
+    fillOpacity: 0.40
+  };
 }
 
 function styleByStatus(status){
@@ -355,10 +368,13 @@ function renderSeccionesLayerPublic(){
   const fc = { type:"FeatureCollection", features: seccionesTopScaled.features };
 
   seccionesLayerPublic = L.geoJSON(fc, {
-    style: (feature) => ({ ...hiddenStyle(), fillColor: getSeccionColor(feature) }),
+    style: (feature) => {
+      const col = getSeccionColor(feature);
+      return { ...hiddenStyle(), color: col, fillColor: col };
+    },
     pointToLayer: (feature, latlng) => {
       const layer = featureToLayerCircleAware(feature, latlng);
-      try { layer.setStyle({ ...hiddenStyle(), fillColor: getSeccionColor(feature) }); } catch {}
+      try { const col = getSeccionColor(feature); layer.setStyle({ ...hiddenStyle(), color: col, fillColor: col }); } catch {}
       return layer;
     },
     onEachFeature: (feature, layer) => {
@@ -368,13 +384,13 @@ function renderSeccionesLayerPublic(){
         if (pinnedSeccionLayer !== layer) layer.setStyle(hoverStyle(col));
       });
       layer.on("mouseout", () => {
-        if (pinnedSeccionLayer !== layer) layer.setStyle({ ...hiddenStyle(), fillColor: col });
+        if (pinnedSeccionLayer !== layer) layer.setStyle({ ...hiddenStyle(), color: col, fillColor: col });
       });
 
       layer.on("click", () => {
         if (pinnedSeccionLayer && pinnedSeccionLayer !== layer){
           const prevCol = getSeccionColor(pinnedSeccionLayer.feature);
-          pinnedSeccionLayer.setStyle({ ...hiddenStyle(), fillColor: prevCol });
+          pinnedSeccionLayer.setStyle({ ...hiddenStyle(), color: prevCol, fillColor: prevCol });
         }
         pinnedSeccionLayer = layer;
 
