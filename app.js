@@ -11,6 +11,7 @@ const DATA_COORD_HEIGHT = 9079;
 // Archivos de datos
 const SECCIONES_TOP_URL = "./data/secciones-top.geojson"; // editor ?edit=secciones + PUBLICO secciones
 const MANZANAS_URL      = "./data/secciones.geojson";     // tu archivo actual (MANZANAS)
+const NICHOS_ZONAS_URL  = "./data/nichos"
 
 // Catálogos
 const LOTES_INFO_URL    = "./data/lotes.json";
@@ -51,6 +52,13 @@ let seccionesLayer = null;         // editor secciones
 let seccionesLayerPublic = null;   // PUBLICO secciones
 let manzanasLayer = null;          // público + editor manzanas
 let lotesLayer = null;             // público + editor lotes
+
+// NICHOS
+let nichosZonasRaw = null
+let nichosZonasScaled = null
+let nichosLayer = null
+
+let nichosSelection = { zonaId: null, cara: null, numero: null };
 
 let currentSeccion = null;
 let currentSeccionFeature = null;
@@ -602,6 +610,77 @@ function showLoteInfo(feature){
   const btn = document.getElementById("moreBtn");
   if (btn) btn.onclick = () => alert("Aquí irá el login + consulta segura del saldo.");
 }
+
+function openNichoModal(zonaFeature){
+  const modal = document.getElementById("nichoModal");
+  const sub   = document.getElementById("nichoModalSub");
+  const img   = document.getElementById("nichoImg");
+  const layer = document.getElementById("nichoClickLayer");
+  const hint  = document.getElementById("nichoHint");
+  const debug = document.getElementById("nichoDebug");
+
+  const zonaId = zonaFeature?.properties?.id || "SIN-ID";
+  nichoSelection = { zonaId, cara: null, numero: null };
+
+  sub.textContent = `Zona: ${zonaId} — Elige cara`;
+  hint.textContent = "Elige una cara para mostrar la imagen.";
+  debug.textContent = "";
+
+  img.style.display = "none";
+  layer.style.display = "none";
+  img.src = "";
+
+  modal.style.display = "flex";
+
+  const close = () => {
+    modal.style.display = "none";
+  };
+
+  document.getElementById("nichoCloseBtn").onclick = close;
+  modal.onclick = (e) => { if (e.target === modal) close(); };
+
+  const setCara = (cara) => {
+    nichoSelection.cara = cara;
+    sub.textContent = `Zona: ${zonaId} — Cara: ${cara} — Selecciona nicho`;
+
+    // Imagen depende de zona y cara
+    const src = `./assets/nichos/${zonaId}-${cara}.png`;
+    img.src = src;
+    img.onload = () => {
+      img.style.display = "block";
+      layer.style.display = "block";
+      hint.textContent = "Da click en la imagen donde está el nicho (por ahora guardamos coordenadas).";
+    };
+    img.onerror = () => {
+      img.style.display = "none";
+      layer.style.display = "none";
+      hint.textContent = `No encontré la imagen: ${src}`;
+    };
+  };
+
+  document.getElementById("caraConcavoBtn").onclick = () => setCara("concavo");
+  document.getElementById("caraConvexoBtn").onclick = () => setCara("convexo");
+
+  // CLICK EN IMAGEN: por ahora guardamos coordenadas relativas; en el paso 2 lo convertimos a "número"
+  layer.onclick = (ev) => {
+    if (!nichoSelection.cara) return;
+
+    const rect = layer.getBoundingClientRect();
+    const rx = (ev.clientX - rect.left) / rect.width;   // 0..1
+    const ry = (ev.clientY - rect.top) / rect.height;   // 0..1
+
+    // temporal: guardar "coordenada" hasta que tengamos una rejilla / mapa de hotspots
+    nichoSelection.numero = `x=${rx.toFixed(3)}, y=${ry.toFixed(3)}`;
+
+    debug.textContent = `Seleccionado: zona=${nichoSelection.zonaId}, cara=${nichoSelection.cara}, nicho=${nichoSelection.numero}`;
+
+    // Si quieres, aquí podríamos cerrar y mostrar en panel derecho
+    // modal.style.display = "none";
+  };
+}
+
+
+
 
 /* =========================================================
    BÚSQUEDA (SECCIÓN → MANZANA → LOTE)
@@ -1278,6 +1357,28 @@ async function main(){
 
     manzanasScaled = deepCopy(manzanasRaw);
     applyCoordScaleToGeoJSON(manzanasScaled, COORD_SCALE_X, COORD_SCALE_Y);
+
+    // === NICHOS (capa independiente) ===
+    try {
+      nichosZonasRaw = await loadJson(NICHOS_ZONAS_URL);
+      nichosZonasScaled = deepCopy(nichosZonasRaw);
+      applyCoordScaleToGeoJSON(nichosZonasScaled, COORD_SCALE_X, COORD_SCALE_Y);
+
+      if (nichosLayer) { nichosLayer.remove(); nichosLayer = null; }
+
+      nichosLayer = L.geoJSON(nichosZonasScaled, {
+        style: { weight: 2, opacity: 0, fillOpacity: 0 }, // invisible hasta hover
+        onEachFeature: (feature, layer) => {
+          layer.on("mouseover", () => layer.setStyle({ weight: 2, opacity: 1, fillOpacity: 0.05 }));
+          layer.on("mouseout",  () => layer.setStyle({ weight: 2, opacity: 0, fillOpacity: 0 }));
+          layer.on("click", () => openNichoModal(feature));
+        }
+      }).addTo(map);
+
+    } catch (e) {
+      // si no existe el archivo, no pasa nada
+      console.warn("Nichos no cargados:", e);
+    }
 
     const secciones = buildSeccionesList(seccionesTopScaled.features.length ? seccionesTopScaled.features : manzanasScaled?.features || []);
     fillSeccionSelect(secciones);

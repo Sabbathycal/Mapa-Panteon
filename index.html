@@ -97,6 +97,7 @@
       border-left: 1px solid var(--border);
       padding: 14px;
       overflow: auto;
+      background: #ffffff;
     }
 
     #panelTitle{
@@ -161,14 +162,58 @@
     </aside>
   </main>
 
+  <!-- =========================
+       MODAL NICHOS (POP-UP)
+       ========================= -->
+  <div id="nichoModal"
+       style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9999; align-items:center; justify-content:center;">
+    <div style="width:min(1100px, 92vw); max-height:90vh; background:#fff; border-radius:14px; overflow:hidden;
+                box-shadow:0 20px 60px rgba(0,0,0,.25); display:flex; flex-direction:column;">
+
+      <div style="padding:12px 14px; border-bottom:1px solid #e5e7eb; display:flex; gap:10px; align-items:center; justify-content:space-between;">
+        <div>
+          <div style="font-weight:800;">Nichos</div>
+          <div id="nichoModalSub" style="font-size:12px; color:#6b7280;">Selecciona cara y nicho</div>
+        </div>
+        <button id="nichoCloseBtn"
+                style="height:34px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:0 10px;font-weight:700;cursor:pointer;">
+          Cerrar
+        </button>
+      </div>
+
+      <div style="padding:12px 14px; display:flex; gap:10px; flex-wrap:wrap; border-bottom:1px solid #e5e7eb;">
+        <button id="caraConcavoBtn"
+                style="height:34px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:0 10px;font-weight:700;cursor:pointer;">
+          Cóncavo
+        </button>
+        <button id="caraConvexoBtn"
+                style="height:34px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:0 10px;font-weight:700;cursor:pointer;">
+          Convexo
+        </button>
+        <div id="nichoHint" style="font-size:12px;color:#6b7280;align-self:center;">
+          Elige una cara para mostrar la imagen.
+        </div>
+      </div>
+
+      <div style="padding:14px; overflow:auto;">
+        <div id="nichoImgWrap" style="position:relative; width:100%; max-width:1000px; margin:0 auto;">
+          <img id="nichoImg" src="" alt="Mapa de nichos"
+               style="width:100%; height:auto; display:none; border:1px solid #e5e7eb; border-radius:12px;" />
+          <!-- capa transparente para clicks -->
+          <div id="nichoClickLayer" style="position:absolute; inset:0; display:none; cursor:crosshair;"></div>
+        </div>
+
+        <div id="nichoDebug" style="margin-top:10px; font-size:12px; color:#6b7280;"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <!-- Loader anti-cache para app.js (NO tienes que editar index.html cada vez) -->
   <script>
     (function () {
-      // Version automática: cambia en cada carga
-      // (evita cache; ya no necesitas incógnito ni Ctrl+Shift+R)
       window.APP_VERSION = String(Date.now());
 
       var s = document.createElement("script");

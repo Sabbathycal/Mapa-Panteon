@@ -1,0 +1,16 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "NICHOS-1",
+        "nombre": "Nichos Área 1"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[8000,3500],[9000,3500],[9000,4500],[8000,4500],[8000,3500]]]
+      }
+    }
+  ]
+}
