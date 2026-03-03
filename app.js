@@ -8,8 +8,8 @@ const BASE_IMAGE_EDIT_URL   = "./assets/map/base.png";         // 600dpi (edici√
 const APP_VERSION = (window.APP_VERSION || "dev").toString();
 
 // Tus GeoJSON est√°n guardados en coordenadas del mapa 600dpi (base.png)
-const DATA_COORD_WIDTH  = 21600;
-const DATA_COORD_HEIGHT = 14400;
+const DATA_COORD_WIDTH  = 5553;
+const DATA_COORD_HEIGHT = 4570;
 
 // Archivos de datos
 const SECCIONES_TOP_URL = "./data/secciones-top.geojson"; // editor ?edit=secciones + PUBLICO secciones
