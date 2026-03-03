@@ -1150,6 +1150,272 @@ function renderEditSeccionesPanel(){
     </p>
   `);
 
+function renderEditManzanasPanel(){
+  editor.mode = "edit";
+  editor.drawShape = "polygon";
+  editorClearPoly(); editorClearCircle(); editorStopEditing();
+
+  setPanel("Edición: MANZANAS", `
+    <p>Editor de <b>MANZANAS</b>. Puedes usar polígono o círculo.</p>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button id="btnEdit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Editar existente</button>
+      <button id="btnCreate" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Crear nueva</button>
+      <button id="btnCopy" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar GeoJSON</button>
+      <button id="btnExit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Salir</button>
+    </div>
+
+    <hr/>
+    <div id="editBody"></div>
+
+    <p style="font-size:12px;color:#666;margin-top:10px;">
+      Destino: <b>${safe(MANZANAS_URL)}</b>
+    </p>
+  `);
+
+  const $editBody = document.getElementById("editBody");
+
+  document.getElementById("btnEdit").onclick = () => {
+    editor.mode = "edit";
+    editorClearPoly(); editorClearCircle();
+    $editBody.innerHTML = `<p><b>Editar:</b> clic en una manzana para editar (polígono o círculo).</p>`;
+    rerenderManzanas_Edit();
+  };
+
+  document.getElementById("btnCreate").onclick = () => {
+    editor.mode = "create";
+    editorStopEditing();
+    editorClearPoly(); editorClearCircle();
+
+    $editBody.innerHTML = `
+      <p><b>Crear:</b> elige forma:</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+        <button id="btnPoly" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Polígono</button>
+        <button id="btnCircle" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Círculo</button>
+        <button id="btnClear" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Limpiar</button>
+      </div>
+
+      <p><b>Puntos (polígono):</b> <span id="ptCount">0</span></p>
+
+      <label><b>SECCIÓN</b></label><br/>
+      <input id="newSeccion" placeholder="Ej. SAN ANDRES" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+      <label><b>MANZANA</b></label><br/>
+      <input id="newManzana" placeholder="Ej. A" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+      <label><b>Nombre (opcional)</b></label><br/>
+      <input id="newNombre" placeholder="Ej. SAN ANDRES - A" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+        <button id="btnSaveNew" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Guardar nueva</button>
+      </div>
+    `;
+
+    document.getElementById("btnPoly").onclick = () => { editor.drawShape = "polygon"; };
+    document.getElementById("btnCircle").onclick = () => { editor.drawShape = "circle"; };
+    document.getElementById("btnClear").onclick = () => { editorClearPoly(); editorClearCircle(); };
+
+    document.getElementById("btnSaveNew").onclick = () => {
+      const seccion = (document.getElementById("newSeccion").value || "").trim();
+      const manzana = (document.getElementById("newManzana").value || "").trim();
+      const nombre  = (document.getElementById("newNombre").value || "").trim();
+
+      if (!seccion) return alert("Falta SECCIÓN.");
+      if (!manzana) return alert("Falta MANZANA.");
+
+      const lotesFile = `./data/lotes/lotes-${seccion}-${manzana}.geojson`;
+      const props = { seccion, manzana, nombre: nombre || `${seccion} - ${manzana}`, lotesFile, id: `${seccion}-${manzana}` };
+
+      let feature = null;
+      if (editor.drawShape === "polygon"){
+        if (editor.polyPoints.length < 3) return alert("Polígono: mínimo 3 puntos.");
+        feature = { type:"Feature", geometry:{ type:"Polygon", coordinates:ringToGeoJsonCoords(editor.polyPoints) }, properties: props };
+      } else {
+        if (!editor.circleCenter || typeof editor.circleRadius !== "number") return alert("Círculo: clic centro y luego borde.");
+        feature = { type:"Feature", geometry:{ type:"Point", coordinates: latLngToXY(editor.circleCenter) }, properties:{ ...props, shape:"circle", radius: editor.circleRadius } };
+      }
+
+      manzanasRaw.features.push(feature);
+      editorClearPoly(); editorClearCircle();
+      rerenderManzanas_Edit();
+      alert("Manzana creada en memoria. Copia el GeoJSON y pégalo en data/secciones.geojson");
+    };
+
+    rerenderManzanas_Edit();
+  };
+
+  document.getElementById("btnCopy").onclick = async () => {
+    const txt = JSON.stringify(manzanasRaw || { type:"FeatureCollection", features:[] }, null, 2);
+    try {
+      await navigator.clipboard.writeText(txt);
+      alert("Copiado. Pégalo en data/secciones.geojson (reemplazando contenido).");
+    } catch {
+      setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
+    }
+  };
+
+  document.getElementById("btnExit").onclick = () => location.href = "./";
+  document.getElementById("btnEdit").click();
+}
+
+function renderEditLotesPanel(){
+  editor.mode = "edit";
+  editor.drawShape = "polygon";
+  editorClearPoly(); editorClearCircle(); editorStopEditing();
+
+  const lotesFile = currentManzanaFeature?.properties?.lotesFile || "(elige manzana)";
+
+  setPanel("Edición: LOTES", `
+    <p>Primero elige SECCIÓN y MANZANA arriba.</p>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button id="btnEdit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Editar existente</button>
+      <button id="btnCreate" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Crear nuevo</button>
+      <button id="btnCopy" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar GeoJSON</button>
+      <button id="btnExit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Salir</button>
+    </div>
+
+    <hr/>
+    <div id="editBody"></div>
+
+    <p style="font-size:12px;color:#666;margin-top:10px;">
+      Destino: <b>${safe(lotesFile)}</b>
+    </p>
+  `);
+
+  const $editBody = document.getElementById("editBody");
+
+  document.getElementById("btnEdit").onclick = () => {
+    editor.mode = "edit";
+    editorClearPoly(); editorClearCircle();
+    $editBody.innerHTML = `<p><b>Editar:</b> clic en un lote para editar (polígono o círculo).</p>`;
+    rerenderLotes_Edit();
+  };
+
+  document.getElementById("btnCreate").onclick = () => {
+    if (!currentManzanaFeature) return alert("Primero elige una MANZANA.");
+
+    editor.mode = "create";
+    editorStopEditing();
+    editorClearPoly(); editorClearCircle();
+
+    $editBody.innerHTML = `
+      <p><b>Crear:</b> elige forma:</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+        <button id="btnPoly" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Polígono</button>
+        <button id="btnCircle" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Círculo</button>
+        <button id="btnClear" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Limpiar</button>
+      </div>
+
+      <p><b>Puntos (polígono):</b> <span id="ptCount">0</span></p>
+
+      <label><b>LOTE</b></label><br/>
+      <input id="newLote" placeholder="Ej. 12" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+      <label><b>Estatus</b></label><br/>
+      <select id="newStatus" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;">
+        <option>disponible</option>
+        <option>ocupado</option>
+        <option>por construir</option>
+      </select>
+
+      <label><b>Paquete (opcional)</b></label><br/>
+      <input id="newPkg" placeholder="Ej. PAQ-STD" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+        <button id="btnSaveNew" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Guardar nuevo</button>
+      </div>
+    `;
+
+    document.getElementById("btnPoly").onclick = () => { editor.drawShape = "polygon"; };
+    document.getElementById("btnCircle").onclick = () => { editor.drawShape = "circle"; };
+    document.getElementById("btnClear").onclick = () => { editorClearPoly(); editorClearCircle(); };
+
+    document.getElementById("btnSaveNew").onclick = () => {
+      const lote = (document.getElementById("newLote").value || "").trim();
+      if (!lote) return alert("Falta LOTE.");
+      const estatus = document.getElementById("newStatus").value;
+      const paquete = (document.getElementById("newPkg").value || "").trim() || null;
+
+      const props = { lote, id: lote, estatus, paquete };
+
+      let feature = null;
+      if (editor.drawShape === "polygon"){
+        if (editor.polyPoints.length < 3) return alert("Polígono: mínimo 3 puntos.");
+        feature = { type:"Feature", geometry:{ type:"Polygon", coordinates:ringToGeoJsonCoords(editor.polyPoints) }, properties: props };
+      } else {
+        if (!editor.circleCenter || typeof editor.circleRadius !== "number") return alert("Círculo: clic centro y luego borde.");
+        feature = { type:"Feature", geometry:{ type:"Point", coordinates: latLngToXY(editor.circleCenter) }, properties:{ ...props, shape:"circle", radius: editor.circleRadius } };
+      }
+
+      currentLotesRaw.features.push(feature);
+      editorClearPoly(); editorClearCircle();
+      rerenderLotes_Edit();
+      alert("Lote creado en memoria. Copia el GeoJSON y pégalo en el archivo de lotes.");
+    };
+
+    rerenderLotes_Edit();
+  };
+
+  document.getElementById("btnCopy").onclick = async () => {
+    const txt = JSON.stringify(currentLotesRaw || { type:"FeatureCollection", features:[] }, null, 2);
+    try {
+      await navigator.clipboard.writeText(txt);
+      alert("Copiado. Pégalo en el archivo de lotes (reemplazando contenido).");
+    } catch {
+      setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
+    }
+  };
+
+  document.getElementById("btnExit").onclick = () => location.href = "./";
+  document.getElementById("btnEdit").click();
+}
+
+function rerenderManzanas_Edit(){
+  if (manzanasLayer){ manzanasLayer.remove(); manzanasLayer = null; }
+  editorStopEditing();
+
+  manzanasLayer = L.geoJSON(manzanasRaw || { type:"FeatureCollection", features:[] }, {
+    style: { weight: 2, opacity: 1, fillOpacity: 0.06 },
+    interactive: (editor.mode === "edit"),
+    pointToLayer: (feature, latlng) => {
+      const layer = featureToLayerCircleAware(feature, latlng);
+      try { layer.setStyle({ weight:2, opacity:1, fillOpacity:0.06 }); } catch {}
+      return layer;
+    },
+    onEachFeature: (feature, layer) => {
+      layer.on("click", () => {
+        if (editor.mode !== "edit") return;
+        if (isCircleFeature(feature) && layer instanceof L.Circle) editorStartEditCircle(layer);
+        else editorStartEditPolygon(layer);
+      });
+    }
+  }).addTo(map);
+}
+
+function rerenderLotes_Edit(){
+  if (lotesLayer){ lotesLayer.remove(); lotesLayer = null; }
+  editorStopEditing();
+  if (!currentLotesRaw) return;
+
+  lotesLayer = L.geoJSON(currentLotesRaw, {
+    style: (feature) => ({ ...styleByStatus(feature?.properties?.estatus), fillOpacity: 0.10 }),
+    interactive: (editor.mode === "edit"),
+    pointToLayer: (feature, latlng) => {
+      const layer = featureToLayerCircleAware(feature, latlng);
+      try { layer.setStyle({ ...styleByStatus(feature?.properties?.estatus), fillOpacity: 0.10 }); } catch {}
+      return layer;
+    },
+    onEachFeature: (feature, layer) => {
+      layer.on("click", () => {
+        if (editor.mode !== "edit") return;
+        if (isCircleFeature(feature) && layer instanceof L.Circle) editorStartEditCircle(layer);
+        else editorStartEditPolygon(layer);
+      });
+    }
+  }).addTo(map);
+}  
+
   const $editBody = document.getElementById("editBody");
 
   document.getElementById("btnEdit").onclick = () => {
@@ -1233,14 +1499,6 @@ function renderEditSeccionesPanel(){
   document.getElementById("btnExit").onclick = () => location.href = "./";
   document.getElementById("btnEdit").click();
 }
-
-// ======= NOTA =======
-// Los editores de manzanas y lotes siguen igual que tu versión actual.
-// (No se modifican en el cambio 1.)
-function renderEditManzanasPanel(){ setPanel("Edición: MANZANAS", "<p>Sin cambios en este paso.</p>"); }
-function renderEditLotesPanel(){ setPanel("Edición: LOTES", "<p>Sin cambios en este paso.</p>"); }
-function rerenderManzanas_Edit(){}
-function rerenderLotes_Edit(){}
 
 function rerenderSecciones_Edit(){
   if (seccionesLayer){ seccionesLayer.remove(); seccionesLayer = null; }
@@ -1348,6 +1606,60 @@ async function main(){
 
       rerenderSecciones_Edit();
       renderEditSeccionesPanel();
+      return;
+    }
+
+    // ====== EDIT MANZANAS ======
+    if (isEditManzanas){
+      if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
+      if ($searchBtn) $searchBtn.disabled = true;
+
+      $seccionSelect.innerHTML = `<option value="">(Edición MANZANAS)</option>`;
+      $manzanaSelect.innerHTML = `<option value="">(Edición MANZANAS)</option>`;
+
+      rerenderManzanas_Edit();
+      renderEditManzanasPanel();
+      return;
+    }
+
+    // ====== EDIT LOTES ======
+    if (isEditLotes){
+      if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
+      if ($searchBtn) $searchBtn.disabled = true;
+
+      const secciones = buildSeccionesList(manzanasRaw.features);
+      fillSeccionSelect(secciones);
+      $manzanaSelect.innerHTML = `<option value="">MANZANA...</option>`;
+
+      $seccionSelect.onchange = () => {
+        const sec = ($seccionSelect.value || "").trim();
+        const list = buildManzanasListBySeccion(manzanasRaw.features, sec);
+        fillManzanaSelect(list);
+      };
+
+      $manzanaSelect.onchange = async () => {
+        const sec = ($seccionSelect.value || "").trim();
+        const man = ($manzanaSelect.value || "").trim();
+        if (!sec || !man) return;
+
+        const f = manzanasRaw.features.find(x => getPropSeccion(x) === sec && getPropManzana(x) === man);
+        currentManzanaFeature = f;
+        if (!f) return;
+
+        const lotesFile = f.properties?.lotesFile;
+        if (!lotesFile) return alert("Esta manzana no tiene lotesFile.");
+
+        try { currentLotesRaw = await loadJson(lotesFile); }
+        catch { currentLotesRaw = { type:"FeatureCollection", features:[] }; }
+
+        rerenderLotes_Edit();
+        renderEditLotesPanel();
+
+        const temp = L.geoJSON(f);
+        flyToBoundsSmooth(temp.getBounds().pad(0.15), 0.65);
+      };
+
+      renderEditLotesPanel();
       return;
     }
 
