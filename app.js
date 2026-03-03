@@ -673,7 +673,6 @@ function openNichoModal(zonaFeature){
     const ry = (ev.clientY - rect.top) / rect.height;
 
     nichoSelection.numero = `x=${rx.toFixed(3)}, y=${ry.toFixed(3)}`;
-
     debug.textContent = `Seleccionado: zona=${nichoSelection.zonaId}, cara=${nichoSelection.cara}, nicho=${nichoSelection.numero}`;
   };
 }
@@ -824,7 +823,7 @@ function setupButtons(){
 
 /* =========================================================
    ================= EDITOR (SECCIONES / MANZANAS / LOTES) =================
-   Polígono o Círculo
+   Polígono o Círculo + COPY/PASTE
    ========================================================= */
 const editor = {
   mode: "edit",
@@ -849,6 +848,11 @@ const editor = {
   originalRadius: null,
 
   vertexMarkers: [],
+
+  // ====== COPY / PASTE ======
+  clipboardFeature: null,   // Feature clonada
+  clipboardMeta: null,      // { dataset }
+  pasteArmed: false,        // modo pegar activo
 
   iconVertex: L.divIcon({
     className: "",
@@ -925,6 +929,60 @@ function ringToGeoJsonCoords(ringLatLng){
   const coords = ringLatLng.map(latLngToXY);
   if (coords.length) coords.push(coords[0]);
   return [coords];
+}
+
+/* =========================================================
+   COPY / PASTE HELPERS
+   ========================================================= */
+function getFeatureCenterXY(feature, layer){
+  try {
+    if (isCircleFeature(feature)){
+      return feature.geometry.coordinates;
+    }
+    if (layer && layer.getBounds){
+      const b = layer.getBounds();
+      const c = b.getCenter();
+      return [c.lng, c.lat];
+    }
+    const ring = feature.geometry?.coordinates?.[0] || [];
+    if (!ring.length) return [0,0];
+    let sx=0, sy=0, n=0;
+    for (const [x,y] of ring){ sx+=x; sy+=y; n++; }
+    return [sx/n, sy/n];
+  } catch {
+    return [0,0];
+  }
+}
+
+function translateFeature(feature, dx, dy){
+  const f = deepCopy(feature);
+
+  if (f.geometry?.type === "Point"){
+    const [x,y] = f.geometry.coordinates;
+    f.geometry.coordinates = [x + dx, y + dy];
+    return f;
+  }
+
+  if (f.geometry?.type === "Polygon"){
+    const coords = f.geometry.coordinates || [];
+    f.geometry.coordinates = coords.map(ring => ring.map(([x,y]) => [x + dx, y + dy]));
+    return f;
+  }
+
+  return f;
+}
+
+function getActiveEditDataset(){
+  if (isEditSecciones) return seccionesTopRaw?.features || null;
+  if (isEditManzanas)  return manzanasRaw?.features || null;
+  if (isEditLotes)     return currentLotesRaw?.features || null;
+  return null;
+}
+
+function rerenderActiveEditor(){
+  if (isEditSecciones) return rerenderSecciones_Edit();
+  if (isEditManzanas)  return rerenderManzanas_Edit();
+  if (isEditLotes)     return rerenderLotes_Edit();
 }
 
 function editorStartEditPolygon(layer){
@@ -1044,6 +1102,16 @@ function renderEditSelectedPanel(){
     ` : ""}
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+      <button id="btnCopyShape" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">
+        Copiar figura
+      </button>
+      <button id="btnPasteShape" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">
+        Pegar figura
+      </button>
+      <button id="btnCancelPaste" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;display:none;">
+        Cancelar pegado
+      </button>
+
       <button id="btnSaveEdit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Guardar cambios</button>
       <button id="btnCancelEdit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Cancelar</button>
       <button id="btnCopyGeo" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar GeoJSON</button>
@@ -1061,6 +1129,47 @@ function renderEditSelectedPanel(){
         } catch {}
       };
     }
+  }
+
+  // ====== COPY / PASTE handlers ======
+  const btnCopyShape = document.getElementById("btnCopyShape");
+  const btnPasteShape = document.getElementById("btnPasteShape");
+  const btnCancelPaste = document.getElementById("btnCancelPaste");
+
+  const canCopy = !!editor.selectedFeature;
+  if (btnCopyShape) btnCopyShape.disabled = !canCopy;
+
+  if (btnPasteShape) btnPasteShape.disabled = !editor.clipboardFeature;
+
+  if (btnCancelPaste){
+    btnCancelPaste.style.display = editor.pasteArmed ? "inline-block" : "none";
+  }
+
+  if (btnCopyShape){
+    btnCopyShape.onclick = () => {
+      if (!editor.selectedFeature) return;
+      editor.clipboardFeature = deepCopy(editor.selectedFeature);
+      editor.clipboardMeta = { dataset: (isEditSecciones ? "SECCIONES" : isEditManzanas ? "MANZANAS" : "LOTES") };
+      alert("Figura copiada. Ahora presiona 'Pegar figura' y luego haz click en el mapa.");
+      renderEditSelectedPanel();
+    };
+  }
+
+  if (btnPasteShape){
+    btnPasteShape.onclick = () => {
+      if (!editor.clipboardFeature) return;
+      editor.pasteArmed = true;
+      alert("Modo PEGAR activado. Haz click en el mapa para colocar la copia (puedes pegar varias veces).");
+      renderEditSelectedPanel();
+    };
+  }
+
+  if (btnCancelPaste){
+    btnCancelPaste.onclick = () => {
+      editor.pasteArmed = false;
+      alert("Pegado cancelado.");
+      renderEditSelectedPanel();
+    };
   }
 
   document.getElementById("btnSaveEdit").onclick = () => {
@@ -1512,7 +1621,7 @@ function rerenderSecciones_Edit(){
 }
 
 /* =========================================================
-   Map click handler for CREATE
+   Map click handler for CREATE + PASTE
    ========================================================= */
 let mapClickAttached = false;
 function attachEditorMapClick(){
@@ -1521,6 +1630,33 @@ function attachEditorMapClick(){
 
   map.on("click", (e) => {
     if (!(isEditSecciones || isEditManzanas || isEditLotes)) return;
+
+    // 1) PEGAR tiene prioridad
+    if (editor.pasteArmed && editor.clipboardFeature){
+      const arr = getActiveEditDataset();
+      if (!arr) return alert("No hay dataset activo para pegar.");
+
+      const center = getFeatureCenterXY(editor.clipboardFeature, null);
+      const target = [e.latlng.lng, e.latlng.lat];
+
+      const dx = target[0] - center[0];
+      const dy = target[1] - center[1];
+
+      const pasted = translateFeature(editor.clipboardFeature, dx, dy);
+
+      // Evitar id duplicado si existe: agrega sufijo
+      if (pasted?.properties){
+        const baseId = pasted.properties.id || pasted.properties.lote || pasted.properties.manzana || pasted.properties.seccion || "copy";
+        pasted.properties.id = `${baseId}-copy-${Date.now()}`;
+        if (pasted.properties.lote) pasted.properties.lote = pasted.properties.id;
+      }
+
+      arr.push(pasted);
+      rerenderActiveEditor();
+      return; // sigue en modo paste para pegar varias veces
+    }
+
+    // 2) Modo create normal
     if (editor.mode !== "create") return;
 
     if (editor.drawShape === "polygon"){
@@ -1533,6 +1669,7 @@ function attachEditorMapClick(){
       return;
     }
 
+    // circle create: click center, then click edge
     if (!editor.circleCenter){
       editor.circleCenter = e.latlng;
       editor.circleCenterMarker = L.marker(e.latlng, { icon: editor.iconVertex }).addTo(map);
