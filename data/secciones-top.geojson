@@ -68,7 +68,7 @@
               3559.11
             ],
             [
-              6904.0,
+              6904,
               3580.77
             ],
             [
@@ -441,7 +441,8 @@
       "properties": {
         "seccion": "ORO",
         "nombre": "ORO",
-        "id": "ORO"
+        "id": "ORO",
+        "color": "#a3a3a3"
       }
     },
     {
@@ -608,7 +609,8 @@
       "properties": {
         "seccion": "SAN PEDRO VIP",
         "nombre": "SAN PEDRO VIP",
-        "id": "SAN PEDRO VIP"
+        "id": "SAN PEDRO VIP",
+        "color": "#3a61a2"
       }
     },
     {
@@ -683,7 +685,7 @@
             ],
             [
               7260.62,
-              4619.0
+              4619
             ],
             [
               7161.19,
@@ -711,7 +713,7 @@
             ],
             [
               6777.41,
-              4320.0
+              4320
             ],
             [
               6760.75,
@@ -807,7 +809,8 @@
       "properties": {
         "seccion": "SAN JUAN VIP",
         "nombre": "SAN JUAN VIP",
-        "id": "SAN JUAN VIP"
+        "id": "SAN JUAN VIP",
+        "color": "#3a61a2"
       }
     }
   ]

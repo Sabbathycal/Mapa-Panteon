@@ -199,8 +199,12 @@ function pulseLayer(layer, baseStyle, pulseAdd){
    STYLES
    ========================================================= */
 function hiddenStyle(){ return { weight: 2, opacity: 0, fillOpacity: 0 }; }
-function hoverStyle(color){  return { weight: 2, opacity: 1, fillOpacity: 0.10, fillColor: color || undefined }; }
-function pinnedStyle(color){ return { weight: 3, opacity: 1, fillOpacity: 0.16, fillColor: color || undefined }; }
+function hoverStyle(color){
+  return { weight: 2, opacity: 1, fillOpacity: 0.10, fillColor: color || undefined };
+}
+function pinnedStyle(color){
+  return { weight: 3, opacity: 1, fillOpacity: 0.16, fillColor: color || undefined };
+}
 
 function styleByStatus(status){
   const s = (status || "").toLowerCase();
