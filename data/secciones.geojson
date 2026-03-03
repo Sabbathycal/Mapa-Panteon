@@ -279,7 +279,7 @@
               4266.04
             ],
             [
-              6301.0,
+              6301,
               4494.23
             ],
             [
@@ -524,8 +524,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          7913.89,
-          2024.8
+          7917.5,
+          2037.5
         ]
       },
       "properties": {
@@ -535,7 +535,7 @@
         "lotesFile": "./data/lotes-SAN PEDRO VIP-A.geojson",
         "id": "SAN PEDRO VIP-A",
         "shape": "circle",
-        "radius": 110.07
+        "radius": 110.06999999999971
       }
     },
     {
@@ -543,8 +543,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          8035.46,
-          2289.79
+          8036,
+          2266.5
         ]
       },
       "properties": {
@@ -554,7 +554,7 @@
         "lotesFile": "./data/lotes-SAN PEDRO VIP-B.geojson",
         "id": "SAN PEDRO VIP-B",
         "shape": "circle",
-        "radius": 109.93
+        "radius": 109.93000000000029
       }
     },
     {
@@ -562,8 +562,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          7668.31,
-          2103.03
+          7660,
+          2056
         ]
       },
       "properties": {
@@ -573,7 +573,7 @@
         "lotesFile": "./data/lotes-SAN PEDRO VIP-C.geojson",
         "id": "SAN PEDRO VIP-C",
         "shape": "circle",
-        "radius": 109.71
+        "radius": 109.71000000000004
       }
     },
     {
@@ -581,8 +581,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          7754.66,
-          2357.34
+          7739.5,
+          2309.5
         ]
       },
       "properties": {
@@ -592,7 +592,7 @@
         "lotesFile": "./data/lotes-SAN PEDRO VIP-D.geojson",
         "id": "SAN PEDRO VIP-D",
         "shape": "circle",
-        "radius": 109.43
+        "radius": 109.43000000000029
       }
     },
     {
@@ -600,8 +600,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          7904.69,
-          2563.14
+          7913.5,
+          2525.75
         ]
       },
       "properties": {
@@ -611,7 +611,7 @@
         "lotesFile": "./data/lotes-SAN PEDRO VIP-E.geojson",
         "id": "SAN PEDRO VIP-E",
         "shape": "circle",
-        "radius": 109.57
+        "radius": 109.56999999999971
       }
     },
     {
@@ -619,8 +619,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          7723.19,
-          2744.47
+          7761.25,
+          2709.5
         ]
       },
       "properties": {
@@ -630,7 +630,292 @@
         "lotesFile": "./data/lotes-SAN PEDRO VIP-F.geojson",
         "id": "SAN PEDRO VIP-F",
         "shape": "circle",
-        "radius": 109.69
+        "radius": 109.6899999999996
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7447.25,
+          2846.25
+        ]
+      },
+      "properties": {
+        "seccion": "SAN PEDRO VIP",
+        "manzana": "G",
+        "nombre": "SAN PEDRO VIP - G",
+        "lotesFile": "./data/lotes-SAN PEDRO VIP-G.geojson",
+        "id": "SAN PEDRO VIP-G",
+        "shape": "circle",
+        "radius": 109.5
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7912,
+          3275.5
+        ]
+      },
+      "properties": {
+        "seccion": "SAN JUAN VIP",
+        "manzana": "A",
+        "nombre": "SAN JUAN VIP - A",
+        "lotesFile": "./data/lotes-SAN JUAN VIP-A.geojson",
+        "id": "SAN JUAN VIP-A",
+        "shape": "circle",
+        "radius": 109.41320761224397
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7820,
+          3506.5
+        ]
+      },
+      "properties": {
+        "seccion": "SAN JUAN VIP",
+        "manzana": "B",
+        "nombre": "SAN JUAN VIP - B",
+        "lotesFile": "./data/lotes-SAN JUAN VIP-B.geojson",
+        "id": "SAN JUAN VIP-B",
+        "shape": "circle",
+        "radius": 108.973620661149
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7961.5,
+          3718
+        ]
+      },
+      "properties": {
+        "seccion": "SAN JUAN VIP",
+        "manzana": "C",
+        "nombre": "SAN JUAN VIP - C",
+        "lotesFile": "./data/lotes-SAN JUAN VIP-C.geojson",
+        "id": "SAN JUAN VIP-C",
+        "shape": "circle",
+        "radius": 111.64676439557037
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7871.5,
+          3938.5
+        ]
+      },
+      "properties": {
+        "seccion": "SAN JUAN VIP",
+        "manzana": "D",
+        "nombre": "SAN JUAN VIP - D",
+        "lotesFile": "./data/lotes-SAN JUAN VIP-D.geojson",
+        "id": "SAN JUAN VIP-D",
+        "shape": "circle",
+        "radius": 109.11690978029024
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7495.5,
+          3577.5
+        ]
+      },
+      "properties": {
+        "seccion": "SAN JUAN VIP",
+        "manzana": "E",
+        "nombre": "SAN JUAN VIP - E",
+        "lotesFile": "./data/lotes-SAN JUAN VIP-E.geojson",
+        "id": "SAN JUAN VIP-E",
+        "shape": "circle",
+        "radius": 111.37549102024197
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7547.5,
+          3854.5
+        ]
+      },
+      "properties": {
+        "seccion": "SAN JUAN VIP",
+        "manzana": "F",
+        "nombre": "SAN JUAN VIP - F",
+        "lotesFile": "./data/lotes-SAN JUAN VIP-F.geojson",
+        "id": "SAN JUAN VIP-F",
+        "shape": "circle",
+        "radius": 109.3000457456446
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7571.5,
+          4107
+        ]
+      },
+      "properties": {
+        "seccion": "SAN JUAN VIP",
+        "manzana": "G",
+        "nombre": "SAN JUAN VIP - G",
+        "lotesFile": "./data/lotes-SAN JUAN VIP-G.geojson",
+        "id": "SAN JUAN VIP-G",
+        "shape": "circle",
+        "radius": 110.20548988140291
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7619,
+          4386.5
+        ]
+      },
+      "properties": {
+        "seccion": "SAN JUAN VIP",
+        "manzana": "H",
+        "nombre": "SAN JUAN VIP - H",
+        "lotesFile": "./data/lotes-SAN JUAN VIP-H.geojson",
+        "id": "SAN JUAN VIP-H",
+        "shape": "circle",
+        "radius": 110.10222522728594
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7301.5,
+          3834.75
+        ]
+      },
+      "properties": {
+        "seccion": "SAN JUAN VIP",
+        "manzana": "I",
+        "nombre": "SAN JUAN VIP - I",
+        "lotesFile": "./data/lotes-SAN JUAN VIP-I.geojson",
+        "id": "SAN JUAN VIP-I",
+        "shape": "circle",
+        "radius": 109.93321836460534
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7330,
+          4191.5
+        ]
+      },
+      "properties": {
+        "seccion": "SAN JUAN VIP",
+        "manzana": "J",
+        "nombre": "SAN JUAN VIP - J",
+        "lotesFile": "./data/lotes-SAN JUAN VIP-J.geojson",
+        "id": "SAN JUAN VIP-J",
+        "shape": "circle",
+        "radius": 110.119253539061
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7377.5,
+          4479.5
+        ]
+      },
+      "properties": {
+        "seccion": "SAN JUAN VIP",
+        "manzana": "K",
+        "nombre": "SAN JUAN VIP - K",
+        "lotesFile": "./data/lotes-SAN JUAN VIP-K.geojson",
+        "id": "SAN JUAN VIP-K",
+        "shape": "circle",
+        "radius": 110.67887106399306
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7073,
+          4006.5
+        ]
+      },
+      "properties": {
+        "seccion": "SAN JUAN VIP",
+        "manzana": "L",
+        "nombre": "SAN JUAN VIP - L",
+        "lotesFile": "./data/lotes-SAN JUAN VIP-L.geojson",
+        "id": "SAN JUAN VIP-L",
+        "shape": "circle",
+        "radius": 109.51826331712898
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7142,
+          4385
+        ]
+      },
+      "properties": {
+        "seccion": "SAN JUAN VIP",
+        "manzana": "M",
+        "nombre": "SAN JUAN VIP - M",
+        "lotesFile": "./data/lotes-SAN JUAN VIP-M.geojson",
+        "id": "SAN JUAN VIP-M",
+        "shape": "circle",
+        "radius": 110.02840542332693
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6913,
+          4244.5
+        ]
+      },
+      "properties": {
+        "seccion": "SAN JUAN VIP",
+        "manzana": "N",
+        "nombre": "SAN JUAN VIP - N",
+        "lotesFile": "./data/lotes-SAN JUAN VIP-N.geojson",
+        "id": "SAN JUAN VIP-N",
+        "shape": "circle",
+        "radius": 109.37092849564732
       }
     }
   ]
