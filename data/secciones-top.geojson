@@ -2478,7 +2478,7 @@
         "seccion": "PLATA",
         "nombre": "PLATA",
         "id": "PLATA",
-        "color": "#c9a227"
+        "color": "#ff8800"
       }
     },
     {
@@ -2870,7 +2870,7 @@
         "seccion": "PLATA 2",
         "nombre": "PLATA",
         "id": "PLATA 2",
-        "color": "#c9a227"
+        "color": "#26c7c9"
       }
     }
   ]
