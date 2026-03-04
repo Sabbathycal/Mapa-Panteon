@@ -10,8 +10,8 @@ const DATA_COORD_HEIGHT = 9079;
 
 // Archivos de datos
 const SECCIONES_TOP_URL = "./data/secciones-top.geojson"; // editor ?edit=secciones + PUBLICO secciones
-const MANZANAS_URL      = "./data/secciones.geojson";     // tu archivo actual (MANZANAS)
-const NICHOS_ZONAS_URL  = "./data/nichos-zonas.geojson";  // GeoJSON zonas clickeables de nichos
+const MANZANAS_URL      = "./data/secciones.geojson";     // MANZANAS
+const NICHOS_ZONAS_URL  = "./data/nichos-zonas.geojson";  // zonas clickeables nichos (FeatureCollection)
 
 // Catálogos
 const LOTES_INFO_URL    = "./data/lotes.json";
@@ -58,7 +58,7 @@ let nichosZonasRaw = null;
 let nichosZonasScaled = null;
 let nichosLayer = null;
 
-// IMPORTANTE: nombre correcto (singular) para coincidir con openNichoModal()
+// Selección de nicho (modal)
 let nichoSelection = { zonaId: null, cara: null, numero: null };
 
 let currentSeccion = null;
@@ -616,6 +616,90 @@ function showLoteInfo(feature){
 }
 
 /* =========================================================
+   NICHOS: GRID SETTINGS + HELPERS
+   ========================================================= */
+// Filas base: A-F (6 filas). Si en realidad son 5 filas, deja ["A","B","C","D","E"].
+const NICHOS_ROWS = ["A","B","C","D","E","F"];
+const NICHOS_COLS = 79;
+
+// Caja útil (0..1) — ajustable después
+const NICHOS_GRID_BOX = { left: 0.06, right: 0.94, top: 0.12, bottom: 0.92 };
+
+function getNichoPrefixFromZona(zonaFeature){
+  const p = zonaFeature?.properties || {};
+  const direct = (p.prefix || p.codigo || p.tipo || "").toString().trim().toUpperCase();
+  if (direct === "PLN" || direct === "SPN") return direct;
+
+  const id = (p.id || "").toString().trim().toUpperCase();
+  if (id.startsWith("PLN")) return "PLN";
+  if (id.startsWith("SPN")) return "SPN";
+  return "PLN";
+}
+
+function clamp01(v){
+  if (v < 0) return 0;
+  if (v > 1) return 1;
+  return v;
+}
+
+function nichoClickToGrid(rx, ry){
+  rx = clamp01(rx);
+  ry = clamp01(ry);
+
+  const box = NICHOS_GRID_BOX;
+  const gx = (rx - box.left) / (box.right - box.left);
+  const gy = (ry - box.top) / (box.bottom - box.top);
+
+  if (gx < 0 || gx > 1 || gy < 0 || gy > 1) return null;
+
+  const col = Math.floor(gx * NICHOS_COLS) + 1;
+  const rowIndex = Math.floor(gy * NICHOS_ROWS.length);
+
+  const colClamped = Math.min(Math.max(col, 1), NICHOS_COLS);
+  const rowClamped = Math.min(Math.max(rowIndex, 0), NICHOS_ROWS.length - 1);
+
+  return { col: colClamped, rowIndex: rowClamped };
+}
+
+function buildNichoCode(prefix, numero, fila, cara){
+  const suf = (cara === "convexo") ? "X" : "";
+  return `${prefix}-${numero}-${fila}${suf}`;
+}
+
+function drawNichoHighlight(clickLayerEl, rx, ry){
+  let hl = document.getElementById("nichoHighlight");
+  if (!hl){
+    hl = document.createElement("div");
+    hl.id = "nichoHighlight";
+    hl.style.position = "absolute";
+    hl.style.border = "2px solid #ef4444";
+    hl.style.borderRadius = "6px";
+    hl.style.pointerEvents = "none";
+    clickLayerEl.appendChild(hl);
+  }
+
+  const box = NICHOS_GRID_BOX;
+  const gx = (rx - box.left) / (box.right - box.left);
+  const gy = (ry - box.top) / (box.bottom - box.top);
+  if (gx < 0 || gx > 1 || gy < 0 || gy > 1){
+    hl.style.display = "none";
+    return;
+  }
+
+  const cellW = (box.right - box.left) / NICHOS_COLS;
+  const cellH = (box.bottom - box.top) / NICHOS_ROWS.length;
+
+  const rectLeft = box.left + (Math.floor(gx * NICHOS_COLS) * cellW);
+  const rectTop  = box.top  + (Math.floor(gy * NICHOS_ROWS.length) * cellH);
+
+  hl.style.display = "block";
+  hl.style.left = `${rectLeft * 100}%`;
+  hl.style.top  = `${rectTop * 100}%`;
+  hl.style.width  = `${cellW * 100}%`;
+  hl.style.height = `${cellH * 100}%`;
+}
+
+/* =========================================================
    NICHOS MODAL
    ========================================================= */
 function openNichoModal(zonaFeature){
@@ -626,11 +710,18 @@ function openNichoModal(zonaFeature){
   const hint  = document.getElementById("nichoHint");
   const debug = document.getElementById("nichoDebug");
 
+  if (!modal || !sub || !img || !layer || !hint || !debug){
+    alert("Falta el modal de nichos en index.html (IDs nichoModal, nichoImg, etc.).");
+    return;
+  }
+
   const zonaId = zonaFeature?.properties?.id || "SIN-ID";
+  const prefix = getNichoPrefixFromZona(zonaFeature);
+
   nichoSelection = { zonaId, cara: null, numero: null };
 
-  sub.textContent = `Zona: ${zonaId} — Elige cara`;
-  hint.textContent = "Elige una cara para mostrar la imagen.";
+  sub.textContent = `Zona: ${zonaId} (${prefix}) — Elige cara`;
+  hint.textContent = "1) Elige cóncavo o convexo. 2) Luego da click en el nicho.";
   debug.textContent = "";
 
   img.style.display = "none";
@@ -641,29 +732,38 @@ function openNichoModal(zonaFeature){
 
   const close = () => { modal.style.display = "none"; };
 
-  document.getElementById("nichoCloseBtn").onclick = close;
+  const closeBtn = document.getElementById("nichoCloseBtn");
+  if (closeBtn) closeBtn.onclick = close;
   modal.onclick = (e) => { if (e.target === modal) close(); };
 
   const setCara = (cara) => {
     nichoSelection.cara = cara;
-    sub.textContent = `Zona: ${zonaId} — Cara: ${cara} — Selecciona nicho`;
+    sub.textContent = `Zona: ${zonaId} (${prefix}) — Cara: ${cara} — Selecciona nicho`;
 
-    const src = `./assets/nichos/${zonaId}-${cara}.png`;
+    // Ajusta aquí si tus imágenes tienen otro patrón
+    const src = `./assets/nichos/${prefix}-${cara}.png`;
+
     img.src = src;
     img.onload = () => {
       img.style.display = "block";
       layer.style.display = "block";
-      hint.textContent = "Da click en la imagen donde está el nicho (por ahora guardamos coordenadas).";
+      hint.textContent = `Da click sobre el nicho. Ejemplo: ${prefix}-68-${cara === "convexo" ? "AX" : "A"}`;
+      debug.textContent = "";
+      const oldHL = document.getElementById("nichoHighlight");
+      if (oldHL) oldHL.remove();
     };
     img.onerror = () => {
       img.style.display = "none";
       layer.style.display = "none";
       hint.textContent = `No encontré la imagen: ${src}`;
+      debug.textContent = "";
     };
   };
 
-  document.getElementById("caraConcavoBtn").onclick = () => setCara("concavo");
-  document.getElementById("caraConvexoBtn").onclick = () => setCara("convexo");
+  const concBtn = document.getElementById("caraConcavoBtn");
+  const convBtn = document.getElementById("caraConvexoBtn");
+  if (concBtn) concBtn.onclick = () => setCara("concavo");
+  if (convBtn) convBtn.onclick = () => setCara("convexo");
 
   layer.onclick = (ev) => {
     if (!nichoSelection.cara) return;
@@ -672,8 +772,26 @@ function openNichoModal(zonaFeature){
     const rx = (ev.clientX - rect.left) / rect.width;
     const ry = (ev.clientY - rect.top) / rect.height;
 
-    nichoSelection.numero = `x=${rx.toFixed(3)}, y=${ry.toFixed(3)}`;
-    debug.textContent = `Seleccionado: zona=${nichoSelection.zonaId}, cara=${nichoSelection.cara}, nicho=${nichoSelection.numero}`;
+    const cell = nichoClickToGrid(rx, ry);
+    if (!cell){
+      hint.textContent = "Click fuera del área de nichos (zona útil). Intenta dentro del cuadro.";
+      return;
+    }
+
+    const numero = cell.col;
+    const fila = NICHOS_ROWS[cell.rowIndex];
+    const code = buildNichoCode(prefix, numero, fila, nichoSelection.cara);
+
+    nichoSelection.numero = numero;
+
+    drawNichoHighlight(layer, rx, ry);
+    debug.textContent = `Seleccionado: ${code}`;
+
+    setPanel("Nicho seleccionado", `
+      <p><b>Código:</b> ${safe(code)}</p>
+      <p><b>Zona:</b> ${safe(zonaId)}</p>
+      <p><b>Cara:</b> ${safe(nichoSelection.cara)}</p>
+    `);
   };
 }
 
@@ -823,7 +941,7 @@ function setupButtons(){
 
 /* =========================================================
    ================= EDITOR (SECCIONES / MANZANAS / LOTES) =================
-   Polígono o Círculo + COPY/PASTE
+   Polígono o Círculo + COPY/PASTE + BORRAR + MOVER FIGURA
    ========================================================= */
 const editor = {
   mode: "edit",
@@ -849,10 +967,17 @@ const editor = {
 
   vertexMarkers: [],
 
+  // ====== MOVE whole shape ======
+  centerMoveMarker: null,   // marker draggable para mover el polígono
+  moveEnabled: true,        // por defecto sí (puedes apagar en UI)
+
   // ====== COPY / PASTE ======
-  clipboardFeature: null,   // Feature clonada
-  clipboardMeta: null,      // { dataset }
-  pasteArmed: false,        // modo pegar activo
+  clipboardFeature: null,
+  clipboardMeta: null,
+  pasteArmed: false,
+
+  // dataset actual (para borrar / insertar)
+  selectedDatasetArr: null,
 
   iconVertex: L.divIcon({
     className: "",
@@ -865,6 +990,12 @@ const editor = {
     html: `<div style="width:12px;height:12px;border-radius:50%;background:#111;border:2px solid #fff;"></div>`,
     iconSize: [16,16],
     iconAnchor: [8,8]
+  }),
+  iconCenter: L.divIcon({
+    className: "",
+    html: `<div style="width:14px;height:14px;border-radius:50%;background:#ef4444;border:2px solid #fff;box-shadow:0 0 0 1px #111;"></div>`,
+    iconSize: [18,18],
+    iconAnchor: [9,9]
   })
 };
 
@@ -918,11 +1049,18 @@ function editorStopEditing(){
     editor.circleRadiusMarker = null;
   }
 
+  if (editor.centerMoveMarker){
+    map.removeLayer(editor.centerMoveMarker);
+    editor.centerMoveMarker = null;
+  }
+
   editor.selectedLayer = null;
   editor.selectedFeature = null;
   editor.selectedIsCircle = false;
   editor.originalGeometry = null;
   editor.originalRadius = null;
+
+  editor.selectedDatasetArr = null;
 }
 
 function ringToGeoJsonCoords(ringLatLng){
@@ -937,7 +1075,7 @@ function ringToGeoJsonCoords(ringLatLng){
 function getFeatureCenterXY(feature, layer){
   try {
     if (isCircleFeature(feature)){
-      return feature.geometry.coordinates;
+      return feature.geometry.coordinates; // [x,y]
     }
     if (layer && layer.getBounds){
       const b = layer.getBounds();
@@ -985,6 +1123,98 @@ function rerenderActiveEditor(){
   if (isEditLotes)     return rerenderLotes_Edit();
 }
 
+/* =========================================================
+   BORRAR feature del dataset activo
+   ========================================================= */
+function deleteSelectedFeature(){
+  const arr = editor.selectedDatasetArr || getActiveEditDataset();
+  if (!arr || !editor.selectedFeature) return;
+
+  // buscar por referencia, si no, por id
+  const idxRef = arr.indexOf(editor.selectedFeature);
+  let idx = idxRef;
+
+  if (idx < 0){
+    const id = (editor.selectedFeature?.properties?.id ||
+                editor.selectedFeature?.properties?.lote ||
+                editor.selectedFeature?.properties?.manzana ||
+                editor.selectedFeature?.properties?.seccion ||
+                "").toString();
+    if (id){
+      idx = arr.findIndex(f => {
+        const fid = (f?.properties?.id || f?.properties?.lote || f?.properties?.manzana || f?.properties?.seccion || "").toString();
+        return fid === id;
+      });
+    }
+  }
+
+  if (idx < 0){
+    alert("No pude encontrar la figura en el dataset para borrarla.");
+    return;
+  }
+
+  arr.splice(idx, 1);
+  editorStopEditing();
+  rerenderActiveEditor();
+  alert("Figura borrada en memoria. Copia el GeoJSON y pégalo en tu archivo.");
+}
+
+/* =========================================================
+   MOVER figura completa (polígono)
+   ========================================================= */
+function installPolygonMoveHandle(layer){
+  if (!editor.moveEnabled) return;
+
+  // quitar anterior si existe
+  if (editor.centerMoveMarker){
+    map.removeLayer(editor.centerMoveMarker);
+    editor.centerMoveMarker = null;
+  }
+
+  const centerXY = getFeatureCenterXY(layer.feature, layer); // [x,y]
+  const centerLL = L.latLng(centerXY[1], centerXY[0]);
+
+  editor.centerMoveMarker = L.marker(centerLL, {
+    draggable: true,
+    icon: editor.iconCenter
+  }).addTo(map);
+
+  let last = editor.centerMoveMarker.getLatLng();
+
+  const applyDelta = (newLL) => {
+    const dx = newLL.lng - last.lng;
+    const dy = newLL.lat - last.lat;
+
+    // mover layer
+    const latlngs = layer.getLatLngs();
+    const ring = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
+    const moved = ring.map(p => L.latLng(p.lat + dy, p.lng + dx));
+    layer.setLatLngs([moved]);
+
+    // mover marcadores de vertices
+    editor.vertexMarkers.forEach(m => {
+      const p = m.getLatLng();
+      m.setLatLng(L.latLng(p.lat + dy, p.lng + dx));
+    });
+
+    last = newLL;
+  };
+
+  editor.centerMoveMarker.on("drag", () => {
+    applyDelta(editor.centerMoveMarker.getLatLng());
+  });
+
+  editor.centerMoveMarker.on("dragend", () => {
+    // guardar en feature.geometry
+    const newRing = editor.vertexMarkers.map(m => m.getLatLng());
+    editor.selectedFeature.geometry.coordinates = ringToGeoJsonCoords(newRing);
+    renderEditSelectedPanel(); // refresca panel
+  });
+}
+
+/* =========================================================
+   EDIT START
+   ========================================================= */
 function editorStartEditPolygon(layer){
   editorStopEditing();
 
@@ -992,6 +1222,7 @@ function editorStartEditPolygon(layer){
   editor.selectedFeature = layer.feature;
   editor.selectedIsCircle = false;
   editor.originalGeometry = deepCopy(layer.feature.geometry);
+  editor.selectedDatasetArr = getActiveEditDataset();
 
   const latlngs = layer.getLatLngs();
   const ring = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
@@ -1012,9 +1243,13 @@ function editorStartEditPolygon(layer){
       const newRing = editor.vertexMarkers.map(m => m.getLatLng());
       layer.setLatLngs([newRing]);
       editor.selectedFeature.geometry.coordinates = ringToGeoJsonCoords(newRing);
+      renderEditSelectedPanel();
     });
     return mk;
   });
+
+  // Handle para mover la figura completa (sin cambiar puntos)
+  installPolygonMoveHandle(layer);
 
   renderEditSelectedPanel();
 }
@@ -1028,11 +1263,13 @@ function editorStartEditCircle(layer){
 
   editor.originalGeometry = deepCopy(layer.feature.geometry);
   editor.originalRadius = layer.feature.properties.radius;
+  editor.selectedDatasetArr = getActiveEditDataset();
 
   const center = layer.getLatLng();
   const radius = layer.feature.properties.radius;
 
-  editor.circleCenterMarker = L.marker(center, { draggable:true, icon: editor.iconVertex }).addTo(map);
+  // Para círculo: el centro YA sirve para mover toda la figura
+  editor.circleCenterMarker = L.marker(center, { draggable:true, icon: editor.iconCenter }).addTo(map);
 
   const handle = L.latLng(center.lat, center.lng + radius);
   editor.circleRadiusMarker = L.marker(handle, { draggable:true, icon: editor.iconHandle }).addTo(map);
@@ -1047,6 +1284,8 @@ function editorStartEditCircle(layer){
 
     editor.selectedFeature.geometry.coordinates = latLngToXY(c);
     editor.selectedFeature.properties.radius = r;
+
+    renderEditSelectedPanel();
   };
 
   editor.circleCenterMarker.on("drag", () => {
@@ -1074,6 +1313,9 @@ function getEditDataset(){
   return null;
 }
 
+/* =========================================================
+   EDIT SELECTED PANEL (incluye borrar + copy/paste)
+   ========================================================= */
 function renderEditSelectedPanel(){
   const ds = getEditDataset();
   const kind = ds?.label || "ITEM";
@@ -1088,7 +1330,10 @@ function renderEditSelectedPanel(){
 
   setPanel(`Editar ${kind}: ${safe(id)}`, `
     <p><b>Tipo:</b> ${editor.selectedIsCircle ? "Círculo" : "Polígono"}</p>
-    <p>Mueve puntos (polígono) o centro/radio (círculo).</p>
+    <p style="font-size:12px;color:#666;">
+      ${editor.selectedIsCircle ? "Arrastra el centro rojo para mover el círculo. Arrastra el punto negro para cambiar el radio." :
+                                 "Arrastra el centro rojo para mover la figura completa. Arrastra puntos blancos para cambiar vértices."}
+    </p>
     <p style="font-size:12px;color:#666;">Destino: <b>${safe(ds?.dest || "")}</b></p>
 
     ${showColor ? `
@@ -1102,6 +1347,10 @@ function renderEditSelectedPanel(){
     ` : ""}
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+      <button id="btnDeleteShape" style="padding:8px 12px;border-radius:8px;border:1px solid #ef4444;background:#fff;color:#b91c1c;cursor:pointer;">
+        Borrar figura
+      </button>
+
       <button id="btnCopyShape" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">
         Copiar figura
       </button>
@@ -1119,6 +1368,7 @@ function renderEditSelectedPanel(){
     </div>
   `);
 
+  // Color live update (solo secciones)
   if (showColor){
     const $col = document.getElementById("editSeccionColor");
     if ($col){
@@ -1131,18 +1381,30 @@ function renderEditSelectedPanel(){
     }
   }
 
-  // ====== COPY / PASTE handlers ======
+  // BORRAR
+  const btnDelete = document.getElementById("btnDeleteShape");
+  if (btnDelete){
+    btnDelete.onclick = () => {
+      if (!confirm("¿Seguro que quieres borrar esta figura?")) return;
+      deleteSelectedFeature();
+    };
+  }
+
+  // COPY / PASTE
   const btnCopyShape = document.getElementById("btnCopyShape");
   const btnPasteShape = document.getElementById("btnPasteShape");
   const btnCancelPaste = document.getElementById("btnCancelPaste");
 
-  const canCopy = !!editor.selectedFeature;
-  if (btnCopyShape) btnCopyShape.disabled = !canCopy;
-
+  if (btnCopyShape) btnCopyShape.disabled = !editor.selectedFeature;
   if (btnPasteShape) btnPasteShape.disabled = !editor.clipboardFeature;
 
   if (btnCancelPaste){
     btnCancelPaste.style.display = editor.pasteArmed ? "inline-block" : "none";
+    btnCancelPaste.onclick = () => {
+      editor.pasteArmed = false;
+      alert("Pegado cancelado.");
+      renderEditSelectedPanel();
+    };
   }
 
   if (btnCopyShape){
@@ -1164,14 +1426,7 @@ function renderEditSelectedPanel(){
     };
   }
 
-  if (btnCancelPaste){
-    btnCancelPaste.onclick = () => {
-      editor.pasteArmed = false;
-      alert("Pegado cancelado.");
-      renderEditSelectedPanel();
-    };
-  }
-
+  // Guardar / Cancelar / Copiar GeoJSON / Volver
   document.getElementById("btnSaveEdit").onclick = () => {
     alert("Guardado en memoria. Copia el GeoJSON y pégalo en tu archivo.");
   };
@@ -1195,10 +1450,18 @@ function renderEditSelectedPanel(){
           if (Math.abs(a.lat-b.lat)<1e-9 && Math.abs(a.lng-b.lng)<1e-9) ring.pop();
         }
         editor.selectedLayer.setLatLngs([ring]);
+
+        // también reset markers
+        editor.vertexMarkers.forEach((m, i) => {
+          if (ring[i]) m.setLatLng(ring[i]);
+        });
+
+        // reset move marker
+        installPolygonMoveHandle(editor.selectedLayer);
       }
     }
-    editorStopEditing();
-    alert("Cancelado.");
+    alert("Cancelado (revertido en memoria).");
+    renderEditSelectedPanel();
   };
 
   document.getElementById("btnCopyGeo").onclick = async () => {
@@ -1253,7 +1516,7 @@ function renderEditSeccionesPanel(){
   document.getElementById("btnEdit").onclick = () => {
     editor.mode = "edit";
     editorClearPoly(); editorClearCircle();
-    $editBody.innerHTML = `<p><b>Editar:</b> clic en una sección para editar (polígono o círculo). Ahora también puedes cambiar color.</p>`;
+    $editBody.innerHTML = `<p><b>Editar:</b> clic en una sección para editar (polígono o círculo). Puedes cambiar color.</p>`;
     rerenderSecciones_Edit();
   };
 
@@ -1553,6 +1816,9 @@ function renderEditLotesPanel(){
   document.getElementById("btnEdit").click();
 }
 
+/* =========================================================
+   EDIT renderers
+   ========================================================= */
 function rerenderManzanas_Edit(){
   if (manzanasLayer){ manzanasLayer.remove(); manzanasLayer = null; }
   editorStopEditing();
