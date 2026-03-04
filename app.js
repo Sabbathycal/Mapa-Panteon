@@ -2126,7 +2126,7 @@ async function main(){
       seccionesTopScaled = deepCopy(seccionesTopRaw);
       applyCoordScaleToGeoJSON(seccionesTopScaled, COORD_SCALE_X, COORD_SCALE_Y);
 
-      manzazasScaled = deepCopy(manzanasRaw);
+      manzanasScaled = deepCopy(manzanasRaw);
       applyCoordScaleToGeoJSON(manzanasScaled, COORD_SCALE_X, COORD_SCALE_Y);
 
       // Nichos capa pública (independiente)
