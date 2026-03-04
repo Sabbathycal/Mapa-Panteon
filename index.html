@@ -5,16 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mapa del Panteón</title>
 
-  <!-- Intenta evitar cache del HTML (no siempre es suficiente por sí solo, pero ayuda) -->
+  <!-- Anti-cache (ayuda, pero lo que realmente evita caché es el loader con ?v=Date.now()) -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
   <!-- Leaflet -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <style>
     :root{
@@ -23,14 +20,20 @@
       --text: #111827;
       --muted: #6b7280;
       --bg: #ffffff;
+
+      /* Paleta tipo juanpablo.com.mx (ajústala si quieres) */
+      --jp-blue: #265585;
+      --jp-cream: #FFF7E5;
+      --jp-card: #ffffff;
     }
 
     *{ box-sizing: border-box; }
+
     body{
       margin: 0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color: var(--text);
-      background: #FFF7E5;
+      background: var(--jp-cream); /* fondo general */
     }
 
     header{
@@ -40,14 +43,15 @@
       gap: 10px;
       align-items: center;
       flex-wrap: wrap;
-      background: #265585;
-      color: #265585;
+      background: var(--jp-blue);
+      color: #fff;
     }
 
     header .title{
       font-size: 20px;
-      font-weight: 700;
+      font-weight: 800;
       margin-right: 8px;
+      color: #fff;
     }
 
     .controls{
@@ -74,7 +78,7 @@
     button{
       cursor: pointer;
       background: #fff;
-      font-weight: 600;
+      font-weight: 700;
     }
     button:disabled{
       opacity: .5;
@@ -85,24 +89,26 @@
       display: grid;
       grid-template-columns: 1fr var(--panel-w);
       height: calc(100vh - 61px);
+      background: var(--jp-cream); /* igual que el sitio */
     }
 
     #map{
       width: 100%;
       height: 100%;
-      background: #ffffff;
+      background: #ffffff; /* fondo blanco atrás del mapa */
     }
 
     aside{
       border-left: 1px solid var(--border);
       padding: 14px;
       overflow: auto;
-      background: #ffffff;
+      background: var(--jp-card);
     }
 
     #panelTitle{
       margin: 0 0 10px 0;
       font-size: 20px;
+      font-weight: 800;
     }
 
     #panelBody{
@@ -112,6 +118,25 @@
 
     #panelBody p{ margin: 8px 0; color: var(--text); }
     #panelBody code{ background: #f3f4f6; padding: 2px 6px; border-radius: 6px; }
+
+    /* ===== Toast (mensajes sin pop-up) ===== */
+    #toast{
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: rgba(17,24,39,.92);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      max-width: min(720px, 92vw);
+      box-shadow: 0 12px 30px rgba(0,0,0,.25);
+      z-index: 9998;
+      display: none;
+      line-height: 1.35;
+    }
+    #toast.show{ display: block; }
 
     /* Responsive: en móvil, panel abajo */
     @media (max-width: 980px){
@@ -162,54 +187,130 @@
     </aside>
   </main>
 
-  <!-- =========================
-       MODAL NICHOS (POP-UP)
-       ========================= -->
-  <div id="nichoModal"
-       style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9999; align-items:center; justify-content:center;">
-    <div style="width:min(1100px, 92vw); max-height:90vh; background:#fff; border-radius:14px; overflow:hidden;
-                box-shadow:0 20px 60px rgba(0,0,0,.25); display:flex; flex-direction:column;">
+  <!-- ===== Toast container ===== -->
+  <div id="toast"></div>
 
-      <div style="padding:12px 14px; border-bottom:1px solid #e5e7eb; display:flex; gap:10px; align-items:center; justify-content:space-between;">
+  <!-- ===== MODAL NICHOS (GRANDE) ===== -->
+  <div id="nichoModal" style="
+    position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+    background:rgba(0,0,0,.55); z-index:9999; padding:16px;
+  ">
+    <div style="
+      width:min(1200px, 96vw);
+      height:min(860px, 92vh);
+      background:#fff; border-radius:14px; overflow:hidden;
+      box-shadow:0 20px 60px rgba(0,0,0,.35);
+      display:flex; flex-direction:column;
+    ">
+      <!-- Header del modal -->
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;
+        padding:12px 14px; border-bottom:1px solid #e5e7eb;">
         <div>
-          <div style="font-weight:800;">Nichos</div>
-          <div id="nichoModalSub" style="font-size:12px; color:#6b7280;">Selecciona cara y nicho</div>
+          <div style="font-weight:800; font-size:16px;">Nichos</div>
+          <div id="nichoModalSub" style="font-size:12px; color:#6b7280;">...</div>
         </div>
-        <button id="nichoCloseBtn"
-                style="height:34px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:0 10px;font-weight:700;cursor:pointer;">
-          Cerrar
-        </button>
-      </div>
 
-      <div style="padding:12px 14px; display:flex; gap:10px; flex-wrap:wrap; border-bottom:1px solid #e5e7eb;">
-        <button id="caraConcavoBtn"
-                style="height:34px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:0 10px;font-weight:700;cursor:pointer;">
-          Cóncavo
-        </button>
-        <button id="caraConvexoBtn"
-                style="height:34px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:0 10px;font-weight:700;cursor:pointer;">
-          Convexo
-        </button>
-        <div id="nichoHint" style="font-size:12px;color:#6b7280;align-self:center;">
-          Elige una cara para mostrar la imagen.
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button id="caraConcavoBtn" style="height:34px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;font-weight:800;cursor:pointer;padding:0 10px;">
+            Cóncavo
+          </button>
+          <button id="caraConvexoBtn" style="height:34px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;font-weight:800;cursor:pointer;padding:0 10px;">
+            Convexo
+          </button>
+          <button id="nichoCloseBtn" style="height:34px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;font-weight:800;cursor:pointer;padding:0 10px;">
+            Cerrar
+          </button>
         </div>
       </div>
 
-      <div style="padding:14px; overflow:auto;">
-        <div id="nichoImgWrap" style="position:relative; width:100%; max-width:1000px; margin:0 auto;">
-          <img id="nichoImg" src="" alt="Mapa de nichos"
-               style="width:100%; height:auto; display:none; border:1px solid #e5e7eb; border-radius:12px;" />
-          <!-- capa transparente para clicks -->
-          <div id="nichoClickLayer" style="position:absolute; inset:0; display:none; cursor:crosshair;"></div>
+      <!-- Body del modal -->
+      <div style="display:grid; grid-template-columns: 1fr 320px; gap:0; flex:1; min-height:0;">
+        <!-- Imagen grande -->
+        <div style="position:relative; background:#111; display:flex; align-items:center; justify-content:center; overflow:auto;">
+          <!-- Contenedor "zoom" -->
+          <div id="nichoZoomWrap" style="position:relative; transform-origin: top left; transform: scale(1.0);">
+            <img id="nichoImg" alt="Nichos" style="display:none; max-width:none; width:auto; height:auto;" />
+            <!-- capa para clicks (se ajusta al tamaño real desde app.js) -->
+            <div id="nichoClickLayer" style="display:none; position:absolute; inset:0; cursor:crosshair;"></div>
+          </div>
         </div>
 
-        <div id="nichoDebug" style="margin-top:10px; font-size:12px; color:#6b7280;"></div>
+        <!-- Panel lateral -->
+        <div style="padding:12px 14px; border-left:1px solid #e5e7eb; overflow:auto; background:#fafafa;">
+          <div id="nichoHint" style="font-size:13px; color:#374151; margin-bottom:10px;">
+            Elige una cara.
+          </div>
+          <div style="font-size:12px; color:#6b7280; margin-bottom:8px;">
+            Selección:
+          </div>
+          <pre id="nichoDebug" style="white-space:pre-wrap; font-size:12px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:10px; min-height:120px;"></pre>
+
+          <hr style="border:none; border-top:1px solid #e5e7eb; margin:12px 0;" />
+
+          <div style="font-size:12px; color:#6b7280; margin-bottom:6px;">Zoom</div>
+          <input id="nichoZoom" type="range" min="1" max="3" step="0.1" value="1" style="width:100%;" />
+          <div id="nichoZoomVal" style="font-size:12px; color:#374151; margin-top:6px;">100%</div>
+
+          <p style="font-size:12px;color:#6b7280;margin-top:12px;">
+            Tip: si la selección cae “corrida”, ajustaremos en app.js el recuadro útil (<code>NICHOS_GRID_BOX</code>).
+          </p>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- ===== Utilidades globales (toast + silenciar alerts en modo edit) ===== -->
+  <script>
+    // Toast (mensajes tipo notificación, sin pop-up)
+    (function(){
+      const el = document.getElementById("toast");
+      let t = null;
+
+      window.toast = function(msg, ms){
+        if (!el) return;
+        el.textContent = String(msg || "");
+        el.classList.add("show");
+        clearTimeout(t);
+        t = setTimeout(() => el.classList.remove("show"), ms || 1800);
+      };
+    })();
+
+    // En modo ?edit=... queremos evitar pop-ups
+    (function(){
+      const edit = new URLSearchParams(location.search).get("edit");
+      const isEdit = !!edit;
+
+      if (!isEdit) return;
+
+      // Guardamos referencias por si quieres restaurarlas después
+      window.__nativeAlert = window.alert;
+
+      // alert() se convierte en toast para no molestar
+      window.alert = function(msg){
+        window.toast(msg, 1800);
+      };
+
+      // confirm() se mantiene (esto SÍ lo quieres para borrar)
+      // (no lo tocamos)
+    })();
+
+    // Slider de zoom visual del modal nichos
+    (function(){
+      const z = document.getElementById("nichoZoom");
+      const wrap = document.getElementById("nichoZoomWrap");
+      const val = document.getElementById("nichoZoomVal");
+      if (!z || !wrap || !val) return;
+
+      z.addEventListener("input", () => {
+        const s = Number(z.value || 1);
+        wrap.style.transform = "scale(" + s + ")";
+        val.textContent = Math.round(s*100) + "%";
+      });
+    })();
+  </script>
 
   <!-- Loader anti-cache para app.js (NO tienes que editar index.html cada vez) -->
   <script>
