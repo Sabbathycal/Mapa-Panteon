@@ -21,12 +21,13 @@ const PAQUETES_URL      = "./data/paquetes.json";
 // ?edit=secciones  => EDITOR SECCIONES
 // ?edit=manzanas   => EDITOR MANZANAS
 // ?edit=lotes      => EDITOR LOTES
-// ?edit=nichos     => EDITOR NICHOS (zonas de nichos)
+// ?edit=nichos     => EDITOR NICHOS
 const editMode = new URLSearchParams(location.search).get("edit"); // null | "secciones" | "manzanas" | "lotes" | "nichos"
 const isEditSecciones = editMode === "secciones";
 const isEditManzanas  = editMode === "manzanas";
 const isEditLotes     = editMode === "lotes";
 const isEditNichos    = editMode === "nichos";
+const IS_EDIT = !!editMode;
 
 const BASE_IMAGE_URL = (isEditSecciones || isEditManzanas || isEditLotes || isEditNichos)
   ? BASE_IMAGE_EDIT_URL
@@ -34,6 +35,20 @@ const BASE_IMAGE_URL = (isEditSecciones || isEditManzanas || isEditLotes || isEd
 
 // Detectar móvil/tablet
 const IS_MOBILE = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+
+/* =========================================================
+   UX: NOTIFICACIONES (sin pop-ups)
+   - En index.html ya definimos window.toast(msg)
+   - Aquí usamos notify() en lugar de alert()
+   - confirm() se mantiene para borrados/acciones críticas
+   ========================================================= */
+function notify(msg, ms = 1800){
+  try {
+    if (typeof window.toast === "function") return window.toast(msg, ms);
+  } catch {}
+  // fallback
+  try { console.log("[INFO]", msg); } catch {}
+}
 
 /* =========================================================
    GLOBAL STATE
@@ -677,15 +692,17 @@ function showLoteInfo(feature){
 
   setPanel("Lote", html);
   const btn = document.getElementById("moreBtn");
-  if (btn) btn.onclick = () => alert("Aquí irá el login + consulta segura del saldo.");
+  if (btn) btn.onclick = () => notify("Aquí irá el login + consulta segura del saldo.", 2200);
 }
 
 /* =========================================================
-   NICHOS (modal) — sin cambios (usa el modal en index.html)
+   NICHOS: selección dentro de la imagen
    ========================================================= */
-const NICHOS_ROWS = ["A","B","C","D","E","F"];
-const NICHOS_COLS = 79;
-const NICHOS_GRID_BOX = { left: 0.06, right: 0.94, top: 0.12, bottom: 0.92 };
+const NICHOS_ROWS = ["A","B","C","D","E","F"]; // 6 filas
+const NICHOS_COLS = 79;                        // 79 nichos por fila
+const NICHOS_GRID_BOX = { left: 0.03, right: 0.97, top: 0.10, bottom: 0.95 };
+
+function clamp01(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
 
 function getNichoPrefixFromZona(zonaFeature){
   const p = zonaFeature?.properties || {};
@@ -697,7 +714,6 @@ function getNichoPrefixFromZona(zonaFeature){
   if (id.startsWith("SPN")) return "SPN";
   return "PLN";
 }
-function clamp01(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
 
 function nichoClickToGrid(rx, ry){
   rx = clamp01(rx);
@@ -708,18 +724,20 @@ function nichoClickToGrid(rx, ry){
   const gy = (ry - box.top) / (box.bottom - box.top);
   if (gx < 0 || gx > 1 || gy < 0 || gy > 1) return null;
 
-  const col = Math.floor(gx * NICHOS_COLS) + 1;
-  const rowIndex = Math.floor(gy * NICHOS_ROWS.length);
+  const col = Math.floor(gx * NICHOS_COLS) + 1;              // 1..79
+  const rowIndex = Math.floor(gy * NICHOS_ROWS.length);      // 0..5
 
-  const colClamped = Math.min(Math.max(col, 1), NICHOS_COLS);
-  const rowClamped = Math.min(Math.max(rowIndex, 0), NICHOS_ROWS.length - 1);
+  const numero = Math.min(Math.max(col, 1), NICHOS_COLS);
+  const filaIndex = Math.min(Math.max(rowIndex, 0), NICHOS_ROWS.length - 1);
 
-  return { col: colClamped, rowIndex: rowClamped };
+  return { numero, filaIndex };
 }
+
 function buildNichoCode(prefix, numero, fila, cara){
   const suf = (cara === "convexo") ? "X" : "";
   return `${prefix}-${numero}-${fila}${suf}`;
 }
+
 function drawNichoHighlight(clickLayerEl, rx, ry){
   let hl = document.getElementById("nichoHighlight");
   if (!hl){
@@ -762,7 +780,7 @@ function openNichoModal(zonaFeature){
   const debug = document.getElementById("nichoDebug");
 
   if (!modal || !sub || !img || !layer || !hint || !debug){
-    alert("Falta el modal de nichos en index.html (IDs nichoModal, nichoImg, etc.).");
+    notify("Falta el modal de nichos en index.html (IDs nichoModal, nichoImg, etc.).", 2600);
     return;
   }
 
@@ -795,9 +813,17 @@ function openNichoModal(zonaFeature){
     img.src = src;
     img.onload = () => {
       img.style.display = "block";
+
+      // capa de click = tamaño real de la imagen
       layer.style.display = "block";
+      layer.style.width = img.naturalWidth + "px";
+      layer.style.height = img.naturalHeight + "px";
+      img.style.width = img.naturalWidth + "px";
+      img.style.height = img.naturalHeight + "px";
+
       hint.textContent = `Da click sobre el nicho. Ejemplo: ${prefix}-68-${cara === "convexo" ? "AX" : "A"}`;
       debug.textContent = "";
+
       const oldHL = document.getElementById("nichoHighlight");
       if (oldHL) oldHL.remove();
     };
@@ -823,12 +849,12 @@ function openNichoModal(zonaFeature){
 
     const cell = nichoClickToGrid(rx, ry);
     if (!cell){
-      hint.textContent = "Click fuera del área de nichos (zona útil). Intenta dentro del cuadro.";
+      hint.textContent = "Click fuera del área de nichos. Intenta dentro del cuadro de nichos.";
       return;
     }
 
-    const numero = cell.col;
-    const fila = NICHOS_ROWS[cell.rowIndex];
+    const numero = cell.numero;
+    const fila = NICHOS_ROWS[cell.filaIndex];
     const code = buildNichoCode(prefix, numero, fila, nichoSelection.cara);
 
     nichoSelection.numero = numero;
@@ -990,11 +1016,12 @@ function setupButtons(){
 
 /* =========================================================
    ================= EDITOR CORE =================
-   - Editar puntos (polígono) / centro-radio (círculo)
-   - Borrar figura
+   - Editar puntos / círculo
+   - Borrar
    - Copiar/Pegar
-   - Cuadrícula lotes y manzanas (con rotación)
-   - Mover CUADRÍCULA COMPLETA (NO 1 por 1)
+   - Cuadrícula lotes y manzanas (rotación)
+   - Mover CUADRÍCULA COMPLETA con 1 marcador
+   - SIN pop-ups molestos (notify)
    ========================================================= */
 const editor = {
   mode: "edit",          // "edit" | "create" | "grid"
@@ -1030,7 +1057,7 @@ const editor = {
   gridConfig: null,
 
   // last created grid group (for moving whole grid)
-  lastGrid: null, // { datasetArr, features[], overlay, centerMarker, bounds }
+  lastGrid: null, // { datasetArr, features[], overlay, centerMarker, bounds, centerLL }
 
   iconVertex: L.divIcon({
     className: "",
@@ -1131,7 +1158,7 @@ function rerenderActiveEditor(){
   if (isEditNichos)    return rerenderNichos_Edit();
 }
 
-/* ---------- TRANSLATE FEATURE (para mover grids) ---------- */
+/* ---------- TRANSLATE FEATURE (mover grids) ---------- */
 function translateFeatureInPlace(feature, dx, dy){
   if (!feature?.geometry) return;
 
@@ -1148,7 +1175,7 @@ function translateFeatureInPlace(feature, dx, dy){
   }
 }
 
-/* ---------- BOUNDS for feature list (para dibujar rectángulo del grid) ---------- */
+/* ---------- BOUNDS for feature list (overlay grid) ---------- */
 function expandBoundsWithXY(b, x, y){
   if (!b) return { minX:x, minY:y, maxX:x, maxY:y };
   if (x < b.minX) b.minX = x;
@@ -1232,7 +1259,6 @@ function activateGridGroup(datasetArr, features){
   const llb = boundsToLatLngBounds(b, 0.06);
   const c = boundsCenter(b);
 
-  // overlay rectangle
   const rect = [
     [b.minY, b.minX],
     [b.minY, b.maxX],
@@ -1252,13 +1278,12 @@ function activateGridGroup(datasetArr, features){
 
   let last = centerMarker.getLatLng();
 
-  // Solo aplica movimiento al soltar (dragend). Durante drag movemos overlay/marker visualmente.
+  // Durante drag: solo overlay se mueve visualmente
   centerMarker.on("drag", () => {
     const now = centerMarker.getLatLng();
     const dx = now.lng - last.lng;
     const dy = now.lat - last.lat;
 
-    // mover overlay visualmente
     const latlngs = overlay.getLatLngs()[0] || overlay.getLatLngs();
     const moved = latlngs.map(p => L.latLng(p.lat + dy, p.lng + dx));
     overlay.setLatLngs([moved]);
@@ -1266,25 +1291,21 @@ function activateGridGroup(datasetArr, features){
     last = now;
   });
 
+  // Al soltar: aplicar delta a features
   centerMarker.on("dragend", () => {
     const now = centerMarker.getLatLng();
-    // delta total lo tomamos comparando con centro anterior guardado en lastGrid.boundsCenter
-    // para evitar acumulación por "drag", usamos el delta entre el centro anterior (editor.lastGridCenterLL) y el actual.
     const prevCenter = editor.lastGrid?.centerLL || L.latLng(c.y, c.x);
     const dx = now.lng - prevCenter.lng;
     const dy = now.lat - prevCenter.lat;
 
-    // aplicar delta a TODAS las features del grid
     for (const f of features){
       translateFeatureInPlace(f, dx, dy);
     }
 
-    // rerender todo el editor
     rerenderActiveEditor();
-
-    // re-activar overlay con nuevas bounds (para que quede “bien centrado”)
     activateGridGroup(datasetArr, features);
-    alert("✅ Cuadrícula movida. Si quieres guardar, copia el GeoJSON y pégalo en tu archivo.");
+
+    notify("✅ Cuadrícula movida (guardado en memoria). Usa 'Copiar GeoJSON' para pegar en tu archivo.", 2200);
   });
 
   editor.lastGrid = {
@@ -1296,7 +1317,6 @@ function activateGridGroup(datasetArr, features){
     centerLL: L.latLng(c.y, c.x),
   };
 
-  // encuadrar un poco para ver el marco
   try { flyToBoundsSmooth(llb, 0.45); } catch {}
 }
 
@@ -1304,11 +1324,11 @@ function activateLastGridIfAny(){
   if (editor.lastGrid?.datasetArr && editor.lastGrid?.features?.length){
     activateGridGroup(editor.lastGrid.datasetArr, editor.lastGrid.features);
   } else {
-    alert("No hay una cuadrícula reciente para seleccionar.");
+    notify("No hay una cuadrícula reciente para seleccionar.", 2000);
   }
 }
 
-/* ---------- FEATURE ID helpers (solo lo mínimo) ---------- */
+/* ---------- FEATURE ID helpers ---------- */
 function getFeatureId(f){
   return (f?.properties?.id || f?.properties?.lote || f?.properties?.manzana || f?.properties?.seccion || "").toString().trim();
 }
@@ -1338,14 +1358,14 @@ function deleteSelectedFeature(){
     if (id) idx = arr.findIndex(f => getFeatureId(f) === id);
   }
   if (idx < 0){
-    alert("No pude encontrar la figura en el dataset para borrarla.");
+    notify("No pude encontrar la figura en el dataset para borrarla.", 2200);
     return;
   }
 
   arr.splice(idx, 1);
   editorStopEditing();
   rerenderActiveEditor();
-  alert("Figura borrada en memoria. Copia el GeoJSON y pégalo en tu archivo.");
+  notify("✅ Figura borrada (en memoria). Usa 'Copiar GeoJSON' para guardar en el archivo.", 2200);
 }
 
 /* ---------- START EDIT POLYGON/CIRCLE ---------- */
@@ -1377,6 +1397,7 @@ function editorStartEditPolygon(layer){
       layer.setLatLngs([newRing]);
       editor.selectedFeature.geometry.coordinates = ringToGeoJsonCoords(newRing);
       renderEditSelectedPanel();
+      notify("Puntos actualizados (en memoria).", 900);
     });
     return mk;
   });
@@ -1414,6 +1435,7 @@ function editorStartEditCircle(layer){
     editor.selectedFeature.properties.radius = r;
 
     renderEditSelectedPanel();
+    notify("Círculo actualizado (en memoria).", 900);
   };
 
   editor.circleCenterMarker.on("drag", () => {
@@ -1444,7 +1466,7 @@ function getEditDataset(){
 }
 
 /* =========================================================
-   PANEL: EDIT SELECTED (incluye borrar + copy/paste)
+   PANEL: EDIT SELECTED (borrar + copy/paste)
    ========================================================= */
 function renderEditSelectedPanel(){
   const ds = getEditDataset();
@@ -1497,11 +1519,12 @@ function renderEditSelectedPanel(){
       $col.oninput = () => {
         editor.selectedFeature.properties.color = $col.value;
         try { editor.selectedLayer.setStyle({ weight: 2, opacity: 1, fillOpacity: 0.06, fillColor: $col.value }); } catch {}
+        notify("Color actualizado (en memoria).", 900);
       };
     }
   }
 
-  // borrar
+  // borrar (confirm SI se queda)
   const btnDelete = document.getElementById("btnDeleteShape");
   if (btnDelete){
     btnDelete.onclick = () => {
@@ -1522,7 +1545,7 @@ function renderEditSelectedPanel(){
     btnCancelPaste.style.display = editor.pasteArmed ? "inline-block" : "none";
     btnCancelPaste.onclick = () => {
       editor.pasteArmed = false;
-      alert("Pegado cancelado.");
+      notify("Pegado cancelado.", 1200);
       renderEditSelectedPanel();
     };
   }
@@ -1531,7 +1554,7 @@ function renderEditSelectedPanel(){
     btnCopyShape.onclick = () => {
       if (!editor.selectedFeature) return;
       editor.clipboardFeature = deepCopy(editor.selectedFeature);
-      alert("Figura copiada. Presiona 'Pegar' y luego haz click en el mapa.");
+      notify("Figura copiada. Presiona 'Pegar' y luego haz click en el mapa.", 2200);
       renderEditSelectedPanel();
     };
   }
@@ -1540,7 +1563,7 @@ function renderEditSelectedPanel(){
     btnPasteShape.onclick = () => {
       if (!editor.clipboardFeature) return;
       editor.pasteArmed = true;
-      alert("Modo PEGAR activado. Haz click en el mapa para colocar la copia (puedes pegar varias veces).");
+      notify("Modo PEGAR activado. Haz click en el mapa para colocar la copia.", 2200);
       renderEditSelectedPanel();
     };
   }
@@ -1551,7 +1574,7 @@ function renderEditSelectedPanel(){
     const txt = JSON.stringify(ds2?.data || { type:"FeatureCollection", features:[] }, null, 2);
     try {
       await navigator.clipboard.writeText(txt);
-      alert("Copiado. Pégalo en el archivo correspondiente (reemplazando contenido).");
+      notify("GeoJSON copiado. Pégalo en el archivo correspondiente.", 2200);
     } catch {
       setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
     }
@@ -1647,23 +1670,23 @@ function renderEditSeccionesPanel(){
       const nombre  = (document.getElementById("newNombre").value || "").trim();
       const color   = (document.getElementById("newColor").value || "").trim() || DEFAULT_SECCION_COLOR;
 
-      if (!seccion) return alert("Falta SECCIÓN.");
+      if (!seccion) return notify("Falta SECCIÓN.", 2000);
 
       const props = { seccion, nombre: nombre || seccion, id: seccion, color };
 
       let feature = null;
       if (editor.drawShape === "polygon"){
-        if (editor.polyPoints.length < 3) return alert("Polígono: mínimo 3 puntos.");
+        if (editor.polyPoints.length < 3) return notify("Polígono: mínimo 3 puntos.", 2200);
         feature = { type:"Feature", geometry:{ type:"Polygon", coordinates:ringToGeoJsonCoords(editor.polyPoints) }, properties: props };
       } else {
-        if (!editor.circleCenter || typeof editor.circleRadius !== "number") return alert("Círculo: clic centro y luego borde.");
+        if (!editor.circleCenter || typeof editor.circleRadius !== "number") return notify("Círculo: clic centro y luego borde.", 2200);
         feature = { type:"Feature", geometry:{ type:"Point", coordinates: latLngToXY(editor.circleCenter) }, properties:{ ...props, shape:"circle", radius: editor.circleRadius } };
       }
 
       seccionesTopRaw.features.push(feature);
       editorClearPoly(); editorClearCircle();
       rerenderSecciones_Edit();
-      alert("Sección creada en memoria. Copia el GeoJSON y pégalo en data/secciones-top.geojson");
+      notify("✅ Sección creada (en memoria). Usa 'Copiar GeoJSON' para pegar en el archivo.", 2400);
     };
 
     rerenderSecciones_Edit();
@@ -1673,7 +1696,7 @@ function renderEditSeccionesPanel(){
     const txt = JSON.stringify(seccionesTopRaw || { type:"FeatureCollection", features:[] }, null, 2);
     try {
       await navigator.clipboard.writeText(txt);
-      alert("Copiado. Pégalo en data/secciones-top.geojson (reemplazando contenido).");
+      notify("GeoJSON copiado. Pégalo en data/secciones-top.geojson.", 2400);
     } catch {
       setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
     }
@@ -1693,7 +1716,7 @@ function renderEditManzanasPanel(){
   editorClearPoly(); editorClearCircle(); editorStopEditing();
 
   setPanel("Edición: MANZANAS", `
-    <p>Editor de <b>MANZANAS</b>. (IDs: A, B, C...)</p>
+    <p>Editor de <b>MANZANAS</b> (IDs: A, B, C...).</p>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button id="btnEdit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Editar existente</button>
@@ -1719,7 +1742,7 @@ function renderEditManzanasPanel(){
   document.getElementById("btnEdit").onclick = () => {
     editor.mode = "edit";
     editorClearPoly(); editorClearCircle();
-    $editBody.innerHTML = `<p><b>Editar:</b> clic en una manzana para editar (polígono o círculo).</p>`;
+    $editBody.innerHTML = `<p><b>Editar:</b> clic en una manzana para editar.</p>`;
     rerenderManzanas_Edit();
   };
 
@@ -1761,35 +1784,35 @@ function renderEditManzanasPanel(){
 
     document.getElementById("btnSaveNew").onclick = () => {
       const seccion = (document.getElementById("newSeccion").value || "").trim();
-      const manzana = (document.getElementById("newManzana").value || "").trim();
+      const manzana = (document.getElementById("newManzana").value || "").trim().toUpperCase();
       const nombre  = (document.getElementById("newNombre").value || "").trim();
       const lotesFileIn = (document.getElementById("newLotesFile").value || "").trim();
 
-      if (!seccion) return alert("Falta SECCIÓN.");
-      if (!manzana) return alert("Falta MANZANA.");
+      if (!seccion) return notify("Falta SECCIÓN.", 2000);
+      if (!manzana) return notify("Falta MANZANA.", 2000);
 
       const lotesFile = lotesFileIn || `./data/lotes/lotes-${seccion}-${manzana}.geojson`;
       const props = { seccion, manzana, nombre: nombre || `${seccion} - ${manzana}`, lotesFile, id: `${seccion}-${manzana}` };
 
       let feature = null;
       if (editor.drawShape === "polygon"){
-        if (editor.polyPoints.length < 3) return alert("Polígono: mínimo 3 puntos.");
+        if (editor.polyPoints.length < 3) return notify("Polígono: mínimo 3 puntos.", 2200);
         feature = { type:"Feature", geometry:{ type:"Polygon", coordinates:ringToGeoJsonCoords(editor.polyPoints) }, properties: props };
       } else {
-        if (!editor.circleCenter || typeof editor.circleRadius !== "number") return alert("Círculo: clic centro y luego borde.");
+        if (!editor.circleCenter || typeof editor.circleRadius !== "number") return notify("Círculo: clic centro y luego borde.", 2200);
         feature = { type:"Feature", geometry:{ type:"Point", coordinates: latLngToXY(editor.circleCenter) }, properties:{ ...props, shape:"circle", radius: editor.circleRadius } };
       }
 
       manzanasRaw.features.push(feature);
       editorClearPoly(); editorClearCircle();
       rerenderManzanas_Edit();
-      alert("Manzana creada en memoria. Copia el GeoJSON y pégalo en data/secciones.geojson");
+      notify("✅ Manzana creada (en memoria). Usa 'Copiar GeoJSON' para guardar.", 2400);
     };
 
     rerenderManzanas_Edit();
   };
 
-  // ====== GRID MANZANAS (A,B,C...) con ROTACIÓN ======
+  // GRID MANZANAS (A,B,C...) con ROTACIÓN
   document.getElementById("btnGrid").onclick = () => {
     editor.mode = "grid";
     editor.gridArmed = true;
@@ -1828,11 +1851,11 @@ function renderEditManzanasPanel(){
       <label><b>Rotación (grados)</b></label><br/>
       <input id="mGridRot" type="number" value="0" step="0.1" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
 
-      <label><b>Manzana inicial</b> (A, B, C...)</label><br/>
+      <label><b>Manzana inicial</b> (A)</label><br/>
       <input id="mGridStart" value="A" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
 
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-        <button id="btnArmManzGrid" style="padding:8px 12px;border-radius:8px;border:1px solid #111;cursor:pointer;">Armar cuadrícula</button>
+        <button id="btnArmManzGrid" style="padding:8px 12px;border-radius:8px;border:1px solid #111;cursor:pointer;">Armar</button>
         <button id="btnCancelManzGrid" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Cancelar</button>
       </div>
 
@@ -1844,7 +1867,7 @@ function renderEditManzanasPanel(){
     document.getElementById("btnCancelManzGrid").onclick = () => {
       editor.gridArmed = false;
       editor.gridConfig = null;
-      alert("Cuadrícula cancelada.");
+      notify("Cuadrícula cancelada.", 1400);
       renderEditManzanasPanel();
     };
 
@@ -1859,15 +1882,15 @@ function renderEditManzanasPanel(){
       const rot = Number(document.getElementById("mGridRot").value || 0);
       const start = (document.getElementById("mGridStart").value || "").trim().toUpperCase();
 
-      if (!seccion) return alert("Falta SECCIÓN.");
-      if (!rows || !cols || w <= 0 || h <= 0) return alert("Revisa filas/columnas/ancho/alto.");
-      if (!start) return alert("Falta manzana inicial.");
+      if (!seccion) return notify("Falta SECCIÓN.", 2000);
+      if (!rows || !cols || w <= 0 || h <= 0) return notify("Revisa filas/columnas/ancho/alto.", 2200);
+      if (!start) return notify("Falta manzana inicial.", 2000);
 
       editor.gridConfig = { target:"manzanas", seccion, rows, cols, w, h, gapX, gapY, rot, start };
       editor.gridArmed = true;
 
       if (hint) hint.textContent = "✅ Listo. Ahora da 1 click en el mapa para colocar la esquina superior-izquierda.";
-      alert("Cuadrícula armada. Da 1 click en el mapa para colocarla.");
+      notify("Cuadrícula armada. Click en el mapa para colocar.", 2200);
     };
 
     rerenderManzanas_Edit();
@@ -1877,7 +1900,7 @@ function renderEditManzanasPanel(){
     const txt = JSON.stringify(manzanasRaw || { type:"FeatureCollection", features:[] }, null, 2);
     try {
       await navigator.clipboard.writeText(txt);
-      alert("Copiado. Pégalo en data/secciones.geojson (reemplazando contenido).");
+      notify("GeoJSON copiado. Pégalo en data/secciones.geojson.", 2400);
     } catch {
       setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
     }
@@ -1959,23 +1982,23 @@ function renderEditNichosPanel(){
     document.getElementById("btnSaveNew").onclick = () => {
       const id = (document.getElementById("newZonaId").value || "").trim();
       const prefix = (document.getElementById("newPrefix").value || "PLN").trim();
-      if (!id) return alert("Falta ID zona.");
+      if (!id) return notify("Falta ID zona.", 2000);
 
       const props = { id, prefix };
 
       let feature = null;
       if (editor.drawShape === "polygon"){
-        if (editor.polyPoints.length < 3) return alert("Polígono: mínimo 3 puntos.");
+        if (editor.polyPoints.length < 3) return notify("Polígono: mínimo 3 puntos.", 2200);
         feature = { type:"Feature", geometry:{ type:"Polygon", coordinates:ringToGeoJsonCoords(editor.polyPoints) }, properties: props };
       } else {
-        if (!editor.circleCenter || typeof editor.circleRadius !== "number") return alert("Círculo: clic centro y luego borde.");
+        if (!editor.circleCenter || typeof editor.circleRadius !== "number") return notify("Círculo: clic centro y luego borde.", 2200);
         feature = { type:"Feature", geometry:{ type:"Point", coordinates: latLngToXY(editor.circleCenter) }, properties:{ ...props, shape:"circle", radius: editor.circleRadius } };
       }
 
       nichosZonasRaw.features.push(feature);
       editorClearPoly(); editorClearCircle();
       rerenderNichos_Edit();
-      alert("Zona creada en memoria. Copia el GeoJSON y pégalo en data/nichos-zonas.geojson");
+      notify("✅ Zona creada (en memoria). Usa 'Copiar GeoJSON' para pegar en el archivo.", 2400);
     };
 
     rerenderNichos_Edit();
@@ -1985,7 +2008,7 @@ function renderEditNichosPanel(){
     const txt = JSON.stringify(nichosZonasRaw || { type:"FeatureCollection", features:[] }, null, 2);
     try {
       await navigator.clipboard.writeText(txt);
-      alert("Copiado. Pégalo en data/nichos-zonas.geojson (reemplazando contenido).");
+      notify("GeoJSON copiado. Pégalo en data/nichos-zonas.geojson.", 2400);
     } catch {
       setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
     }
@@ -2033,12 +2056,12 @@ function renderEditLotesPanel(){
   document.getElementById("btnEdit").onclick = () => {
     editor.mode = "edit";
     editorClearPoly(); editorClearCircle();
-    $editBody.innerHTML = `<p><b>Editar:</b> clic en un lote para editar (polígono o círculo).</p>`;
+    $editBody.innerHTML = `<p><b>Editar:</b> clic en un lote para editar.</p>`;
     rerenderLotes_Edit();
   };
 
   document.getElementById("btnCreate").onclick = () => {
-    if (!currentManzanaFeature) return alert("Primero elige una MANZANA.");
+    if (!currentManzanaFeature) return notify("Primero elige una MANZANA.", 2000);
     editor.mode = "create";
     editorStopEditing();
     editorClearPoly(); editorClearCircle();
@@ -2077,7 +2100,7 @@ function renderEditLotesPanel(){
 
     document.getElementById("btnSaveNew").onclick = () => {
       const lote = (document.getElementById("newLote").value || "").trim();
-      if (!lote) return alert("Falta LOTE.");
+      if (!lote) return notify("Falta LOTE.", 2000);
       const estatus = document.getElementById("newStatus").value;
       const paquete = (document.getElementById("newPkg").value || "").trim() || null;
 
@@ -2085,25 +2108,25 @@ function renderEditLotesPanel(){
 
       let feature = null;
       if (editor.drawShape === "polygon"){
-        if (editor.polyPoints.length < 3) return alert("Polígono: mínimo 3 puntos.");
+        if (editor.polyPoints.length < 3) return notify("Polígono: mínimo 3 puntos.", 2200);
         feature = { type:"Feature", geometry:{ type:"Polygon", coordinates:ringToGeoJsonCoords(editor.polyPoints) }, properties: props };
       } else {
-        if (!editor.circleCenter || typeof editor.circleRadius !== "number") return alert("Círculo: clic centro y luego borde.");
+        if (!editor.circleCenter || typeof editor.circleRadius !== "number") return notify("Círculo: clic centro y luego borde.", 2200);
         feature = { type:"Feature", geometry:{ type:"Point", coordinates: latLngToXY(editor.circleCenter) }, properties:{ ...props, shape:"circle", radius: editor.circleRadius } };
       }
 
       currentLotesRaw.features.push(feature);
       editorClearPoly(); editorClearCircle();
       rerenderLotes_Edit();
-      alert("Lote creado en memoria. Copia el GeoJSON y pégalo en el archivo de lotes.");
+      notify("✅ Lote creado (en memoria). Usa 'Copiar GeoJSON' para guardar.", 2400);
     };
 
     rerenderLotes_Edit();
   };
 
-  // ====== GRID LOTES (001,002...) con ROTACIÓN ======
+  // GRID LOTES (001,002...) con ROTACIÓN
   document.getElementById("btnGrid").onclick = () => {
-    if (!currentManzanaFeature) return alert("Primero elige una MANZANA.");
+    if (!currentManzanaFeature) return notify("Primero elige una MANZANA.", 2000);
     editor.mode = "grid";
     editor.gridArmed = true;
     editor.gridConfig = { target: "lotes" };
@@ -2155,7 +2178,7 @@ function renderEditLotesPanel(){
       <input id="gridPkg" placeholder="Ej. PAQ-STD" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
 
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-        <button id="btnArmGrid" style="padding:8px 12px;border-radius:8px;border:1px solid #111;cursor:pointer;">Armar cuadrícula</button>
+        <button id="btnArmGrid" style="padding:8px 12px;border-radius:8px;border:1px solid #111;cursor:pointer;">Armar</button>
         <button id="btnCancelGrid" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Cancelar</button>
       </div>
 
@@ -2167,7 +2190,7 @@ function renderEditLotesPanel(){
     document.getElementById("btnCancelGrid").onclick = () => {
       editor.gridArmed = false;
       editor.gridConfig = null;
-      alert("Cuadrícula cancelada.");
+      notify("Cuadrícula cancelada.", 1400);
       renderEditLotesPanel();
     };
 
@@ -2184,14 +2207,14 @@ function renderEditLotesPanel(){
       const estatus = document.getElementById("gridStatus").value;
       const paquete = (document.getElementById("gridPkg").value || "").trim() || null;
 
-      if (!rows || !cols || w <= 0 || h <= 0) return alert("Revisa filas/columnas/ancho/alto.");
-      if (!start) return alert("Falta lote inicial.");
+      if (!rows || !cols || w <= 0 || h <= 0) return notify("Revisa filas/columnas/ancho/alto.", 2200);
+      if (!start) return notify("Falta lote inicial.", 2000);
 
       editor.gridConfig = { target:"lotes", rows, cols, w, h, gapX, gapY, rot, start, inc, estatus, paquete };
       editor.gridArmed = true;
 
       if (hint) hint.textContent = "✅ Listo. Ahora da 1 click en el mapa para colocar la esquina superior-izquierda.";
-      alert("Cuadrícula armada. Da 1 click en el mapa para colocarla.");
+      notify("Cuadrícula armada. Click en el mapa para colocar.", 2200);
     };
 
     rerenderLotes_Edit();
@@ -2201,7 +2224,7 @@ function renderEditLotesPanel(){
     const txt = JSON.stringify(currentLotesRaw || { type:"FeatureCollection", features:[] }, null, 2);
     try {
       await navigator.clipboard.writeText(txt);
-      alert("Copiado. Pégalo en el archivo de lotes (reemplazando contenido).");
+      notify("GeoJSON copiado. Pégalo en el archivo de lotes.", 2400);
     } catch {
       setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
     }
@@ -2317,12 +2340,10 @@ function attachEditorMapClick(){
     // PEGAR
     if (editor.pasteArmed && editor.clipboardFeature){
       const arr = getActiveEditDatasetArr();
-      if (!arr) return alert("No hay dataset activo para pegar.");
+      if (!arr) return notify("No hay dataset activo para pegar.", 2200);
 
-      // pegar relativo al centro del feature
       const temp = deepCopy(editor.clipboardFeature);
 
-      // centro simple (bounds)
       const b = boundsFromFeature(temp);
       const c = boundsCenter(b || {minX:0,minY:0,maxX:0,maxY:0});
       const dx = e.latlng.lng - c.x;
@@ -2331,8 +2352,9 @@ function attachEditorMapClick(){
       translateFeatureInPlace(temp, dx, dy);
       ensureUniqueId(temp, arr);
       arr.push(temp);
+
       rerenderActiveEditor();
-      alert("Pegado. Si quieres, edita el ID en el panel al seleccionar la figura.");
+      notify("✅ Pegado. Selecciona la figura para cambiar ID si quieres.", 2200);
       return;
     }
 
@@ -2340,7 +2362,7 @@ function attachEditorMapClick(){
     if (isEditLotes && editor.mode === "grid" && editor.gridArmed && editor.gridConfig?.target === "lotes"){
       const cfg = editor.gridConfig;
       const arr = getActiveEditDatasetArr();
-      if (!arr) return alert("No hay dataset de lotes cargado.");
+      if (!arr) return notify("No hay dataset de lotes cargado.", 2200);
 
       const x0 = e.latlng.lng;
       const y0 = e.latlng.lat;
@@ -2368,18 +2390,16 @@ function attachEditorMapClick(){
       editor.gridArmed = false;
       rerenderLotes_Edit();
 
-      // ✅ ACTIVAR selección de toda la cuadrícula para moverla
       activateGridGroup(arr, created);
-
-      alert(`✅ Cuadrícula de LOTES creada: ${cfg.rows}x${cfg.cols}. Ahora puedes mover TODA la cuadrícula arrastrando el punto rojo del marco.`);
+      notify(`✅ Cuadrícula LOTES creada (${cfg.rows}x${cfg.cols}). Arrastra el punto rojo para mover TODO.`, 2600);
       return;
     }
 
-    // GRID MANZANAS (A,B,C...)
+    // GRID MANZANAS
     if (isEditManzanas && editor.mode === "grid" && editor.gridArmed && editor.gridConfig?.target === "manzanas"){
       const cfg = editor.gridConfig;
       const arr = getActiveEditDatasetArr();
-      if (!arr) return alert("No hay dataset de manzanas cargado.");
+      if (!arr) return notify("No hay dataset de manzanas cargado.", 2200);
 
       const x0 = e.latlng.lng;
       const y0 = e.latlng.lat;
@@ -2391,7 +2411,7 @@ function attachEditorMapClick(){
           const localX = c * (cfg.w + cfg.gapX);
           const localY = r * (cfg.h + cfg.gapY);
 
-          const manzanaId = nextManzanaLetter(cfg.start, idx); // A,B,C...
+          const manzanaId = nextManzanaLetter(cfg.start, idx);
           const corners = makeRotatedRect(x0, y0, localX, localY, cfg.w, cfg.h, cfg.rot);
 
           const lotesFile = `./data/lotes/lotes-${cfg.seccion}-${manzanaId}.geojson`;
@@ -2417,10 +2437,8 @@ function attachEditorMapClick(){
       editor.gridArmed = false;
       rerenderManzanas_Edit();
 
-      // ✅ ACTIVAR selección de toda la cuadrícula para moverla
       activateGridGroup(arr, created);
-
-      alert(`✅ Cuadrícula de MANZANAS creada: ${cfg.rows}x${cfg.cols}. Ahora puedes mover TODA la cuadrícula arrastrando el punto rojo del marco.`);
+      notify(`✅ Cuadrícula MANZANAS creada (${cfg.rows}x${cfg.cols}). Arrastra el punto rojo para mover TODO.`, 2600);
       return;
     }
 
@@ -2559,7 +2577,7 @@ async function main(){
           if (!f) return;
 
           const lotesFile = f.properties?.lotesFile;
-          if (!lotesFile) return alert("Esta manzana no tiene lotesFile.");
+          if (!lotesFile) return notify("Esta manzana no tiene lotesFile.", 2400);
 
           try { currentLotesRaw = await loadJson(lotesFile); }
           catch { currentLotesRaw = { type:"FeatureCollection", features:[] }; }
@@ -2614,6 +2632,9 @@ async function main(){
       setupSearch();
       setupButtons();
       updateToggleLotsButton();
+
+      // avisito
+      if (!IS_EDIT) notify("Listo.", 900);
 
     } catch (err) {
       console.error(err);
