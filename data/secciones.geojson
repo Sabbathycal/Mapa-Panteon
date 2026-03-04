@@ -4,43 +4,6 @@
     {
       "type": "Feature",
       "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              6563.53,
-              3918.65
-            ],
-            [
-              6620.66,
-              3907.79
-            ],
-            [
-              6583.13,
-              3684.17
-            ],
-            [
-              6521.38,
-              3693.18
-            ],
-            [
-              6563.53,
-              3918.65
-            ]
-          ]
-        ]
-      },
-      "properties": {
-        "seccion": "PLATINO",
-        "manzana": "A",
-        "id": "A",
-        "nombre": "PLATINO - A",
-        "lotesFile": "./data/lotes/lotes-PLATINO-A.geojson"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
         "type": "Point",
         "coordinates": [
           7917.5,
@@ -1619,6 +1582,43 @@
         "manzana": "AG",
         "nombre": "PLATINO - AG",
         "lotesFile": "./data/lotes/lotes-PLATINO-AG.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6522.225754711437,
+              3694.479342104086
+            ],
+            [
+              6581.31421989217,
+              3684.06045144407
+            ],
+            [
+              6621.774245288564,
+              3913.5206578959146
+            ],
+            [
+              6562.685780107831,
+              3923.9395485559303
+            ],
+            [
+              6522.225754711437,
+              3694.479342104086
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATINO-A",
+        "seccion": "PLATINO",
+        "manzana": "A",
+        "nombre": "PLATINO - A",
+        "lotesFile": "./data/lotes/lotes-PLATINO-A.geojson"
       }
     }
   ]
