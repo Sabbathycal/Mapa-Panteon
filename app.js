@@ -2127,7 +2127,7 @@ async function main(){
       applyCoordScaleToGeoJSON(seccionesTopScaled, COORD_SCALE_X, COORD_SCALE_Y);
 
       manzazasScaled = deepCopy(manzanasRaw);
-      applyCoordScaleToGeoJSON(manzaszasScaled, COORD_SCALE_X, COORD_SCALE_Y);
+      applyCoordScaleToGeoJSON(manzanasScaled, COORD_SCALE_X, COORD_SCALE_Y);
 
       // Nichos capa pública (independiente)
       try {
@@ -2151,7 +2151,7 @@ async function main(){
       const secciones = buildSeccionesList(
         seccionesTopScaled.features.length
           ? seccionesTopScaled.features
-          : (manzaszasScaled?.features || [])
+          : (manzanasScaled?.features || [])
       );
       fillSeccionSelect(secciones);
       $manzanaSelect.innerHTML = `<option value="">MANZANA...</option>`;
