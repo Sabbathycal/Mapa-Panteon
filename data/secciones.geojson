@@ -41,487 +41,6 @@
     {
       "type": "Feature",
       "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              6514.08,
-              3633.01
-            ],
-            [
-              6802.23,
-              3583.43
-            ],
-            [
-              6762.36,
-              3356.93
-            ],
-            [
-              6472.32,
-              3406.6
-            ],
-            [
-              6514.08,
-              3633.01
-            ]
-          ]
-        ]
-      },
-      "properties": {
-        "seccion": "ORO",
-        "manzana": "B",
-        "id": "B",
-        "nombre": "ORO - A",
-        "lotesFile": "./data/lotes/lotes-ORO-B.geojson"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              6531.87,
-              3925.79
-            ],
-            [
-              6490.96,
-              3699.2
-            ],
-            [
-              6200.18,
-              3748.04
-            ],
-            [
-              6241.13,
-              3975.18
-            ],
-            [
-              6531.87,
-              3925.79
-            ]
-          ]
-        ]
-      },
-      "properties": {
-        "seccion": "ORO",
-        "manzana": "C",
-        "id": "C",
-        "nombre": "ORO - C",
-        "lotesFile": "./data/lotes/lotes-ORO-C.geojson"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              6192.54,
-              3687.52
-            ],
-            [
-              6481.01,
-              3638.6
-            ],
-            [
-              6441.88,
-              3412.24
-            ],
-            [
-              6151.55,
-              3460.42
-            ],
-            [
-              6192.54,
-              3687.52
-            ]
-          ]
-        ]
-      },
-      "properties": {
-        "seccion": "ORO",
-        "manzana": "D",
-        "id": "D",
-        "nombre": "ORO - D",
-        "lotesFile": "./data/lotes/lotes-ORO-D.geojson"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              6146.74,
-              3430.65
-            ],
-            [
-              6435.76,
-              3380.37
-            ],
-            [
-              6399.79,
-              3157.05
-            ],
-            [
-              6109.65,
-              3204.77
-            ],
-            [
-              6146.74,
-              3430.65
-            ]
-          ]
-        ]
-      },
-      "properties": {
-        "seccion": "ORO",
-        "manzana": "E",
-        "id": "E",
-        "nombre": "ORO - E",
-        "lotesFile": "./data/lotes/lotes-ORO-E.geojson"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              6104.15,
-              3172.62
-            ],
-            [
-              6395.54,
-              3118.98
-            ],
-            [
-              6353.47,
-              2894.66
-            ],
-            [
-              6060.94,
-              2945.71
-            ],
-            [
-              6104.15,
-              3172.62
-            ]
-          ]
-        ]
-      },
-      "properties": {
-        "seccion": "ORO",
-        "manzana": "F",
-        "id": "F",
-        "nombre": "ORO - F",
-        "lotesFile": "./data/lotes/lotes-ORO-F.geojson"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              6058.4,
-              2916.88
-            ],
-            [
-              6346.87,
-              2865.27
-            ],
-            [
-              6307.92,
-              2641.13
-            ],
-            [
-              6018.9,
-              2691.42
-            ],
-            [
-              6058.4,
-              2916.88
-            ]
-          ]
-        ]
-      },
-      "properties": {
-        "seccion": "ORO",
-        "manzana": "G",
-        "id": "G",
-        "nombre": "ORO - G",
-        "lotesFile": "./data/lotes/lotes-ORO-G.geojson"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              6010.88,
-              4541.96
-            ],
-            [
-              5968.59,
-              4315.42
-            ],
-            [
-              6262.59,
-              4266.04
-            ],
-            [
-              6301,
-              4494.23
-            ],
-            [
-              6010.88,
-              4541.96
-            ]
-          ]
-        ]
-      },
-      "properties": {
-        "seccion": "ORO",
-        "manzana": "H",
-        "id": "H",
-        "nombre": "ORO - H",
-        "lotesFile": "./data/lotes/lotes-ORO-H.geojson"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              5965.13,
-              4286.21
-            ],
-            [
-              6257.84,
-              4237.39
-            ],
-            [
-              6217.95,
-              4007.51
-            ],
-            [
-              5926.18,
-              4062.07
-            ],
-            [
-              5965.13,
-              4286.21
-            ]
-          ]
-        ]
-      },
-      "properties": {
-        "seccion": "ORO",
-        "manzana": "I",
-        "id": "I",
-        "nombre": "ORO - I",
-        "lotesFile": "./data/lotes/lotes-ORO-I.geojson"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              5920.48,
-              4027.7
-            ],
-            [
-              6210.97,
-              3979.06
-            ],
-            [
-              6171.28,
-              3751.4
-            ],
-            [
-              5878.76,
-              3802.44
-            ],
-            [
-              5920.48,
-              4027.7
-            ]
-          ]
-        ]
-      },
-      "properties": {
-        "seccion": "ORO",
-        "manzana": "J",
-        "id": "J",
-        "nombre": "ORO - J",
-        "lotesFile": "./data/lotes/lotes-ORO-J.geojson"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              5870.34,
-              3742.38
-            ],
-            [
-              6161.57,
-              3691.9
-            ],
-            [
-              6123.92,
-              3467.18
-            ],
-            [
-              5828.07,
-              3515.85
-            ],
-            [
-              5870.34,
-              3742.38
-            ]
-          ]
-        ]
-      },
-      "properties": {
-        "seccion": "ORO",
-        "manzana": "K",
-        "id": "K",
-        "nombre": "ORO - K",
-        "lotesFile": "./data/lotes/lotes-ORO-K.geojson"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              5826.61,
-              3484.24
-            ],
-            [
-              6118.6,
-              3437.25
-            ],
-            [
-              6076.87,
-              3206.63
-            ],
-            [
-              5786.39,
-              3260.64
-            ],
-            [
-              5826.61,
-              3484.24
-            ]
-          ]
-        ]
-      },
-      "properties": {
-        "seccion": "ORO",
-        "manzana": "L",
-        "id": "L",
-        "nombre": "ORO - L",
-        "lotesFile": "./data/lotes/lotes-ORO-L.geojson"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              5780.33,
-              3227.19
-            ],
-            [
-              6072.31,
-              3180.22
-            ],
-            [
-              6032.05,
-              2951.27
-            ],
-            [
-              5741.74,
-              3002.13
-            ],
-            [
-              5780.33,
-              3227.19
-            ]
-          ]
-        ]
-      },
-      "properties": {
-        "seccion": "ORO",
-        "manzana": "M",
-        "id": "M",
-        "nombre": "ORO - M",
-        "lotesFile": "./data/lotes/lotes-ORO-M.geojson"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              5736.04,
-              2971.8
-            ],
-            [
-              6026.91,
-              2922.24
-            ],
-            [
-              5987.5,
-              2697.9
-            ],
-            [
-              5695.25,
-              2746.92
-            ],
-            [
-              5736.04,
-              2971.8
-            ]
-          ]
-        ]
-      },
-      "properties": {
-        "seccion": "ORO",
-        "manzana": "N",
-        "id": "N",
-        "nombre": "ORO - N",
-        "lotesFile": "./data/lotes/lotes-ORO-N.geojson"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
         "type": "Point",
         "coordinates": [
           7917.5,
@@ -916,6 +435,1190 @@
         "id": "SAN JUAN VIP-N",
         "shape": "circle",
         "radius": 109.37092849564732
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6467.311140453952,
+              3408.6003840610992
+            ],
+            [
+              6765.707889616651,
+              3355.9849862280194
+            ],
+            [
+              6806.688859546047,
+              3588.3996159389003
+            ],
+            [
+              6508.292110383348,
+              3641.01501377198
+            ],
+            [
+              6467.311140453952,
+              3408.6003840610992
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-B",
+        "seccion": "ORO",
+        "manzana": "B",
+        "nombre": "ORO - B",
+        "lotesFile": "./data/lotes/lotes-ORO-B.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6195.811140453952,
+              3751.1003840610992
+            ],
+            [
+              6494.207889616651,
+              3698.4849862280194
+            ],
+            [
+              6535.188859546047,
+              3930.8996159389003
+            ],
+            [
+              6236.792110383348,
+              3983.51501377198
+            ],
+            [
+              6195.811140453952,
+              3751.1003840610992
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-C",
+        "seccion": "ORO",
+        "manzana": "C",
+        "nombre": "ORO - C",
+        "lotesFile": "./data/lotes/lotes-ORO-C.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5689.319407403347,
+              2753.026449894197
+            ],
+            [
+              5987.716156566046,
+              2700.411052061117
+            ],
+            [
+              6028.697126495442,
+              2932.825681771998
+            ],
+            [
+              5730.300377332743,
+              2985.441079605078
+            ],
+            [
+              5689.319407403347,
+              2753.026449894197
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-N",
+        "seccion": "ORO",
+        "manzana": "D",
+        "nombre": "ORO - D",
+        "lotesFile": "./data/lotes/lotes-ORO-D.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6012.3363503913515,
+              2696.069847619444
+            ],
+            [
+              6310.733099554051,
+              2643.454449786364
+            ],
+            [
+              6351.714069483446,
+              2875.869079497245
+            ],
+            [
+              6053.317320320747,
+              2928.484477330325
+            ],
+            [
+              6012.3363503913515,
+              2696.069847619444
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-G",
+        "seccion": "ORO",
+        "manzana": "E",
+        "nombre": "ORO - E",
+        "lotesFile": "./data/lotes/lotes-ORO-E.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5734.641581774416,
+              3010.061273430383
+            ],
+            [
+              6033.0383309371155,
+              2957.4458755973033
+            ],
+            [
+              6074.019300866511,
+              3189.8605053081847
+            ],
+            [
+              5775.622551703812,
+              3242.475903141264
+            ],
+            [
+              5734.641581774416,
+              3010.061273430383
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-M",
+        "seccion": "ORO",
+        "manzana": "F",
+        "nombre": "ORO - F",
+        "lotesFile": "./data/lotes/lotes-ORO-F.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6057.658524762421,
+              2953.10467115563
+            ],
+            [
+              6356.05527392512,
+              2900.48927332255
+            ],
+            [
+              6397.036243854514,
+              3132.903903033431
+            ],
+            [
+              6098.639494691815,
+              3185.519300866511
+            ],
+            [
+              6057.658524762421,
+              2953.10467115563
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-F",
+        "seccion": "ORO",
+        "manzana": "G",
+        "nombre": "ORO - G",
+        "lotesFile": "./data/lotes/lotes-ORO-G.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5779.963756145485,
+              3267.0960969665693
+            ],
+            [
+              6078.360505308184,
+              3214.48069913349
+            ],
+            [
+              6119.341475237579,
+              3446.895328844371
+            ],
+            [
+              5820.94472607488,
+              3499.5107266774507
+            ],
+            [
+              5779.963756145485,
+              3267.0960969665693
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-L",
+        "seccion": "ORO",
+        "manzana": "H",
+        "nombre": "ORO - H",
+        "lotesFile": "./data/lotes/lotes-ORO-H.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6102.980699133489,
+              3210.1394946918163
+            ],
+            [
+              6401.377448296188,
+              3157.5240968587364
+            ],
+            [
+              6442.358418225584,
+              3389.9387265696178
+            ],
+            [
+              6143.9616690628845,
+              3442.554124402697
+            ],
+            [
+              6102.980699133489,
+              3210.1394946918163
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-E",
+        "seccion": "ORO",
+        "manzana": "I",
+        "nombre": "ORO - I",
+        "lotesFile": "./data/lotes/lotes-ORO-I.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5825.285930516554,
+              3524.130920502756
+            ],
+            [
+              6123.682679679253,
+              3471.515522669676
+            ],
+            [
+              6164.6636496086485,
+              3703.930152380557
+            ],
+            [
+              5866.266900445949,
+              3756.5455502136365
+            ],
+            [
+              5825.285930516554,
+              3524.130920502756
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-K",
+        "seccion": "ORO",
+        "manzana": "J",
+        "nombre": "ORO - J",
+        "lotesFile": "./data/lotes/lotes-ORO-J.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6148.302873504558,
+              3467.1743182280024
+            ],
+            [
+              6446.699622667257,
+              3414.558920394923
+            ],
+            [
+              6487.680592596653,
+              3646.973550105804
+            ],
+            [
+              6189.283843433954,
+              3699.5889479388834
+            ],
+            [
+              6148.302873504558,
+              3467.1743182280024
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-D",
+        "seccion": "ORO",
+        "manzana": "K",
+        "nombre": "ORO - K",
+        "lotesFile": "./data/lotes/lotes-ORO-K.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5875.863966082884,
+              3806.065560524913
+            ],
+            [
+              6174.260715245583,
+              3753.450162691833
+            ],
+            [
+              6215.241685174979,
+              3985.8647924027146
+            ],
+            [
+              5916.8449360122795,
+              4038.480190235794
+            ],
+            [
+              5875.863966082884,
+              3806.065560524913
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-J",
+        "seccion": "ORO",
+        "manzana": "H",
+        "nombre": "ORO - H",
+        "lotesFile": "./data/lotes/lotes-ORO-H.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5921.186140453953,
+              4063.1003840610992
+            ],
+            [
+              6219.582889616652,
+              4010.48498622802
+            ],
+            [
+              6260.563859546048,
+              4242.899615938901
+            ],
+            [
+              5962.167110383349,
+              4295.51501377198
+            ],
+            [
+              5921.186140453953,
+              4063.1003840610992
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-I",
+        "seccion": "ORO",
+        "manzana": "I",
+        "nombre": "ORO - I",
+        "lotesFile": "./data/lotes/lotes-ORO-I.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5966.508314825021,
+              4320.135207597285
+            ],
+            [
+              6264.9050639877205,
+              4267.519809764206
+            ],
+            [
+              6305.886033917116,
+              4499.934439475087
+            ],
+            [
+              6007.489284754417,
+              4552.549837308166
+            ],
+            [
+              5966.508314825021,
+              4320.135207597285
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-H",
+        "seccion": "ORO",
+        "manzana": "J",
+        "nombre": "ORO - J",
+        "lotesFile": "./data/lotes/lotes-ORO-J.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5200.819407403347,
+              3924.276449894197
+            ],
+            [
+              5499.216156566046,
+              3871.6610520611175
+            ],
+            [
+              5540.197126495442,
+              4104.0756817719985
+            ],
+            [
+              5241.800377332743,
+              4156.691079605078
+            ],
+            [
+              5200.819407403347,
+              3924.276449894197
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-AA",
+        "seccion": "ORO",
+        "manzana": "O",
+        "nombre": "ORO - O",
+        "lotesFile": "./data/lotes/lotes-ORO-O.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5523.8363503913515,
+              3867.319847619444
+            ],
+            [
+              5822.233099554051,
+              3814.7044497863635
+            ],
+            [
+              5863.214069483446,
+              4047.1190794972454
+            ],
+            [
+              5564.817320320747,
+              4099.734477330325
+            ],
+            [
+              5523.8363503913515,
+              3867.319847619444
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-R",
+        "seccion": "ORO",
+        "manzana": "P",
+        "nombre": "ORO - P",
+        "lotesFile": "./data/lotes/lotes-ORO-P.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5246.141581774416,
+              4181.311273430383
+            ],
+            [
+              5544.5383309371155,
+              4128.695875597304
+            ],
+            [
+              5585.519300866511,
+              4361.110505308185
+            ],
+            [
+              5287.122551703812,
+              4413.725903141264
+            ],
+            [
+              5246.141581774416,
+              4181.311273430383
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-Z",
+        "seccion": "ORO",
+        "manzana": "Q",
+        "nombre": "ORO - Q",
+        "lotesFile": "./data/lotes/lotes-ORO-Q.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5569.158524762421,
+              4124.35467115563
+            ],
+            [
+              5867.55527392512,
+              4071.7392733225506
+            ],
+            [
+              5908.536243854514,
+              4304.153903033432
+            ],
+            [
+              5610.139494691815,
+              4356.769300866511
+            ],
+            [
+              5569.158524762421,
+              4124.35467115563
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-Q",
+        "seccion": "ORO",
+        "manzana": "R",
+        "nombre": "ORO - R",
+        "lotesFile": "./data/lotes/lotes-ORO-R.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5291.463756145485,
+              4438.346096966569
+            ],
+            [
+              5589.860505308184,
+              4385.73069913349
+            ],
+            [
+              5630.841475237579,
+              4618.145328844371
+            ],
+            [
+              5332.44472607488,
+              4670.76072667745
+            ],
+            [
+              5291.463756145485,
+              4438.346096966569
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-Y",
+        "seccion": "ORO",
+        "manzana": "S",
+        "nombre": "ORO - S",
+        "lotesFile": "./data/lotes/lotes-ORO-S.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5614.480699133489,
+              4381.389494691816
+            ],
+            [
+              5912.877448296188,
+              4328.774096858737
+            ],
+            [
+              5953.858418225584,
+              4561.188726569618
+            ],
+            [
+              5655.4616690628845,
+              4613.804124402697
+            ],
+            [
+              5614.480699133489,
+              4381.389494691816
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-P",
+        "seccion": "ORO",
+        "manzana": "T",
+        "nombre": "ORO - T",
+        "lotesFile": "./data/lotes/lotes-ORO-T.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5336.785930516554,
+              4695.3809205027555
+            ],
+            [
+              5635.182679679253,
+              4642.765522669676
+            ],
+            [
+              5676.1636496086485,
+              4875.180152380557
+            ],
+            [
+              5377.766900445949,
+              4927.7955502136365
+            ],
+            [
+              5336.785930516554,
+              4695.3809205027555
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-X",
+        "seccion": "ORO",
+        "manzana": "U",
+        "nombre": "ORO - U",
+        "lotesFile": "./data/lotes/lotes-ORO-U.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5659.802873504558,
+              4638.424318228002
+            ],
+            [
+              5958.199622667257,
+              4585.808920394923
+            ],
+            [
+              5999.180592596653,
+              4818.223550105804
+            ],
+            [
+              5700.783843433954,
+              4870.838947938883
+            ],
+            [
+              5659.802873504558,
+              4638.424318228002
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-O",
+        "seccion": "ORO",
+        "manzana": "V",
+        "nombre": "ORO - V",
+        "lotesFile": "./data/lotes/lotes-ORO-V.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5016.819407403347,
+              2871.026449894197
+            ],
+            [
+              5315.216156566046,
+              2818.411052061117
+            ],
+            [
+              5356.197126495442,
+              3050.825681771998
+            ],
+            [
+              5057.800377332743,
+              3103.441079605078
+            ],
+            [
+              5016.819407403347,
+              2871.026449894197
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-AE",
+        "seccion": "ORO",
+        "manzana": "S",
+        "nombre": "ORO - S",
+        "lotesFile": "./data/lotes/lotes-ORO-S.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5339.8363503913515,
+              2814.069847619444
+            ],
+            [
+              5638.233099554051,
+              2761.454449786364
+            ],
+            [
+              5679.214069483446,
+              2993.869079497245
+            ],
+            [
+              5380.817320320747,
+              3046.484477330325
+            ],
+            [
+              5339.8363503913515,
+              2814.069847619444
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-V",
+        "seccion": "ORO",
+        "manzana": "T",
+        "nombre": "ORO - T",
+        "lotesFile": "./data/lotes/lotes-ORO-T.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5062.141581774416,
+              3128.061273430383
+            ],
+            [
+              5360.5383309371155,
+              3075.4458755973033
+            ],
+            [
+              5401.519300866511,
+              3307.8605053081847
+            ],
+            [
+              5103.122551703812,
+              3360.475903141264
+            ],
+            [
+              5062.141581774416,
+              3128.061273430383
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-AD",
+        "seccion": "ORO",
+        "manzana": "U",
+        "nombre": "ORO - U",
+        "lotesFile": "./data/lotes/lotes-ORO-U.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5385.158524762421,
+              3071.10467115563
+            ],
+            [
+              5683.55527392512,
+              3018.48927332255
+            ],
+            [
+              5724.536243854514,
+              3250.903903033431
+            ],
+            [
+              5426.139494691815,
+              3303.519300866511
+            ],
+            [
+              5385.158524762421,
+              3071.10467115563
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-U",
+        "seccion": "ORO",
+        "manzana": "V",
+        "nombre": "ORO - V",
+        "lotesFile": "./data/lotes/lotes-ORO-V.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5107.463756145485,
+              3385.0960969665693
+            ],
+            [
+              5405.860505308184,
+              3332.48069913349
+            ],
+            [
+              5446.841475237579,
+              3564.895328844371
+            ],
+            [
+              5148.44472607488,
+              3617.5107266774507
+            ],
+            [
+              5107.463756145485,
+              3385.0960969665693
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-AC",
+        "seccion": "ORO",
+        "manzana": "W",
+        "nombre": "ORO - W",
+        "lotesFile": "./data/lotes/lotes-ORO-W.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5430.480699133489,
+              3328.1394946918163
+            ],
+            [
+              5728.877448296188,
+              3275.5240968587364
+            ],
+            [
+              5769.858418225584,
+              3507.9387265696178
+            ],
+            [
+              5471.4616690628845,
+              3560.554124402697
+            ],
+            [
+              5430.480699133489,
+              3328.1394946918163
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-T",
+        "seccion": "ORO",
+        "manzana": "X",
+        "nombre": "ORO - X",
+        "lotesFile": "./data/lotes/lotes-ORO-X.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5152.785930516554,
+              3642.130920502756
+            ],
+            [
+              5451.182679679253,
+              3589.515522669676
+            ],
+            [
+              5492.1636496086485,
+              3821.930152380557
+            ],
+            [
+              5193.766900445949,
+              3874.5455502136365
+            ],
+            [
+              5152.785930516554,
+              3642.130920502756
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-AB",
+        "seccion": "ORO",
+        "manzana": "Y",
+        "nombre": "ORO - Y",
+        "lotesFile": "./data/lotes/lotes-ORO-Y.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5475.802873504558,
+              3585.1743182280024
+            ],
+            [
+              5774.199622667257,
+              3532.558920394923
+            ],
+            [
+              5815.180592596653,
+              3764.973550105804
+            ],
+            [
+              5516.783843433954,
+              3817.5889479388834
+            ],
+            [
+              5475.802873504558,
+              3585.1743182280024
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-S",
+        "seccion": "ORO",
+        "manzana": "Z",
+        "nombre": "ORO - Z",
+        "lotesFile": "./data/lotes/lotes-ORO-Z.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4970.80266895995,
+              2618.078685198476
+            ],
+            [
+              5269.199418122649,
+              2565.463287365396
+            ],
+            [
+              5310.180388052045,
+              2797.877917076277
+            ],
+            [
+              5011.783638889346,
+              2850.4933149093567
+            ],
+            [
+              4970.80266895995,
+              2618.078685198476
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-AF",
+        "seccion": "ORO",
+        "manzana": "AF",
+        "nombre": "ORO - AF",
+        "lotesFile": "./data/lotes/lotes-ORO-AF.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5293.819611947954,
+              2561.1220829237227
+            ],
+            [
+              5592.216361110653,
+              2508.506685090643
+            ],
+            [
+              5633.197331040049,
+              2740.9213148015237
+            ],
+            [
+              5334.80058187735,
+              2793.5367126346036
+            ],
+            [
+              5293.819611947954,
+              2561.1220829237227
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-W",
+        "seccion": "ORO",
+        "manzana": "AG",
+        "nombre": "ORO - AG",
+        "lotesFile": "./data/lotes/lotes-ORO-AG.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4970.811140453952,
+              4493.350384061099
+            ],
+            [
+              5269.207889616651,
+              4440.73498622802
+            ],
+            [
+              5310.188859546047,
+              4673.149615938901
+            ],
+            [
+              5011.792110383348,
+              4725.76501377198
+            ],
+            [
+              4970.811140453952,
+              4493.350384061099
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-AG",
+        "seccion": "ORO",
+        "manzana": "AG",
+        "nombre": "ORO - AG",
+        "lotesFile": "./data/lotes/lotes-ORO-AG.geojson"
       }
     }
   ]
