@@ -439,9 +439,9 @@
         ]
       },
       "properties": {
-        "seccion": "ORO",
-        "nombre": "ORO",
-        "id": "ORO",
+        "seccion": "PLATINO",
+        "nombre": "PLATINO",
+        "id": "PLATINO",
         "color": "#616161"
       }
     },

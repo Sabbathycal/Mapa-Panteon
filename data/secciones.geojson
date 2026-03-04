@@ -31,11 +31,11 @@
         ]
       },
       "properties": {
-        "seccion": "ORO",
+        "seccion": "PLATINO",
         "manzana": "A",
         "id": "A",
-        "nombre": "ORO - A",
-        "lotesFile": "./data/lotes/lotes-ORO-A.geojson"
+        "nombre": "PLATINO - A",
+        "lotesFile": "./data/lotes/lotes-PLATINO-A.geojson"
       }
     },
     {
@@ -50,7 +50,7 @@
       "properties": {
         "seccion": "SAN PEDRO VIP",
         "manzana": "A",
-        "nombre": "SPV - A",
+        "nombre": "TS - SPV - A",
         "lotesFile": "./data/lotes-SAN PEDRO VIP-A.geojson",
         "id": "SAN PEDRO VIP-A",
         "shape": "circle",
@@ -69,7 +69,7 @@
       "properties": {
         "seccion": "SAN PEDRO VIP",
         "manzana": "B",
-        "nombre": "SPV - B",
+        "nombre": "TS - SPV - B",
         "lotesFile": "./data/lotes-SAN PEDRO VIP-B.geojson",
         "id": "SAN PEDRO VIP-B",
         "shape": "circle",
@@ -88,7 +88,7 @@
       "properties": {
         "seccion": "SAN PEDRO VIP",
         "manzana": "C",
-        "nombre": "SPV - C",
+        "nombre": "TS - SPV - C",
         "lotesFile": "./data/lotes-SAN PEDRO VIP-C.geojson",
         "id": "SAN PEDRO VIP-C",
         "shape": "circle",
@@ -107,7 +107,7 @@
       "properties": {
         "seccion": "SAN PEDRO VIP",
         "manzana": "D",
-        "nombre": "SPV - D",
+        "nombre": "TS - SPV - D",
         "lotesFile": "./data/lotes-SAN PEDRO VIP-D.geojson",
         "id": "SAN PEDRO VIP-D",
         "shape": "circle",
@@ -126,7 +126,7 @@
       "properties": {
         "seccion": "SAN PEDRO VIP",
         "manzana": "E",
-        "nombre": "SPV - E",
+        "nombre": "TS - SPV - E",
         "lotesFile": "./data/lotes-SAN PEDRO VIP-E.geojson",
         "id": "SAN PEDRO VIP-E",
         "shape": "circle",
@@ -145,7 +145,7 @@
       "properties": {
         "seccion": "SAN PEDRO VIP",
         "manzana": "F",
-        "nombre": "SPV - F",
+        "nombre": "TS - SPV - F",
         "lotesFile": "./data/lotes-SAN PEDRO VIP-F.geojson",
         "id": "SAN PEDRO VIP-F",
         "shape": "circle",
@@ -164,7 +164,7 @@
       "properties": {
         "seccion": "SAN PEDRO VIP",
         "manzana": "G",
-        "nombre": "SAN PEDRO VIP - G",
+        "nombre": "TS - SPV - G",
         "lotesFile": "./data/lotes-SAN PEDRO VIP-G.geojson",
         "id": "SAN PEDRO VIP-G",
         "shape": "circle",
@@ -183,7 +183,7 @@
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "A",
-        "nombre": "SAN JUAN VIP - A",
+        "nombre": "TS - SJV - A",
         "lotesFile": "./data/lotes-SAN JUAN VIP-A.geojson",
         "id": "SAN JUAN VIP-A",
         "shape": "circle",
@@ -202,7 +202,7 @@
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "B",
-        "nombre": "SAN JUAN VIP - B",
+        "nombre": "TS - SJV - B",
         "lotesFile": "./data/lotes-SAN JUAN VIP-B.geojson",
         "id": "SAN JUAN VIP-B",
         "shape": "circle",
@@ -221,7 +221,7 @@
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "C",
-        "nombre": "SAN JUAN VIP - C",
+        "nombre": "TS - SJV - C",
         "lotesFile": "./data/lotes-SAN JUAN VIP-C.geojson",
         "id": "SAN JUAN VIP-C",
         "shape": "circle",
@@ -240,7 +240,7 @@
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "D",
-        "nombre": "SAN JUAN VIP - D",
+        "nombre": "TS - SJV - D",
         "lotesFile": "./data/lotes-SAN JUAN VIP-D.geojson",
         "id": "SAN JUAN VIP-D",
         "shape": "circle",
@@ -259,7 +259,7 @@
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "E",
-        "nombre": "SAN JUAN VIP - E",
+        "nombre": "TS - SJV - E",
         "lotesFile": "./data/lotes-SAN JUAN VIP-E.geojson",
         "id": "SAN JUAN VIP-E",
         "shape": "circle",
@@ -278,7 +278,7 @@
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "F",
-        "nombre": "SAN JUAN VIP - F",
+        "nombre": "TS - SJV - F",
         "lotesFile": "./data/lotes-SAN JUAN VIP-F.geojson",
         "id": "SAN JUAN VIP-F",
         "shape": "circle",
@@ -297,7 +297,7 @@
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "G",
-        "nombre": "SAN JUAN VIP - G",
+        "nombre": "TS - SJV - G",
         "lotesFile": "./data/lotes-SAN JUAN VIP-G.geojson",
         "id": "SAN JUAN VIP-G",
         "shape": "circle",
@@ -316,7 +316,7 @@
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "H",
-        "nombre": "SAN JUAN VIP - H",
+        "nombre": "TS - SJV - H",
         "lotesFile": "./data/lotes-SAN JUAN VIP-H.geojson",
         "id": "SAN JUAN VIP-H",
         "shape": "circle",
@@ -335,7 +335,7 @@
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "I",
-        "nombre": "SAN JUAN VIP - I",
+        "nombre": "TS - SJV - I",
         "lotesFile": "./data/lotes-SAN JUAN VIP-I.geojson",
         "id": "SAN JUAN VIP-I",
         "shape": "circle",
@@ -354,7 +354,7 @@
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "J",
-        "nombre": "SAN JUAN VIP - J",
+        "nombre": "TS - SJV - J",
         "lotesFile": "./data/lotes-SAN JUAN VIP-J.geojson",
         "id": "SAN JUAN VIP-J",
         "shape": "circle",
@@ -373,7 +373,7 @@
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "K",
-        "nombre": "SAN JUAN VIP - K",
+        "nombre": "TS - SJV - K",
         "lotesFile": "./data/lotes-SAN JUAN VIP-K.geojson",
         "id": "SAN JUAN VIP-K",
         "shape": "circle",
@@ -392,7 +392,7 @@
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "L",
-        "nombre": "SAN JUAN VIP - L",
+        "nombre": "TS - SJV - L",
         "lotesFile": "./data/lotes-SAN JUAN VIP-L.geojson",
         "id": "SAN JUAN VIP-L",
         "shape": "circle",
@@ -411,7 +411,7 @@
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "M",
-        "nombre": "SAN JUAN VIP - M",
+        "nombre": "TS - SJV - M",
         "lotesFile": "./data/lotes-SAN JUAN VIP-M.geojson",
         "id": "SAN JUAN VIP-M",
         "shape": "circle",
@@ -430,7 +430,7 @@
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "N",
-        "nombre": "SAN JUAN VIP - N",
+        "nombre": "TS - SJV - N",
         "lotesFile": "./data/lotes-SAN JUAN VIP-N.geojson",
         "id": "SAN JUAN VIP-N",
         "shape": "circle",
@@ -467,11 +467,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-B",
-        "seccion": "ORO",
+        "id": "PLATINO-B",
+        "seccion": "PLATINO",
         "manzana": "B",
-        "nombre": "ORO - B",
-        "lotesFile": "./data/lotes/lotes-ORO-B.geojson"
+        "nombre": "PLATINO - B",
+        "lotesFile": "./data/lotes/lotes-PLATINO-B.geojson"
       }
     },
     {
@@ -504,11 +504,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-C",
-        "seccion": "ORO",
+        "id": "PLATINO-C",
+        "seccion": "PLATINO",
         "manzana": "C",
-        "nombre": "ORO - C",
-        "lotesFile": "./data/lotes/lotes-ORO-C.geojson"
+        "nombre": "PLATINO - C",
+        "lotesFile": "./data/lotes/lotes-PLATINO-C.geojson"
       }
     },
     {
@@ -541,11 +541,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-N",
-        "seccion": "ORO",
+        "id": "PLATINO-D",
+        "seccion": "PLATINO",
         "manzana": "D",
-        "nombre": "ORO - D",
-        "lotesFile": "./data/lotes/lotes-ORO-D.geojson"
+        "nombre": "PLATINO - D",
+        "lotesFile": "./data/lotes/lotes-PLATINO-D.geojson"
       }
     },
     {
@@ -578,11 +578,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-G",
-        "seccion": "ORO",
+        "id": "PLATINO-E",
+        "seccion": "PLATINO",
         "manzana": "E",
-        "nombre": "ORO - E",
-        "lotesFile": "./data/lotes/lotes-ORO-E.geojson"
+        "nombre": "PLATINO - E",
+        "lotesFile": "./data/lotes/lotes-PLATINO-E.geojson"
       }
     },
     {
@@ -615,11 +615,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-M",
-        "seccion": "ORO",
+        "id": "PLATINO-F",
+        "seccion": "PLATINO",
         "manzana": "F",
-        "nombre": "ORO - F",
-        "lotesFile": "./data/lotes/lotes-ORO-F.geojson"
+        "nombre": "PLATINO - F",
+        "lotesFile": "./data/lotes/lotes-PLATINO-F.geojson"
       }
     },
     {
@@ -652,11 +652,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-F",
-        "seccion": "ORO",
+        "id": "PLATINO-G",
+        "seccion": "PLATINO",
         "manzana": "G",
-        "nombre": "ORO - G",
-        "lotesFile": "./data/lotes/lotes-ORO-G.geojson"
+        "nombre": "PLATINO - G",
+        "lotesFile": "./data/lotes/lotes-PLATINO-G.geojson"
       }
     },
     {
@@ -689,11 +689,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-L",
-        "seccion": "ORO",
+        "id": "PLATINO-H",
+        "seccion": "PLATINO",
         "manzana": "H",
-        "nombre": "ORO - H",
-        "lotesFile": "./data/lotes/lotes-ORO-H.geojson"
+        "nombre": "PLATINO - H",
+        "lotesFile": "./data/lotes/lotes-PLATINO-H.geojson"
       }
     },
     {
@@ -726,11 +726,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-E",
-        "seccion": "ORO",
+        "id": "PLATINO-I",
+        "seccion": "PLATINO",
         "manzana": "I",
-        "nombre": "ORO - I",
-        "lotesFile": "./data/lotes/lotes-ORO-I.geojson"
+        "nombre": "PLATINO - I",
+        "lotesFile": "./data/lotes/lotes-PLATINO-I.geojson"
       }
     },
     {
@@ -763,11 +763,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-K",
-        "seccion": "ORO",
+        "id": "PLATINO-J",
+        "seccion": "PLATINO",
         "manzana": "J",
-        "nombre": "ORO - J",
-        "lotesFile": "./data/lotes/lotes-ORO-J.geojson"
+        "nombre": "PLATINO - J",
+        "lotesFile": "./data/lotes/lotes-PLATINO-J.geojson"
       }
     },
     {
@@ -800,11 +800,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-D",
-        "seccion": "ORO",
+        "id": "PLATINO-K",
+        "seccion": "PLATINO",
         "manzana": "K",
-        "nombre": "ORO - K",
-        "lotesFile": "./data/lotes/lotes-ORO-K.geojson"
+        "nombre": "PLATINO - K",
+        "lotesFile": "./data/lotes/lotes-PLATINO-K.geojson"
       }
     },
     {
@@ -837,11 +837,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-J",
-        "seccion": "ORO",
+        "id": "PLATINO-H",
+        "seccion": "PLATINO",
         "manzana": "H",
-        "nombre": "ORO - H",
-        "lotesFile": "./data/lotes/lotes-ORO-H.geojson"
+        "nombre": "PLATINO - H",
+        "lotesFile": "./data/lotes/lotes-PLATINO-H.geojson"
       }
     },
     {
@@ -874,11 +874,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-I",
-        "seccion": "ORO",
+        "id": "PLATINO-I",
+        "seccion": "PLATINO",
         "manzana": "I",
-        "nombre": "ORO - I",
-        "lotesFile": "./data/lotes/lotes-ORO-I.geojson"
+        "nombre": "PLATINO - I",
+        "lotesFile": "./data/lotes/lotes-PLATINO-I.geojson"
       }
     },
     {
@@ -911,11 +911,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-H",
-        "seccion": "ORO",
+        "id": "PLATINO-J",
+        "seccion": "PLATINO",
         "manzana": "J",
-        "nombre": "ORO - J",
-        "lotesFile": "./data/lotes/lotes-ORO-J.geojson"
+        "nombre": "PLATINO - J",
+        "lotesFile": "./data/lotes/lotes-PLATINO-J.geojson"
       }
     },
     {
@@ -948,11 +948,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-AA",
-        "seccion": "ORO",
+        "id": "PLATINO-O",
+        "seccion": "PLATINO",
         "manzana": "O",
-        "nombre": "ORO - O",
-        "lotesFile": "./data/lotes/lotes-ORO-O.geojson"
+        "nombre": "PLATINO - O",
+        "lotesFile": "./data/lotes/lotes-PLATINO-O.geojson"
       }
     },
     {
@@ -985,11 +985,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-R",
-        "seccion": "ORO",
+        "id": "PLATINO-P",
+        "seccion": "PLATINO",
         "manzana": "P",
-        "nombre": "ORO - P",
-        "lotesFile": "./data/lotes/lotes-ORO-P.geojson"
+        "nombre": "PLATINO - P",
+        "lotesFile": "./data/lotes/lotes-PLATINO-P.geojson"
       }
     },
     {
@@ -1022,11 +1022,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-Z",
-        "seccion": "ORO",
+        "id": "PLATINO-Q",
+        "seccion": "PLATINO",
         "manzana": "Q",
-        "nombre": "ORO - Q",
-        "lotesFile": "./data/lotes/lotes-ORO-Q.geojson"
+        "nombre": "PLATINO - Q",
+        "lotesFile": "./data/lotes/lotes-PLATINO-Q.geojson"
       }
     },
     {
@@ -1059,11 +1059,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-Q",
-        "seccion": "ORO",
+        "id": "PLATINO-R",
+        "seccion": "PLATINO",
         "manzana": "R",
-        "nombre": "ORO - R",
-        "lotesFile": "./data/lotes/lotes-ORO-R.geojson"
+        "nombre": "PLATINO - R",
+        "lotesFile": "./data/lotes/lotes-PLATINO-R.geojson"
       }
     },
     {
@@ -1096,11 +1096,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-Y",
-        "seccion": "ORO",
+        "id": "PLATINO-S",
+        "seccion": "PLATINO",
         "manzana": "S",
-        "nombre": "ORO - S",
-        "lotesFile": "./data/lotes/lotes-ORO-S.geojson"
+        "nombre": "PLATINO - S",
+        "lotesFile": "./data/lotes/lotes-PLATINO-S.geojson"
       }
     },
     {
@@ -1133,11 +1133,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-P",
-        "seccion": "ORO",
+        "id": "PLATINO-T",
+        "seccion": "PLATINO",
         "manzana": "T",
-        "nombre": "ORO - T",
-        "lotesFile": "./data/lotes/lotes-ORO-T.geojson"
+        "nombre": "PLATINO - T",
+        "lotesFile": "./data/lotes/lotes-PLATINO-T.geojson"
       }
     },
     {
@@ -1170,11 +1170,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-X",
-        "seccion": "ORO",
+        "id": "PLATINO-U",
+        "seccion": "PLATINO",
         "manzana": "U",
-        "nombre": "ORO - U",
-        "lotesFile": "./data/lotes/lotes-ORO-U.geojson"
+        "nombre": "PLATINO - U",
+        "lotesFile": "./data/lotes/lotes-PLATINO-U.geojson"
       }
     },
     {
@@ -1207,11 +1207,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-O",
-        "seccion": "ORO",
+        "id": "PLATINO-V",
+        "seccion": "PLATINO",
         "manzana": "V",
-        "nombre": "ORO - V",
-        "lotesFile": "./data/lotes/lotes-ORO-V.geojson"
+        "nombre": "PLATINO - V",
+        "lotesFile": "./data/lotes/lotes-PLATINO-V.geojson"
       }
     },
     {
@@ -1244,11 +1244,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-AE",
-        "seccion": "ORO",
+        "id": "PLATINO-S",
+        "seccion": "PLATINO",
         "manzana": "S",
-        "nombre": "ORO - S",
-        "lotesFile": "./data/lotes/lotes-ORO-S.geojson"
+        "nombre": "PLATINO - S",
+        "lotesFile": "./data/lotes/lotes-PLATINO-S.geojson"
       }
     },
     {
@@ -1281,11 +1281,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-V",
-        "seccion": "ORO",
+        "id": "PLATINO-T",
+        "seccion": "PLATINO",
         "manzana": "T",
-        "nombre": "ORO - T",
-        "lotesFile": "./data/lotes/lotes-ORO-T.geojson"
+        "nombre": "PLATINO - T",
+        "lotesFile": "./data/lotes/lotes-PLATINO-T.geojson"
       }
     },
     {
@@ -1318,11 +1318,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-AD",
-        "seccion": "ORO",
+        "id": "PLATINO-U",
+        "seccion": "PLATINO",
         "manzana": "U",
-        "nombre": "ORO - U",
-        "lotesFile": "./data/lotes/lotes-ORO-U.geojson"
+        "nombre": "PLATINO - U",
+        "lotesFile": "./data/lotes/lotes-PLATINO-U.geojson"
       }
     },
     {
@@ -1355,11 +1355,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-U",
-        "seccion": "ORO",
+        "id": "PLATINO-V",
+        "seccion": "PLATINO",
         "manzana": "V",
-        "nombre": "ORO - V",
-        "lotesFile": "./data/lotes/lotes-ORO-V.geojson"
+        "nombre": "PLATINO - V",
+        "lotesFile": "./data/lotes/lotes-PLATINO-V.geojson"
       }
     },
     {
@@ -1392,11 +1392,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-AC",
-        "seccion": "ORO",
+        "id": "PLATINO-W",
+        "seccion": "PLATINO",
         "manzana": "W",
-        "nombre": "ORO - W",
-        "lotesFile": "./data/lotes/lotes-ORO-W.geojson"
+        "nombre": "PLATINO - W",
+        "lotesFile": "./data/lotes/lotes-PLATINO-W.geojson"
       }
     },
     {
@@ -1429,11 +1429,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-T",
-        "seccion": "ORO",
+        "id": "PLATINO-X",
+        "seccion": "PLATINO",
         "manzana": "X",
-        "nombre": "ORO - X",
-        "lotesFile": "./data/lotes/lotes-ORO-X.geojson"
+        "nombre": "PLATINO - X",
+        "lotesFile": "./data/lotes/lotes-PLATINO-X.geojson"
       }
     },
     {
@@ -1466,11 +1466,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-AB",
-        "seccion": "ORO",
+        "id": "PLATINO-Y",
+        "seccion": "PLATINO",
         "manzana": "Y",
-        "nombre": "ORO - Y",
-        "lotesFile": "./data/lotes/lotes-ORO-Y.geojson"
+        "nombre": "PLATINO - Y",
+        "lotesFile": "./data/lotes/lotes-PLATINO-Y.geojson"
       }
     },
     {
@@ -1503,11 +1503,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-S",
-        "seccion": "ORO",
+        "id": "PLATINO-Z",
+        "seccion": "PLATINO",
         "manzana": "Z",
-        "nombre": "ORO - Z",
-        "lotesFile": "./data/lotes/lotes-ORO-Z.geojson"
+        "nombre": "PLATINO - Z",
+        "lotesFile": "./data/lotes/lotes-PLATINO-Z.geojson"
       }
     },
     {
@@ -1540,11 +1540,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-AF",
-        "seccion": "ORO",
+        "id": "PLATINO-AF",
+        "seccion": "PLATINO",
         "manzana": "AF",
-        "nombre": "ORO - AF",
-        "lotesFile": "./data/lotes/lotes-ORO-AF.geojson"
+        "nombre": "PLATINO - AF",
+        "lotesFile": "./data/lotes/lotes-PLATINO-AF.geojson"
       }
     },
     {
@@ -1577,11 +1577,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-W",
-        "seccion": "ORO",
+        "id": "PLATINO-AG",
+        "seccion": "PLATINO",
         "manzana": "AG",
-        "nombre": "ORO - AG",
-        "lotesFile": "./data/lotes/lotes-ORO-AG.geojson"
+        "nombre": "PLATINO - AG",
+        "lotesFile": "./data/lotes/lotes-PLATINO-AG.geojson"
       }
     },
     {
@@ -1614,11 +1614,11 @@
         ]
       },
       "properties": {
-        "id": "ORO-AG",
-        "seccion": "ORO",
+        "id": "PLATINO-AG",
+        "seccion": "PLATINO",
         "manzana": "AG",
-        "nombre": "ORO - AG",
-        "lotesFile": "./data/lotes/lotes-ORO-AG.geojson"
+        "nombre": "PLATINO - AG",
+        "lotesFile": "./data/lotes/lotes-PLATINO-AG.geojson"
       }
     }
   ]
