@@ -1,10 +1,8 @@
 /* =========================================================
    CONFIG
    ========================================================= */
-const ASSET_VER = (window.APP_VERSION || Date.now());
-
-const BASE_IMAGE_PUBLIC_URL = "./assets/map/base-public.webp?v=" + ASSET_VER;
-const BASE_IMAGE_EDIT_URL   = "./assets/map/base.png?v=" + ASSET_VER;
+const BASE_IMAGE_PUBLIC_URL = "./assets/map/base-public.webp";
+const BASE_IMAGE_EDIT_URL   = "./assets/map/base.png";
 
 // Tus GeoJSON están guardados en coordenadas del mapa base.png
 const DATA_COORD_WIDTH  = 11045;
