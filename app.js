@@ -5,8 +5,8 @@ const BASE_IMAGE_PUBLIC_URL = "./assets/map/base-public.webp"; // ligero (públi
 const BASE_IMAGE_EDIT_URL   = "./assets/map/base.png";         // alta res (edición)
 
 // Tus GeoJSON están guardados en coordenadas del mapa base.png
-const DATA_COORD_WIDTH  = 11045;
-const DATA_COORD_HEIGHT = 9079;
+const DATA_COORD_WIDTH  = 11100;
+const DATA_COORD_HEIGHT = 9250;
 
 // Archivos de datos
 const SECCIONES_TOP_URL = "./data/secciones-top.geojson"; // editor ?edit=secciones + PUBLICO secciones
