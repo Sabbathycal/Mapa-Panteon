@@ -169,6 +169,13 @@ a,b,c,d,tx,ty = solve_affine(OLD, NEW)
 def tf_xy(x, y):
     return (a*x + b*y + tx, c*x + d*y + ty)
 
+print("\nCHECK FIRST 3 POINTS:")
+for i in range(3):
+    x,y = OLD[i]
+    u,v = NEW[i]
+    px,py = tf_xy(x,y)
+    print(i, "OLD", (x,y), "-> pred", (round(px,1),round(py,1)), "target", (u,v))
+
 # error
 errs = []
 for (x,y), (u,v) in zip(OLD, NEW):
@@ -227,7 +234,7 @@ def transform_geojson(data):
         data["coordinates"] = transform_coords(data["coordinates"])
     return data
 
-src_root = "data"
+src_root = "data_backup_antes"
 dst_root = "data_new"
 
 if os.path.exists(dst_root):
