@@ -5,13 +5,13 @@ const BASE_IMAGE_PUBLIC_URL = "./assets/map/base-public.webp"; // ligero (públi
 const BASE_IMAGE_EDIT_URL   = "./assets/map/base.png";         // alta res (edición)
 
 // Tus GeoJSON están guardados en coordenadas del mapa base.png
-const DATA_COORD_WIDTH  = 11100;
-const DATA_COORD_HEIGHT = 9250;
+const DATA_COORD_WIDTH  = 11045;
+const DATA_COORD_HEIGHT = 9079;
 
 // Archivos de datos
 const SECCIONES_TOP_URL = "./data/secciones-top.geojson"; // editor ?edit=secciones + PUBLICO secciones
 const MANZANAS_URL      = "./data/secciones.geojson";     // MANZANAS
-const NICHOS_ZONAS_URL  = "./data/nichos-zonas.geojson";  // zonas clickeables nichos (PUBLICO)
+const NICHOS_ZONAS_URL  = "./data/nichos-zonas.geojson";  // zonas clickeables nichos
 
 // Catálogos
 const LOTES_INFO_URL    = "./data/lotes.json";
@@ -21,7 +21,7 @@ const PAQUETES_URL      = "./data/paquetes.json";
 // ?edit=secciones  => EDITOR SECCIONES
 // ?edit=manzanas   => EDITOR MANZANAS
 // ?edit=lotes      => EDITOR LOTES
-// ?edit=nichos     => EDITOR NICHOS (AHORA: editor de ÁREAS dentro de imagen)
+// ?edit=nichos     => EDITOR NICHOS
 const editMode = new URLSearchParams(location.search).get("edit"); // null | "secciones" | "manzanas" | "lotes" | "nichos"
 const isEditSecciones = editMode === "secciones";
 const isEditManzanas  = editMode === "manzanas";
@@ -46,7 +46,6 @@ function notify(msg, ms = 1800){
   try {
     if (typeof window.toast === "function") return window.toast(msg, ms);
   } catch {}
-  // fallback
   try { console.log("[INFO]", msg); } catch {}
 }
 
@@ -61,25 +60,20 @@ let paquetesInfo = {};
 // RAW (coords base.png)
 let seccionesTopRaw = null;   // SECCIONES
 let manzanasRaw = null;       // MANZANAS
-let nichosZonasRaw = null;    // NICHOS ZONAS (PUBLICO)
-
-// NUEVO (SOLO EDIT NICHOS-IMAGEN):
-let nichosAreasRaw = null;    // ÁREAS dentro de imagen del nicho (EDITOR)
+let nichosZonasRaw = null;    // NICHOS ZONAS
 
 // Scaled a base actual (público)
 let seccionesTopScaled = null; // SECCIONES escaladas
 let manzanasScaled = null;     // MANZANAS escaladas
 let lotesScaled = null;        // LOTES escalados
-let nichosZonasScaled = null;  // NICHOS escaladas (PUBLICO)
+let nichosZonasScaled = null;  // NICHOS escaladas
 
 let seccionesLayer = null;         // editor secciones
 let seccionesLayerPublic = null;   // PUBLICO secciones
 let manzanasLayer = null;          // público + editor manzanas
 let lotesLayer = null;             // público + editor lotes
-let nichosLayer = null;            // público nichos (zonas clickeables en mapa panteón)
-
-// EDIT NICHOS-IMAGEN:
-let nichosAreasLayerEdit = null;   // editor nichos (áreas sobre imagen)
+let nichosLayer = null;            // público nichos
+let nichosLayerEdit = null;        // editor nichos
 
 // Selección de nicho (modal)
 let nichoSelection = { zonaId: null, cara: null, numero: null };
@@ -132,42 +126,6 @@ function distPixels(a,b){
   const dy = (a.lat - b.lat);
   return Math.sqrt(dx*dx + dy*dy);
 }
-
-function centroidLatLng(latlngs){
-  // Centroide simple por promedio (suficiente para mover/escalar)
-  let sx = 0, sy = 0;
-  const n = latlngs.length || 1;
-  for (const p of latlngs){
-    sx += p.lng;
-    sy += p.lat;
-  }
-  return L.latLng(sy / n, sx / n);
-}
-
-function scaleLatLngAround(p, center, k){
-  // escala en "pixeles" CRS.Simple
-  const dx = p.lng - center.lng;
-  const dy = p.lat - center.lat;
-  return L.latLng(center.lat + dy * k, center.lng + dx * k);
-}
-
-function removeEditorGroupHandles(){
-  if (editor.centerMarker){
-    try { map.removeLayer(editor.centerMarker); } catch {}
-    editor.centerMarker = null;
-  }
-  if (editor.scaleMarker){
-    try { map.removeLayer(editor.scaleMarker); } catch {}
-    editor.scaleMarker = null;
-  }
-  editor._dragCenterLast = null;
-
-  editor._scaleStartDist = null;
-  editor._scaleCenterLL = null;
-  editor._scaleStartRing = null;
-  editor._scaleStartVerts = null;
-}
-
 
 function isCircleFeature(f){
   return (
@@ -737,7 +695,7 @@ function showLoteInfo(feature){
 }
 
 /* =========================================================
-   NICHOS: selección dentro de la imagen (MODAL PÚBLICO)
+   NICHOS: selección dentro de la imagen
    ========================================================= */
 const NICHOS_ROWS = ["A","B","C","D","E","F"]; // 6 filas
 const NICHOS_COLS = 79;                        // 79 nichos por fila
@@ -1061,8 +1019,7 @@ function setupButtons(){
    - Borrar
    - Copiar/Pegar
    - Cuadrícula lotes y manzanas (rotación)
-   - Mover CUADRÍCULA COMPLETA con 1 marcador
-   - SIN pop-ups molestos (notify)
+   - Mover y ESCALAR figura completa (NUEVO)
    ========================================================= */
 const editor = {
   mode: "edit",          // "edit" | "create" | "grid"
@@ -1088,20 +1045,11 @@ const editor = {
   originalGeometry: null,
   originalRadius: null,
   vertexMarkers: [],
-  moveArmed: false,
+
+  // NEW: move/scale handles (para mover y escalar la figura completa)
   moveMarker: null,
-  moveLastLL: null,
-
-
-  // group move/scale for polygons
-  centerMarker: null,
   scaleMarker: null,
-  _dragCenterLast: null,
-
-  _scaleStartDist: null,
-  _scaleCenterLL: null,
-  _scaleStartRing: null,   // array of LatLng (sin cerrar)
-  _scaleStartVerts: null,  // array of LatLng (pos inicial de markers)
+  scaleBaseDist: null, // distancia centro->handle al iniciar drag (para factor)
 
   // copy/paste
   clipboardFeature: null,
@@ -1112,7 +1060,7 @@ const editor = {
   gridConfig: null,
 
   // last created grid group (for moving whole grid)
-  lastGrid: null, // { datasetArr, features[], overlay, centerMarker, bounds, centerLL }
+  lastGrid: null,
 
   iconVertex: L.divIcon({
     className: "",
@@ -1129,6 +1077,13 @@ const editor = {
   iconCenter: L.divIcon({
     className: "",
     html: `<div style="width:14px;height:14px;border-radius:50%;background:#ef4444;border:2px solid #fff;box-shadow:0 0 0 1px #111;"></div>`,
+    iconSize: [18,18],
+    iconAnchor: [9,9]
+  }),
+  // NEW: escala (azul)
+  iconScale: L.divIcon({
+    className: "",
+    html: `<div style="width:14px;height:14px;border-radius:50%;background:#3b82f6;border:2px solid #fff;box-shadow:0 0 0 1px #111;"></div>`,
     iconSize: [18,18],
     iconAnchor: [9,9]
   })
@@ -1173,77 +1128,7 @@ function editorClearCircle(){
   editor.circlePreview = null;
 }
 
-
-function editorStopMoveMode(){
-  editor.moveArmed = false;
-  editor.moveLastLL = null;
-  if (editor.moveMarker){
-    try { map.removeLayer(editor.moveMarker); } catch {}
-  }
-  editor.moveMarker = null;
-}
-
-function editorStartMoveMode(){
-  if (!editor.selectedLayer || !editor.selectedFeature) return;
-
-  // apaga edición por vértices mientras se mueve
-  editor.vertexMarkers.forEach(m => { try { map.removeLayer(m); } catch {} });
-  editor.vertexMarkers = [];
-
-  editorStopMoveMode();
-  editor.moveArmed = true;
-
-  const c = layerCenterLatLng(editor.selectedLayer);
-  if (!c) return;
-
-  editor.moveMarker = L.marker(c, { draggable: true, icon: editor.iconCenter }).addTo(map);
-  editor.moveLastLL = editor.moveMarker.getLatLng();
-
-  editor.moveMarker.on("drag", () => {
-    const now = editor.moveMarker.getLatLng();
-    const dx = now.lng - editor.moveLastLL.lng;
-    const dy = now.lat - editor.moveLastLL.lat;
-
-    // mover visualmente la geometría sin tocar puntos
-    if (editor.selectedLayer instanceof L.Circle){
-      const cc = editor.selectedLayer.getLatLng();
-      editor.selectedLayer.setLatLng(L.latLng(cc.lat + dy, cc.lng + dx));
-    } else {
-      const latlngs = editor.selectedLayer.getLatLngs();
-      const moved = shiftLatLngs(latlngs, dx, dy);
-      editor.selectedLayer.setLatLngs(moved);
-    }
-
-    editor.moveLastLL = now;
-  });
-
-  editor.moveMarker.on("dragend", () => {
-    // commit a feature geojson
-    commitLayerGeometryToFeature(editor.selectedLayer, editor.selectedFeature);
-
-    // re-render panel y feedback
-    renderEditSelectedPanel();
-    notify("✅ Figura movida (en memoria). Usa 'Copiar GeoJSON' para guardar.", 2200);
-
-    // volver a edición normal (con vértices)
-    editorStopMoveMode();
-
-    // reactivar markers de edición normal (vuelve a “start edit” según tipo)
-    try {
-      if (editor.selectedIsCircle && editor.selectedLayer instanceof L.Circle) {
-        editorStartEditCircle(editor.selectedLayer);
-      } else {
-        editorStartEditPolygon(editor.selectedLayer);
-      }
-    } catch {}
-  });
-}
-
-
-
 function editorStopEditing(){
-  editorStopMoveMode();
-  removeEditorGroupHandles();
   editor.vertexMarkers.forEach(m => map.removeLayer(m));
   editor.vertexMarkers = [];
 
@@ -1254,12 +1139,11 @@ function editorStopEditing(){
     editor.circleRadiusMarker = null;
   }
 
-  if (editor.moveMarker){
-    try { map.removeLayer(editor.moveMaker); } catch {}
-    editor.moveMarker = null;
-    editor.moveLastLL = null;
-  }
-  
+  // NEW: remove move/scale handles
+  if (editor.moveMarker){ try { map.removeLayer(editor.moveMarker); } catch {} editor.moveMarker = null; }
+  if (editor.scaleMarker){ try { map.removeLayer(editor.scaleMarker); } catch {} editor.scaleMarker = null; }
+  editor.scaleBaseDist = null;
+
   editor.selectedLayer = null;
   editor.selectedFeature = null;
   editor.selectedIsCircle = false;
@@ -1273,74 +1157,12 @@ function ringToGeoJsonCoords(ringLatLng){
   return [coords];
 }
 
-
-function layerCenterLatLng(layer){
-  try {
-    if (layer instanceof L.Circle) return layer.getLatLng();
-    const b = layer.getBounds ? layer.getBounds() : null;
-    if (b) return b.getCenter();
-  } catch {}
-  return null;
-}
-
-function shiftLatLngs(latlngs, dx, dy){
-  if (!Array.isArray(latlngs)) return latlngs;
-  // Polygon: [ [LatLng, ...] ]  |  Polyline: [LatLng,...]
-  if (Array.isArray(latlngs[0])) {
-    return latlngs.map(ring => ring.map(p => L.latLng(p.lat + dy, p.lng + dx)));
-  }
-  return latlngs.map(p => L.latLng(p.lat + dy, p.lng + dx));
-}
-
-function commitLayerGeometryToFeature(layer, feature){
-  if (!layer || !feature?.geometry) return;
-
-  // círculo
-  if (feature.geometry.type === "Point" && feature.properties?.shape === "circle" && layer instanceof L.Circle){
-    const c = layer.getLatLng();
-    feature.geometry.coordinates = latLngToXY(c);
-    feature.properties.radius = layer.getRadius();
-    return;
-  }
-
-  // polígono
-  const latlngs = layer.getLatLngs();
-  const ring = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
-  let ring2 = ring;
-  if (ring2.length >= 2){
-    const a = ring2[0], b = ring2[ring2.length-1];
-    if (Math.abs(a.lat-b.lat)<1e-9 && Math.abs(a.lng-b.lng)<1e-9) ring2 = ring2.slice(0, -1);
-  }
-  feature.geometry.coordinates = ringToGeoJsonCoords(ring2);
-}
-
-
-function polygonCentroid(latlngs){
-  // latlngs: array of L.LatLng (ring without repeated last point)
-  // Simple centroid (average). Good enough for a move handle.
-  let sumLat = 0, sumLng = 0;
-  for (const p of latlngs){
-    sumLat += p.lat;
-    sumLng += p.lng;
-  }
-  const n = Math.max(1, latlngs.length);
-  return L.latLng(sumLat / n, sumLng / n);
-}
-
-function translateLatLngs(latlngs, dx, dy){
-  return latlngs.map(p => L.latLng(p.lat + dy, p.lng + dx));
-}
-
-
 /* ---------- DATASET ACTIVO POR MODO ---------- */
 function getActiveEditDatasetArr(){
   if (isEditSecciones) return seccionesTopRaw?.features || null;
   if (isEditManzanas)  return manzanasRaw?.features || null;
   if (isEditLotes)     return currentLotesRaw?.features || null;
-
-  // ✅ CAMBIO: en ?edit=nichos, el dataset es nichosAreasRaw (no nichosZonasRaw)
-  if (isEditNichos)    return nichosAreasRaw?.features || null;
-
+  if (isEditNichos)    return nichosZonasRaw?.features || null;
   return null;
 }
 
@@ -1348,12 +1170,10 @@ function rerenderActiveEditor(){
   if (isEditSecciones) return rerenderSecciones_Edit();
   if (isEditManzanas)  return rerenderManzanas_Edit();
   if (isEditLotes)     return rerenderLotes_Edit();
-
-  // ✅ CAMBIO
-  if (isEditNichos)    return rerenderNichosAreas_Edit();
+  if (isEditNichos)    return rerenderNichos_Edit();
 }
 
-/* ---------- TRANSLATE FEATURE (mover grids) ---------- */
+/* ---------- TRANSLATE FEATURE (mover grids y figura completa) ---------- */
 function translateFeatureInPlace(feature, dx, dy){
   if (!feature?.geometry) return;
 
@@ -1366,6 +1186,28 @@ function translateFeatureInPlace(feature, dx, dy){
   if (feature.geometry.type === "Polygon"){
     const coords = feature.geometry.coordinates || [];
     feature.geometry.coordinates = coords.map(ring => ring.map(([x,y]) => [x + dx, y + dy]));
+    return;
+  }
+}
+
+/* ---------- SCALE FEATURE (NUEVO) ---------- */
+function scaleFeatureInPlace(feature, cx, cy, scale){
+  if (!feature?.geometry) return;
+  if (!(scale > 0)) return;
+
+  if (feature.geometry.type === "Point"){
+    const [x,y] = feature.geometry.coordinates;
+    feature.geometry.coordinates = [cx + (x - cx) * scale, cy + (y - cy) * scale];
+    // si es círculo, escalar radio también
+    if (isCircleFeature(feature) && typeof feature.properties.radius === "number"){
+      feature.properties.radius = feature.properties.radius * scale;
+    }
+    return;
+  }
+
+  if (feature.geometry.type === "Polygon"){
+    const coords = feature.geometry.coordinates || [];
+    feature.geometry.coordinates = coords.map(ring => ring.map(([x,y]) => [cx + (x - cx) * scale, cy + (y - cy) * scale]));
     return;
   }
 }
@@ -1473,7 +1315,6 @@ function activateGridGroup(datasetArr, features){
 
   let last = centerMarker.getLatLng();
 
-  // Durante drag: solo overlay se mueve visualmente
   centerMarker.on("drag", () => {
     const now = centerMarker.getLatLng();
     const dx = now.lng - last.lng;
@@ -1486,7 +1327,6 @@ function activateGridGroup(datasetArr, features){
     last = now;
   });
 
-  // Al soltar: aplicar delta a features
   centerMarker.on("dragend", () => {
     const now = centerMarker.getLatLng();
     const prevCenter = editor.lastGrid?.centerLL || L.latLng(c.y, c.x);
@@ -1563,6 +1403,170 @@ function deleteSelectedFeature(){
   notify("✅ Figura borrada (en memoria). Usa 'Copiar GeoJSON' para guardar en el archivo.", 2200);
 }
 
+/* ---------- NEW: helpers para mover/escalar (handles) ---------- */
+function getFeatureCenterLL(layer, feature){
+  try {
+    if (isCircleFeature(feature) && layer instanceof L.Circle){
+      return layer.getLatLng();
+    }
+    const b = layer.getBounds ? layer.getBounds() : L.geoJSON(feature).getBounds();
+    return b.getCenter();
+  } catch {
+    const b2 = boundsFromFeature(feature);
+    const c = boundsCenter(b2 || {minX:0,minY:0,maxX:0,maxY:0});
+    return L.latLng(c.y, c.x);
+  }
+}
+
+function removeMoveScaleHandles(){
+  if (editor.moveMarker){ try { map.removeLayer(editor.moveMarker); } catch {} editor.moveMarker = null; }
+  if (editor.scaleMarker){ try { map.removeLayer(editor.scaleMarker); } catch {} editor.scaleMarker = null; }
+  editor.scaleBaseDist = null;
+}
+
+function attachMoveScaleHandles(layer){
+  if (!editor.selectedFeature || !layer) return;
+
+  removeMoveScaleHandles();
+
+  const center = getFeatureCenterLL(layer, editor.selectedFeature);
+
+  // move marker (rojo) = mover figura completa
+  editor.moveMarker = L.marker(center, { draggable:true, icon: editor.iconCenter }).addTo(map);
+
+  // scale marker (azul) = escalar figura completa
+  // lo ponemos a la derecha del centro usando un offset relativo al tamaño (bounds)
+  let scalePos = null;
+  try {
+    if (layer.getBounds){
+      const b = layer.getBounds();
+      const c = b.getCenter();
+      const ne = b.getNorthEast();
+      // un poco hacia NE para que no estorbe
+      scalePos = L.latLng(c.lat + (ne.lat - c.lat) * 0.65, c.lng + (ne.lng - c.lng) * 0.65);
+    } else {
+      scalePos = L.latLng(center.lat, center.lng + 60);
+    }
+  } catch {
+    scalePos = L.latLng(center.lat, center.lng + 60);
+  }
+  editor.scaleMarker = L.marker(scalePos, { draggable:true, icon: editor.iconScale }).addTo(map);
+
+  let lastMove = editor.moveMarker.getLatLng();
+
+  editor.moveMarker.on("drag", () => {
+    const now = editor.moveMarker.getLatLng();
+    const dx = now.lng - lastMove.lng;
+    const dy = now.lat - lastMove.lat;
+
+    // mover layer visual
+    if (editor.selectedIsCircle && layer instanceof L.Circle){
+      const c = layer.getLatLng();
+      layer.setLatLng(L.latLng(c.lat + dy, c.lng + dx));
+    } else {
+      const latlngs = layer.getLatLngs();
+      const ring = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
+      const moved = ring.map(p => L.latLng(p.lat + dy, p.lng + dx));
+      layer.setLatLngs([moved]);
+    }
+
+    // mover vertex markers si existen
+    editor.vertexMarkers.forEach(m => {
+      const p = m.getLatLng();
+      m.setLatLng(L.latLng(p.lat + dy, p.lng + dx));
+    });
+
+    // mover scale marker junto con la figura
+    if (editor.scaleMarker){
+      const sp = editor.scaleMarker.getLatLng();
+      editor.scaleMarker.setLatLng(L.latLng(sp.lat + dy, sp.lng + dx));
+    }
+
+    lastMove = now;
+  });
+
+  editor.moveMarker.on("dragend", () => {
+    const now = editor.moveMarker.getLatLng();
+    const start = lastMove; // ya quedó actualizado en drag, así que “delta final” = 0
+    // Para persistir correctamente, recalculamos del layer vs feature:
+    // 1) calculamos centro anterior por geometry actual vs layer actual no es directo.
+    // Solución robusta: escribir geometry desde el layer.
+    persistFeatureFromLayer(layer);
+    notify("✅ Movido (en memoria).", 1200);
+  });
+
+  // scale handling
+  editor.scaleMarker.on("dragstart", () => {
+    const c = editor.moveMarker.getLatLng();
+    editor.scaleBaseDist = Math.max(1e-6, distPixels(c, editor.scaleMarker.getLatLng()));
+  });
+
+  editor.scaleMarker.on("drag", () => {
+    const c = editor.moveMarker.getLatLng();
+    const d0 = editor.scaleBaseDist || 1;
+    const d1 = Math.max(1e-6, distPixels(c, editor.scaleMarker.getLatLng()));
+    const s = d1 / d0;
+
+    // limitar escala para evitar locuras
+    const scale = Math.min(Math.max(s, 0.1), 10);
+
+    // escalar visualmente el layer con base en su centro actual
+    if (editor.selectedIsCircle && layer instanceof L.Circle){
+      layer.setRadius(layer.getRadius() * scale);
+    } else {
+      const latlngs = layer.getLatLngs();
+      const ring = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
+      const scaled = ring.map(p => L.latLng(
+        c.lat + (p.lat - c.lat) * scale,
+        c.lng + (p.lng - c.lng) * scale
+      ));
+      layer.setLatLngs([scaled]);
+
+      // escalar vertex markers igual
+      editor.vertexMarkers.forEach(m => {
+        const p = m.getLatLng();
+        m.setLatLng(L.latLng(
+          c.lat + (p.lat - c.lat) * scale,
+          c.lng + (p.lng - c.lng) * scale
+        ));
+      });
+    }
+
+    // IMPORTANT: para que sea incremental durante drag, “reseteamos” baseDist a la nueva
+    editor.scaleBaseDist = d1;
+  });
+
+  editor.scaleMarker.on("dragend", () => {
+    persistFeatureFromLayer(layer);
+    notify("✅ Escalado (en memoria).", 1200);
+  });
+}
+
+function persistFeatureFromLayer(layer){
+  if (!editor.selectedFeature || !layer) return;
+
+  if (editor.selectedIsCircle && layer instanceof L.Circle){
+    const c = layer.getLatLng();
+    editor.selectedFeature.geometry.coordinates = latLngToXY(c);
+    editor.selectedFeature.properties.radius = layer.getRadius();
+    return;
+  }
+
+  // polygon: tomar latlngs del layer y llevarlos a geojson coords
+  const latlngs = layer.getLatLngs();
+  const ring = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
+
+  // asegurar que no venga cerrado duplicado (leaflet a veces no cierra)
+  const coords = ring.map(latLngToXY);
+  if (coords.length){
+    const a = coords[0], b = coords[coords.length - 1];
+    if (!(Math.abs(a[0]-b[0])<1e-9 && Math.abs(a[1]-b[1])<1e-9)){
+      coords.push(coords[0]);
+    }
+  }
+  editor.selectedFeature.geometry.coordinates = [coords];
+}
+
 /* ---------- START EDIT POLYGON/CIRCLE ---------- */
 function editorStartEditPolygon(layer){
   editorStopEditing();
@@ -1581,176 +1585,33 @@ function editorStartEditPolygon(layer){
     if (Math.abs(a.lat-b.lat)<1e-9 && Math.abs(a.lng-b.lng)<1e-9) ring2 = ring2.slice(0, -1);
   }
 
-  // ===== MOVE WHOLE POLYGON (drag center handle) =====
-  const center = polygonCentroid(ring2);
-
-  // Reutilizamos el icono rojo (editor.iconCenter) como "mover"
-  editor.moveMarker = L.marker(center, { draggable: true, icon: editor.iconCenter }).addTo(map);
-  editor.moveLastLL = editor.moveMarker.getLatLng();
-
-  editor.moveMarker.on("drag", () => {
-    const now = editor.moveMarker.getLatLng();
-    const dx = now.lng - editor.moveLastLL.lng;
-    const dy = now.lat - editor.moveLastLL.lat;
-
-    // mover visualmente el polígono
-    const cur = layer.getLatLngs();
-    const curRing = Array.isArray(cur[0]) ? cur[0] : cur;
-    const movedRing = translateLatLngs(curRing, dx, dy);
-    layer.setLatLngs([movedRing]);
-
-    // mover también los “vertex markers” para que sigan en su lugar
-    for (const vm of editor.vertexMarkers){
-      const p = vm.getLatLng();
-      vm.setLatLng(L.latLng(p.lat + dy, p.lng + dx));
-    }
-
-    editor.moveLastLL = now;
-  });
-
-  editor.moveMarker.on("dragend", () => {
-    // Al soltar: guardar en el feature (GeoJSON)
-    const cur = layer.getLatLngs();
-    const curRing = Array.isArray(cur[0]) ? cur[0] : cur;
-
-    editor.selectedFeature.geometry.coordinates = ringToGeoJsonCoords(curRing);
-
-    // Reposicionar el handle al centro “nuevo”
-    const newCenter = polygonCentroid(curRing);
-    editor.moveMarker.setLatLng(newCenter);
-    editor.moveLastLL = newCenter;
-
-    renderEditSelectedPanel();
-    notify("Figura movida completa (en memoria).", 1200);
-  });
-  
   editor.vertexMarkers = ring2.map((p) => {
     const mk = L.marker(p, { draggable:true, icon: editor.iconVertex }).addTo(map);
     mk.on("drag", () => {
       const newRing = editor.vertexMarkers.map(m => m.getLatLng());
       layer.setLatLngs([newRing]);
+      // mantener handles siguiendo el movimiento de vértices
+      if (editor.moveMarker){
+        const c = getFeatureCenterLL(layer, editor.selectedFeature);
+        editor.moveMarker.setLatLng(c);
+      }
     });
     mk.on("dragend", () => {
       const newRing = editor.vertexMarkers.map(m => m.getLatLng());
       layer.setLatLngs([newRing]);
       editor.selectedFeature.geometry.coordinates = ringToGeoJsonCoords(newRing);
+      // refrescar handles (centro / scale)
+      attachMoveScaleHandles(layer);
       renderEditSelectedPanel();
       notify("Puntos actualizados (en memoria).", 900);
     });
-
-    try { positionGroupHandles(layer); } catch {}
     return mk;
   });
 
-  positionGroupHandles();
+  // NEW: attach move+scale handles
+  attachMoveScaleHandles(layer);
+
   renderEditSelectedPanel();
-
-  function getCurrentRing(){
-    // ring actual desde markers (sin cerrar)
-    return editor.vertexMarkers.map(m => m.getLatLng());
-  }
-
-  function commitRingToFeature(){
-    const newRing = getCurrentRing();
-    layer.setLatLngs([newRing]);
-    editor.selectedFeature.geometry.coordinates = ringToGeoJsonCoords(newRing);
-    renderEditSelectedPanel();
-  }
-
-  function positionGroupHandles(){
-    const ringNow = getCurrentRing();
-    if (!ringNow.length) return;
-
-    const c = centroidLatLng(ringNow);
-
-    // si no existe el marker centro, créalo
-    if (!editor.centerMarker){
-      editor.centerMarker = L.marker(c, { draggable:true, icon: editor.iconCenter }).addTo(map);
-
-      editor.centerMarker.on("dragstart", () => {
-        editor._dragCenterLast = editor.centerMarker.getLatLng();
-      });
-
-      editor.centerMarker.on("drag", () => {
-        const now = editor.centerMarker.getLatLng();
-        const prev = editor._dragCenterLast || now;
-        const dx = now.lng - prev.lng;
-        const dy = now.lat - prev.lat;
-
-        // mover TODOS los vértices
-        editor.vertexMarkers.forEach(m => {
-          const p = m.getLatLng();
-          m.setLatLng(L.latLng(p.lat + dy, p.lng + dx));
-        });
-
-        // mover el polígono
-        const newRing = getCurrentRing();
-        layer.setLatLngs([newRing]);
-
-        // mover scale handle también (si existe)
-        if (editor.scaleMarker){
-          const sp = editor.scaleMarker.getLatLng();
-          editor.scaleMarker.setLatLng(L.latLng(sp.lat + dy, sp.lng + dx));
-        }
-
-        editor._dragCenterLast = now;
-      });
-
-      editor.centerMarker.on("dragend", () => {
-        commitRingToFeature();
-        notify("Figura movida (en memoria).", 1200);
-      });
-    } else {
-      editor.centerMarker.setLatLng(c);
-    }
-
-    // scale handle: colócalo a la derecha del centro (distancia basada en bounds)
-    const bounds = L.latLngBounds(ringNow);
-    const w = Math.max(40, (bounds.getEast() - bounds.getWest()) * 0.15);
-    const handlePos = L.latLng(c.lat, c.lng + w);
-
-    if (!editor.scaleMarker){
-      editor.scaleMarker = L.marker(handlePos, { draggable:true, icon: editor.iconHandle }).addTo(map);
-
-      editor.scaleMarker.on("dragstart", () => {
-        editor._scaleCenterLL = editor.centerMarker.getLatLng();
-        const h0 = editor.scaleMarker.getLatLng();
-        editor._scaleStartDist = Math.max(1e-6, distPixels(editor._scaleCenterLL, h0));
-
-        // congela ring inicial (para escalar estable)
-        editor._scaleStartRing = getCurrentRing().map(p => L.latLng(p.lat, p.lng));
-      });
-
-      editor.scaleMarker.on("drag", () => {
-        if (!editor._scaleStartRing || !editor._scaleCenterLL || !editor._scaleStartDist) return;
-
-        const c0 = editor._scaleCenterLL;
-        const h1 = editor.scaleMarker.getLatLng();
-        const d1 = Math.max(1e-6, distPixels(c0, h1));
-        const k = d1 / editor._scaleStartDist;
-
-        // aplica escala sobre ring inicial
-        const scaled = editor._scaleStartRing.map(p => scaleLatLngAround(p, c0, k));
-
-        // actualiza markers + layer
-        editor.vertexMarkers.forEach((m, i) => m.setLatLng(scaled[i]));
-        layer.setLatLngs([scaled]);
-      });
-
-      editor.scaleMarker.on("dragend", () => {
-        // commit a feature
-        commitRingToFeature();
-        // reposicionar handles limpio
-        positionGroupHandles();
-        notify("Figura escalada (en memoria).", 1200);
-      });
-    } else {
-      // si ya existe, reposiciónalo si no está en drag
-      editor.scaleMarker.setLatLng(handlePos);
-    }
-  }
-
-
 }
 
 function editorStartEditCircle(layer){
@@ -1763,6 +1624,8 @@ function editorStartEditCircle(layer){
   editor.originalGeometry = deepCopy(layer.feature.geometry);
   editor.originalRadius = layer.feature.properties.radius;
 
+  // Reutilizamos tus handles de centro/radio para editar el círculo “fino”,
+  // pero ADEMÁS añadimos move/scale handles (mismo comportamiento) para consistencia.
   const center = layer.getLatLng();
   const radius = layer.feature.properties.radius;
 
@@ -1782,6 +1645,9 @@ function editorStartEditCircle(layer){
     editor.selectedFeature.geometry.coordinates = latLngToXY(c);
     editor.selectedFeature.properties.radius = r;
 
+    // refrescar move/scale handles
+    attachMoveScaleHandles(layer);
+
     renderEditSelectedPanel();
     notify("Círculo actualizado (en memoria).", 900);
   };
@@ -1791,6 +1657,8 @@ function editorStartEditCircle(layer){
     const r = layer.getRadius();
     editor.circleRadiusMarker.setLatLng(L.latLng(c.lat, c.lng + r));
     layer.setLatLng(c);
+
+    attachMoveScaleHandles(layer);
   });
   editor.circleCenterMarker.on("dragend", updateCircle);
 
@@ -1798,8 +1666,12 @@ function editorStartEditCircle(layer){
     const c = editor.circleCenterMarker.getLatLng();
     const h = editor.circleRadiusMarker.getLatLng();
     layer.setRadius(distPixels(c,h));
+    attachMoveScaleHandles(layer);
   });
   editor.circleRadiusMarker.on("dragend", updateCircle);
+
+  // NEW: attach move+scale handles
+  attachMoveScaleHandles(layer);
 
   renderEditSelectedPanel();
 }
@@ -1809,10 +1681,7 @@ function getEditDataset(){
   if (isEditSecciones) return { label:"SECCIONES", data: seccionesTopRaw, dest: SECCIONES_TOP_URL };
   if (isEditManzanas)  return { label:"MANZANAS",  data: manzanasRaw,     dest: MANZANAS_URL };
   if (isEditLotes)     return { label:"LOTES",     data: currentLotesRaw, dest: currentManzanaFeature?.properties?.lotesFile || "(sin manzana)" };
-
-  // ✅ CAMBIO: en edit nichos, el dataset es nichosAreasRaw y el destino depende de zona/cara
-  if (isEditNichos)    return { label:"NICHOS-ÁREAS", data: nichosAreasRaw, dest: getNichosAreasDestUrl() };
-
+  if (isEditNichos)    return { label:"NICHOS",    data: nichosZonasRaw,  dest: NICHOS_ZONAS_URL };
   return null;
 }
 
@@ -1829,6 +1698,10 @@ function renderEditSelectedPanel(){
   setPanel(`Editar ${kind}: ${safe(currentId)}`, `
     <p><b>Tipo:</b> ${editor.selectedIsCircle ? "Círculo" : "Polígono"}</p>
     <p style="font-size:12px;color:#666;">Destino: <b>${safe(ds?.dest || "")}</b></p>
+
+    <p style="font-size:12px;color:#6b7280;margin-top:6px;">
+      Tip: usa el <b>punto rojo</b> para <b>mover</b> toda la figura y el <b>punto azul</b> para <b>escalar</b>.
+    </p>
 
     <hr/>
     <label><b>Nombre / ID</b></label><br/>
@@ -1849,7 +1722,6 @@ function renderEditSelectedPanel(){
       <button id="btnCancelPaste" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;display:none;">Cancelar pegado</button>
       <button id="btnCopyGeo" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar GeoJSON</button>
       <button id="btnBack" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Volver</button>
-      <button id="btnMoveShape" style="padding:8px 12px;border-radius:8px;border:1px solid #111;background:#fff;cursor:pointer;">Mover</button>
     </div>
   `);
 
@@ -1884,26 +1756,6 @@ function renderEditSelectedPanel(){
       deleteSelectedFeature();
     };
   }
-
-  const btnMove = document.getElementById("btnMoveShape");
-  if (btnMove){
-    btnMove.onclick = () => {
-      // toggle simple
-      if (editor.moveArmed) {
-        editorStopMoveMode();
-        notify("Mover: cancelado.", 1200);
-        // reactivar edición normal
-        try {
-          if (editor.selectedIsCircle && editor.selectedLayer instanceof L.Circle) editorStartEditCircle(editor.selectedLayer);
-          else editorStartEditPolygon(editor.selectedLayer);
-        } catch {}
-        return;
-      }
-      notify("Mover: arrastra el punto rojo para mover TODA la figura.", 2200);
-      editorStartMoveMode();
-    };
-  }
-
 
   // copy/paste
   const btnCopyShape = document.getElementById("btnCopyShape");
@@ -1958,19 +1810,13 @@ function renderEditSelectedPanel(){
     if (isEditSecciones) renderEditSeccionesPanel();
     else if (isEditManzanas) renderEditManzanasPanel();
     else if (isEditLotes) renderEditLotesPanel();
-    else renderEditNichosPanel(); // (nichos editor)
+    else renderEditNichosPanel();
   };
 }
 
 /* =========================================================
    EDIT PANELS
    ========================================================= */
-/* =========================================================
-   !!! OJO !!!
-   A PARTIR DE AQUÍ: NO SE MODIFICA NADA DE SECCIONES/MANZANAS/LOTES.
-   SOLO SE CAMBIA EL PANEL DE NICHOS (edit=nichos).
-   ========================================================= */
-
 function renderEditSeccionesPanel(){
   editor.mode = "edit";
   editor.drawShape = "polygon";
@@ -2085,6 +1931,7 @@ function renderEditSeccionesPanel(){
 }
 
 function renderEditManzanasPanel(){
+  // (SIN CAMBIOS del flujo original — solo se conserva)
   editor.mode = "edit";
   editor.drawShape = "polygon";
   editor.gridArmed = false;
@@ -2288,37 +2135,7 @@ function renderEditManzanasPanel(){
   document.getElementById("btnEdit").click();
 }
 
-/* =========================================================
-   ✅ EDIT NICHOS (ÚNICO CAMBIO)
-   - Editor de ÁREAS sobre la imagen (PLN-convexo.png, etc.)
-   - Archivo destino: data/nichos-areas-<ZONA>-<CARA>.geojson
-   - Imagen base: assets/nichos/<ZONA>-<CARA>.png (con guión/convención)
-   ========================================================= */
-
-function getNichosEditorParams(){
-  const qs = new URLSearchParams(location.search);
-  const zona = (qs.get("zona") || "PLN").trim().toUpperCase();          // PLN | SPN
-  const cara = (qs.get("cara") || "convexo").trim().toLowerCase();     // convexo | concavo
-  const caraNorm = (cara === "concavo") ? "concavo" : "convexo";
-  return { zona, cara: caraNorm };
-}
-
-// Mapea a tu imagen real. Tú dijiste que usas "PLN-convexo.png".
-function getNichosBaseImageUrl(){
-  const { zona, cara } = getNichosEditorParams();
-  return `./assets/nichos/${zona}-${cara}.png`;
-}
-
-function getNichosAreasDestUrl(){
-  const { zona, cara } = getNichosEditorParams();
-  return `./data/nichos-areas-${zona}-${cara}.geojson`;
-}
-
 function renderEditNichosPanel(){
-  const { zona, cara } = getNichosEditorParams();
-  const imgUrl = getNichosBaseImageUrl();
-  const destUrl = getNichosAreasDestUrl();
-
   editor.mode = "edit";
   editor.drawShape = "polygon";
   editor.gridArmed = false;
@@ -2327,13 +2144,8 @@ function renderEditNichosPanel(){
 
   editorClearPoly(); editorClearCircle(); editorStopEditing();
 
-  setPanel(`Edición: NICHOS (${zona} - ${cara})`, `
-    <p>Editor de <b>ÁREAS</b> sobre la imagen del nicho.</p>
-    <p style="font-size:12px;color:#6b7280;">
-      Imagen: <code>${safe(imgUrl)}</code><br/>
-      Archivo: <code>${safe(destUrl)}</code><br/>
-      Cambiar imagen: agrega parámetros: <code>?edit=nichos&zona=PLN&cara=convexo</code>
-    </p>
+  setPanel("Edición: NICHOS", `
+    <p>Editor de <b>Zonas de Nichos</b>.</p>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button id="btnEdit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Editar existente</button>
@@ -2346,7 +2158,7 @@ function renderEditNichosPanel(){
     <div id="editBody"></div>
 
     <p style="font-size:12px;color:#666;margin-top:10px;">
-      Destino: <b>${safe(destUrl)}</b>
+      Destino: <b>${safe(NICHOS_ZONAS_URL)}</b>
     </p>
   `);
 
@@ -2355,8 +2167,8 @@ function renderEditNichosPanel(){
   document.getElementById("btnEdit").onclick = () => {
     editor.mode = "edit";
     editorClearPoly(); editorClearCircle();
-    $editBody.innerHTML = `<p><b>Editar:</b> clic en un área para editar.</p>`;
-    rerenderNichosAreas_Edit();
+    $editBody.innerHTML = `<p><b>Editar:</b> clic en una zona de nichos para editar.</p>`;
+    rerenderNichos_Edit();
   };
 
   document.getElementById("btnCreate").onclick = () => {
@@ -2365,7 +2177,7 @@ function renderEditNichosPanel(){
     editorClearPoly(); editorClearCircle();
 
     $editBody.innerHTML = `
-      <p><b>Crear área:</b> elige forma:</p>
+      <p><b>Crear zona de nichos:</b></p>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
         <button id="btnPoly" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Polígono</button>
         <button id="btnCircle" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Círculo</button>
@@ -2374,11 +2186,17 @@ function renderEditNichosPanel(){
 
       <p><b>Puntos (polígono):</b> <span id="ptCount">0</span></p>
 
-      <label><b>ID / Nombre del área</b></label><br/>
-      <input id="newAreaId" placeholder="Ej. CENTRAL / PAISAJE / JESUS / ROSTRO" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+      <label><b>ID zona</b></label><br/>
+      <input id="newZonaId" placeholder="Ej. PLN" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+      <label><b>Prefijo</b> (PLN o SPN)</label><br/>
+      <select id="newPrefix" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;">
+        <option>PLN</option>
+        <option>SPN</option>
+      </select>
 
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-        <button id="btnSaveNew" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Guardar área</button>
+        <button id="btnSaveNew" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Guardar zona</button>
       </div>
     `;
 
@@ -2387,10 +2205,11 @@ function renderEditNichosPanel(){
     document.getElementById("btnClear").onclick = () => { editorClearPoly(); editorClearCircle(); };
 
     document.getElementById("btnSaveNew").onclick = () => {
-      const id = (document.getElementById("newAreaId").value || "").trim();
-      if (!id) return notify("Falta ID / nombre del área.", 2000);
+      const id = (document.getElementById("newZonaId").value || "").trim();
+      const prefix = (document.getElementById("newPrefix").value || "PLN").trim();
+      if (!id) return notify("Falta ID zona.", 2000);
 
-      const props = { id };
+      const props = { id, prefix };
 
       let feature = null;
       if (editor.drawShape === "polygon"){
@@ -2401,22 +2220,20 @@ function renderEditNichosPanel(){
         feature = { type:"Feature", geometry:{ type:"Point", coordinates: latLngToXY(editor.circleCenter) }, properties:{ ...props, shape:"circle", radius: editor.circleRadius } };
       }
 
-      if (!nichosAreasRaw) nichosAreasRaw = { type:"FeatureCollection", features: [] };
-      nichosAreasRaw.features.push(feature);
-
+      nichosZonasRaw.features.push(feature);
       editorClearPoly(); editorClearCircle();
-      rerenderNichosAreas_Edit();
-      notify("✅ Área creada (en memoria). Usa 'Copiar GeoJSON' para pegar en el archivo.", 2400);
+      rerenderNichos_Edit();
+      notify("✅ Zona creada (en memoria). Usa 'Copiar GeoJSON' para pegar en el archivo.", 2400);
     };
 
-    rerenderNichosAreas_Edit();
+    rerenderNichos_Edit();
   };
 
   document.getElementById("btnCopy").onclick = async () => {
-    const txt = JSON.stringify(nichosAreasRaw || { type:"FeatureCollection", features:[] }, null, 2);
+    const txt = JSON.stringify(nichosZonasRaw || { type:"FeatureCollection", features:[] }, null, 2);
     try {
       await navigator.clipboard.writeText(txt);
-      notify(`GeoJSON copiado. Pégalo en ${destUrl}`, 2400);
+      notify("GeoJSON copiado. Pégalo en data/nichos-zonas.geojson.", 2400);
     } catch {
       setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
     }
@@ -2426,10 +2243,8 @@ function renderEditNichosPanel(){
   document.getElementById("btnEdit").click();
 }
 
-/* =========================================================
-   EDIT PANELS (LOTES) — SIN CAMBIOS
-   ========================================================= */
 function renderEditLotesPanel(){
+  // (SIN CAMBIOS del flujo original — solo se conserva)
   editor.mode = "edit";
   editor.drawShape = "polygon";
   editor.gridArmed = false;
@@ -2715,14 +2530,11 @@ function rerenderLotes_Edit(){
   }).addTo(map);
 }
 
-/* =========================================================
-   ✅ NUEVO RENDERER: NICHOS ÁREAS (edit=nichos)
-   ========================================================= */
-function rerenderNichosAreas_Edit(){
-  if (nichosAreasLayerEdit){ nichosAreasLayerEdit.remove(); nichosAreasLayerEdit = null; }
+function rerenderNichos_Edit(){
+  if (nichosLayerEdit){ nichosLayerEdit.remove(); nichosLayerEdit = null; }
   editorStopEditing();
 
-  nichosAreasLayerEdit = L.geoJSON(nichosAreasRaw || { type:"FeatureCollection", features:[] }, {
+  nichosLayerEdit = L.geoJSON(nichosZonasRaw || { type:"FeatureCollection", features:[] }, {
     style: { weight: 2, opacity: 1, fillOpacity: 0.06 },
     interactive: (editor.mode === "edit"),
     pointToLayer: (feature, latlng) => {
@@ -2767,6 +2579,7 @@ function attachEditorMapClick(){
       ensureUniqueId(temp, arr);
       arr.push(temp);
 
+      editor.pasteArmed = false; // apagar pegado automáticamente
       rerenderActiveEditor();
       notify("✅ Pegado. Selecciona la figura para cambiar ID si quieres.", 2200);
       return;
@@ -2856,7 +2669,7 @@ function attachEditorMapClick(){
       return;
     }
 
-    // CREATE normal (incluye nichos áreas)
+    // CREATE normal
     if (editor.mode !== "create") return;
 
     if (editor.drawShape === "polygon"){
@@ -2904,65 +2717,6 @@ async function main(){
   try { lotesInfo = await loadJson(LOTES_INFO_URL); } catch { lotesInfo = {}; }
   try { paquetesInfo = await loadJson(PAQUETES_URL); } catch { paquetesInfo = {}; }
 
-  // ✅ CAMBIO PRINCIPAL: si es edit=nichos, el mapa base ES la imagen del nicho (no el panteón)
-  if (isEditNichos){
-    try {
-      // UI arriba: bloquear controles normales
-      if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
-      if ($searchBtn) $searchBtn.disabled = true;
-
-      $seccionSelect.innerHTML = `<option value="">(Edición NICHOS)</option>`;
-      $manzanaSelect.innerHTML = `<option value="">(Edición NICHOS)</option>`;
-      if ($loteInput) $loteInput.value = "";
-
-      // cargar imagen de nichos como base del mapa
-      const baseUrl = getNichosBaseImageUrl();
-      const destUrl = getNichosAreasDestUrl();
-
-      const imgN = new Image();
-      imgN.onload = async () => {
-        const w = imgN.naturalWidth;
-        const h = imgN.naturalHeight;
-
-        // bounds CRS.Simple: [[0,0],[h,w]]
-        const bounds = [[0,0],[h,w]];
-        L.imageOverlay(baseUrl, bounds).addTo(map);
-
-        // Fit para ver la imagen completa (NO zoom extremo)
-        map.fitBounds(bounds, { padding: [20,20] });
-
-        attachEditorMapClick();
-
-        // cargar geojson de áreas
-        try {
-          nichosAreasRaw = await loadJson(destUrl);
-        } catch {
-          nichosAreasRaw = { type:"FeatureCollection", features: [] };
-        }
-
-        rerenderNichosAreas_Edit();
-        renderEditNichosPanel();
-      };
-
-      imgN.onerror = () => {
-        setPanel("Error", `
-          <p>No pude cargar la imagen del nicho:</p>
-          <p><code>${safe(baseUrl)}</code></p>
-          <p>Verifica que exista en <code>assets/nichos/</code>.</p>
-        `);
-      };
-
-      imgN.src = baseUrl;
-      return;
-
-    } catch (err) {
-      console.error(err);
-      setPanel("Error en ?edit=nichos", `<pre style="white-space:pre-wrap;color:#b91c1c;">${safe(err?.stack || err)}</pre>`);
-      return;
-    }
-  }
-
-  // ===== resto de modos (SIN CAMBIOS) =====
   const img = new Image();
   img.onload = async () => {
     try {
@@ -3012,6 +2766,19 @@ async function main(){
         return;
       }
 
+      // ====== EDIT NICHOS ======
+      if (isEditNichos){
+        if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
+        if ($searchBtn) $searchBtn.disabled = true;
+
+        $seccionSelect.innerHTML = `<option value="">(Edición NICHOS)</option>`;
+        $manzanaSelect.innerHTML = `<option value="">(Edición NICHOS)</option>`;
+
+        rerenderNichos_Edit();
+        renderEditNichosPanel();
+        return;
+      }
+
       // ====== EDIT LOTES ======
       if (isEditLotes){
         if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
@@ -3057,10 +2824,11 @@ async function main(){
       seccionesTopScaled = deepCopy(seccionesTopRaw);
       applyCoordScaleToGeoJSON(seccionesTopScaled, COORD_SCALE_X, COORD_SCALE_Y);
 
+      manzanasScaledBuild:
       manzanasScaled = deepCopy(manzanasRaw);
       applyCoordScaleToGeoJSON(manzanasScaled, COORD_SCALE_X, COORD_SCALE_Y);
 
-      // Nichos capa pública (independiente) usando nichos-zonas.geojson
+      // Nichos capa pública (independiente)
       try {
         nichosZonasScaled = deepCopy(nichosZonasRaw);
         applyCoordScaleToGeoJSON(nichosZonasScaled, COORD_SCALE_X, COORD_SCALE_Y);
@@ -3093,7 +2861,6 @@ async function main(){
       setupButtons();
       updateToggleLotsButton();
 
-      // avisito
       if (!IS_EDIT) notify("Listo.", 900);
 
     } catch (err) {
