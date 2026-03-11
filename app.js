@@ -1052,6 +1052,10 @@ const editor = {
   originalGeometry: null,
   originalRadius: null,
   vertexMarkers: [],
+  moveArmed: false,
+  moveMarker: null,
+  moveLastLL: null,
+
 
   // copy/paste
   clipboardFeature: null,
@@ -1123,7 +1127,76 @@ function editorClearCircle(){
   editor.circlePreview = null;
 }
 
+
+function editorStopMoveMode(){
+  editor.moveArmed = false;
+  editor.moveLastLL = null;
+  if (editor.moveMarker){
+    try { map.removeLayer(editor.moveMarker); } catch {}
+  }
+  editor.moveMarker = null;
+}
+
+function editorStartMoveMode(){
+  if (!editor.selectedLayer || !editor.selectedFeature) return;
+
+  // apaga edición por vértices mientras se mueve
+  editor.vertexMarkers.forEach(m => { try { map.removeLayer(m); } catch {} });
+  editor.vertexMarkers = [];
+
+  editorStopMoveMode();
+  editor.moveArmed = true;
+
+  const c = layerCenterLatLng(editor.selectedLayer);
+  if (!c) return;
+
+  editor.moveMarker = L.marker(c, { draggable: true, icon: editor.iconCenter }).addTo(map);
+  editor.moveLastLL = editor.moveMarker.getLatLng();
+
+  editor.moveMarker.on("drag", () => {
+    const now = editor.moveMarker.getLatLng();
+    const dx = now.lng - editor.moveLastLL.lng;
+    const dy = now.lat - editor.moveLastLL.lat;
+
+    // mover visualmente la geometría sin tocar puntos
+    if (editor.selectedLayer instanceof L.Circle){
+      const cc = editor.selectedLayer.getLatLng();
+      editor.selectedLayer.setLatLng(L.latLng(cc.lat + dy, cc.lng + dx));
+    } else {
+      const latlngs = editor.selectedLayer.getLatLngs();
+      const moved = shiftLatLngs(latlngs, dx, dy);
+      editor.selectedLayer.setLatLngs(moved);
+    }
+
+    editor.moveLastLL = now;
+  });
+
+  editor.moveMarker.on("dragend", () => {
+    // commit a feature geojson
+    commitLayerGeometryToFeature(editor.selectedLayer, editor.selectedFeature);
+
+    // re-render panel y feedback
+    renderEditSelectedPanel();
+    notify("✅ Figura movida (en memoria). Usa 'Copiar GeoJSON' para guardar.", 2200);
+
+    // volver a edición normal (con vértices)
+    editorStopMoveMode();
+
+    // reactivar markers de edición normal (vuelve a “start edit” según tipo)
+    try {
+      if (editor.selectedIsCircle && editor.selectedLayer instanceof L.Circle) {
+        editorStartEditCircle(editor.selectedLayer);
+      } else {
+        editorStartEditPolygon(editor.selectedLayer);
+      }
+    } catch {}
+  });
+}
+
+
+
 function editorStopEditing(){
+  editorStopMoveMode();
   editor.vertexMarkers.forEach(m => map.removeLayer(m));
   editor.vertexMarkers = [];
 
@@ -1134,6 +1207,12 @@ function editorStopEditing(){
     editor.circleRadiusMarker = null;
   }
 
+  if (editor.moveMarker){
+    try { map.removeLayer(editor.moveMaker); } catch {}
+    editor.moveMarker = null;
+    editor.moveLastLL = null;
+  }
+  
   editor.selectedLayer = null;
   editor.selectedFeature = null;
   editor.selectedIsCircle = false;
@@ -1146,6 +1225,65 @@ function ringToGeoJsonCoords(ringLatLng){
   if (coords.length) coords.push(coords[0]);
   return [coords];
 }
+
+
+function layerCenterLatLng(layer){
+  try {
+    if (layer instanceof L.Circle) return layer.getLatLng();
+    const b = layer.getBounds ? layer.getBounds() : null;
+    if (b) return b.getCenter();
+  } catch {}
+  return null;
+}
+
+function shiftLatLngs(latlngs, dx, dy){
+  if (!Array.isArray(latlngs)) return latlngs;
+  // Polygon: [ [LatLng, ...] ]  |  Polyline: [LatLng,...]
+  if (Array.isArray(latlngs[0])) {
+    return latlngs.map(ring => ring.map(p => L.latLng(p.lat + dy, p.lng + dx)));
+  }
+  return latlngs.map(p => L.latLng(p.lat + dy, p.lng + dx));
+}
+
+function commitLayerGeometryToFeature(layer, feature){
+  if (!layer || !feature?.geometry) return;
+
+  // círculo
+  if (feature.geometry.type === "Point" && feature.properties?.shape === "circle" && layer instanceof L.Circle){
+    const c = layer.getLatLng();
+    feature.geometry.coordinates = latLngToXY(c);
+    feature.properties.radius = layer.getRadius();
+    return;
+  }
+
+  // polígono
+  const latlngs = layer.getLatLngs();
+  const ring = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
+  let ring2 = ring;
+  if (ring2.length >= 2){
+    const a = ring2[0], b = ring2[ring2.length-1];
+    if (Math.abs(a.lat-b.lat)<1e-9 && Math.abs(a.lng-b.lng)<1e-9) ring2 = ring2.slice(0, -1);
+  }
+  feature.geometry.coordinates = ringToGeoJsonCoords(ring2);
+}
+
+
+function polygonCentroid(latlngs){
+  // latlngs: array of L.LatLng (ring without repeated last point)
+  // Simple centroid (average). Good enough for a move handle.
+  let sumLat = 0, sumLng = 0;
+  for (const p of latlngs){
+    sumLat += p.lat;
+    sumLng += p.lng;
+  }
+  const n = Math.max(1, latlngs.length);
+  return L.latLng(sumLat / n, sumLng / n);
+}
+
+function translateLatLngs(latlngs, dx, dy){
+  return latlngs.map(p => L.latLng(p.lat + dy, p.lng + dx));
+}
+
 
 /* ---------- DATASET ACTIVO POR MODO ---------- */
 function getActiveEditDatasetArr(){
@@ -1396,6 +1534,49 @@ function editorStartEditPolygon(layer){
     if (Math.abs(a.lat-b.lat)<1e-9 && Math.abs(a.lng-b.lng)<1e-9) ring2 = ring2.slice(0, -1);
   }
 
+  // ===== MOVE WHOLE POLYGON (drag center handle) =====
+  const center = polygonCentroid(ring2);
+
+  // Reutilizamos el icono rojo (editor.iconCenter) como "mover"
+  editor.moveMarker = L.marker(center, { draggable: true, icon: editor.iconCenter }).addTo(map);
+  editor.moveLastLL = editor.moveMarker.getLatLng();
+
+  editor.moveMarker.on("drag", () => {
+    const now = editor.moveMarker.getLatLng();
+    const dx = now.lng - editor.moveLastLL.lng;
+    const dy = now.lat - editor.moveLastLL.lat;
+
+    // mover visualmente el polígono
+    const cur = layer.getLatLngs();
+    const curRing = Array.isArray(cur[0]) ? cur[0] : cur;
+    const movedRing = translateLatLngs(curRing, dx, dy);
+    layer.setLatLngs([movedRing]);
+
+    // mover también los “vertex markers” para que sigan en su lugar
+    for (const vm of editor.vertexMarkers){
+      const p = vm.getLatLng();
+      vm.setLatLng(L.latLng(p.lat + dy, p.lng + dx));
+    }
+
+    editor.moveLastLL = now;
+  });
+
+  editor.moveMarker.on("dragend", () => {
+    // Al soltar: guardar en el feature (GeoJSON)
+    const cur = layer.getLatLngs();
+    const curRing = Array.isArray(cur[0]) ? cur[0] : cur;
+
+    editor.selectedFeature.geometry.coordinates = ringToGeoJsonCoords(curRing);
+
+    // Reposicionar el handle al centro “nuevo”
+    const newCenter = polygonCentroid(curRing);
+    editor.moveMarker.setLatLng(newCenter);
+    editor.moveLastLL = newCenter;
+
+    renderEditSelectedPanel();
+    notify("Figura movida completa (en memoria).", 1200);
+  });
+  
   editor.vertexMarkers = ring2.map((p) => {
     const mk = L.marker(p, { draggable:true, icon: editor.iconVertex }).addTo(map);
     mk.on("drag", () => {
@@ -1511,6 +1692,7 @@ function renderEditSelectedPanel(){
       <button id="btnCancelPaste" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;display:none;">Cancelar pegado</button>
       <button id="btnCopyGeo" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar GeoJSON</button>
       <button id="btnBack" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Volver</button>
+      <button id="btnMoveShape" style="padding:8px 12px;border-radius:8px;border:1px solid #111;background:#fff;cursor:pointer;">Mover</button>
     </div>
   `);
 
@@ -1545,6 +1727,26 @@ function renderEditSelectedPanel(){
       deleteSelectedFeature();
     };
   }
+
+  const btnMove = document.getElementById("btnMoveShape");
+  if (btnMove){
+    btnMove.onclick = () => {
+      // toggle simple
+      if (editor.moveArmed) {
+        editorStopMoveMode();
+        notify("Mover: cancelado.", 1200);
+        // reactivar edición normal
+        try {
+          if (editor.selectedIsCircle && editor.selectedLayer instanceof L.Circle) editorStartEditCircle(editor.selectedLayer);
+          else editorStartEditPolygon(editor.selectedLayer);
+        } catch {}
+        return;
+      }
+      notify("Mover: arrastra el punto rojo para mover TODA la figura.", 2200);
+      editorStartMoveMode();
+    };
+  }
+
 
   // copy/paste
   const btnCopyShape = document.getElementById("btnCopyShape");

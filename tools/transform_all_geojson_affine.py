@@ -234,7 +234,7 @@ def transform_geojson(data):
         data["coordinates"] = transform_coords(data["coordinates"])
     return data
 
-src_root = "data_backup_antes"
+src_root = "data"
 dst_root = "data_new"
 
 if os.path.exists(dst_root):
