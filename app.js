@@ -133,6 +133,42 @@ function distPixels(a,b){
   return Math.sqrt(dx*dx + dy*dy);
 }
 
+function centroidLatLng(latlngs){
+  // Centroide simple por promedio (suficiente para mover/escalar)
+  let sx = 0, sy = 0;
+  const n = latlngs.length || 1;
+  for (const p of latlngs){
+    sx += p.lng;
+    sy += p.lat;
+  }
+  return L.latLng(sy / n, sx / n);
+}
+
+function scaleLatLngAround(p, center, k){
+  // escala en "pixeles" CRS.Simple
+  const dx = p.lng - center.lng;
+  const dy = p.lat - center.lat;
+  return L.latLng(center.lat + dy * k, center.lng + dx * k);
+}
+
+function removeEditorGroupHandles(){
+  if (editor.centerMarker){
+    try { map.removeLayer(editor.centerMarker); } catch {}
+    editor.centerMarker = null;
+  }
+  if (editor.scaleMarker){
+    try { map.removeLayer(editor.scaleMarker); } catch {}
+    editor.scaleMarker = null;
+  }
+  editor._dragCenterLast = null;
+
+  editor._scaleStartDist = null;
+  editor._scaleCenterLL = null;
+  editor._scaleStartRing = null;
+  editor._scaleStartVerts = null;
+}
+
+
 function isCircleFeature(f){
   return (
     f &&
@@ -1057,6 +1093,16 @@ const editor = {
   moveLastLL: null,
 
 
+  // group move/scale for polygons
+  centerMarker: null,
+  scaleMarker: null,
+  _dragCenterLast: null,
+
+  _scaleStartDist: null,
+  _scaleCenterLL: null,
+  _scaleStartRing: null,   // array of LatLng (sin cerrar)
+  _scaleStartVerts: null,  // array of LatLng (pos inicial de markers)
+
   // copy/paste
   clipboardFeature: null,
   pasteArmed: false,
@@ -1197,6 +1243,7 @@ function editorStartMoveMode(){
 
 function editorStopEditing(){
   editorStopMoveMode();
+  removeEditorGroupHandles();
   editor.vertexMarkers.forEach(m => map.removeLayer(m));
   editor.vertexMarkers = [];
 
@@ -1590,10 +1637,120 @@ function editorStartEditPolygon(layer){
       renderEditSelectedPanel();
       notify("Puntos actualizados (en memoria).", 900);
     });
+
+    try { positionGroupHandles(layer); } catch {}
     return mk;
   });
 
+  positionGroupHandles();
   renderEditSelectedPanel();
+
+  function getCurrentRing(){
+    // ring actual desde markers (sin cerrar)
+    return editor.vertexMarkers.map(m => m.getLatLng());
+  }
+
+  function commitRingToFeature(){
+    const newRing = getCurrentRing();
+    layer.setLatLngs([newRing]);
+    editor.selectedFeature.geometry.coordinates = ringToGeoJsonCoords(newRing);
+    renderEditSelectedPanel();
+  }
+
+  function positionGroupHandles(){
+    const ringNow = getCurrentRing();
+    if (!ringNow.length) return;
+
+    const c = centroidLatLng(ringNow);
+
+    // si no existe el marker centro, créalo
+    if (!editor.centerMarker){
+      editor.centerMarker = L.marker(c, { draggable:true, icon: editor.iconCenter }).addTo(map);
+
+      editor.centerMarker.on("dragstart", () => {
+        editor._dragCenterLast = editor.centerMarker.getLatLng();
+      });
+
+      editor.centerMarker.on("drag", () => {
+        const now = editor.centerMarker.getLatLng();
+        const prev = editor._dragCenterLast || now;
+        const dx = now.lng - prev.lng;
+        const dy = now.lat - prev.lat;
+
+        // mover TODOS los vértices
+        editor.vertexMarkers.forEach(m => {
+          const p = m.getLatLng();
+          m.setLatLng(L.latLng(p.lat + dy, p.lng + dx));
+        });
+
+        // mover el polígono
+        const newRing = getCurrentRing();
+        layer.setLatLngs([newRing]);
+
+        // mover scale handle también (si existe)
+        if (editor.scaleMarker){
+          const sp = editor.scaleMarker.getLatLng();
+          editor.scaleMarker.setLatLng(L.latLng(sp.lat + dy, sp.lng + dx));
+        }
+
+        editor._dragCenterLast = now;
+      });
+
+      editor.centerMarker.on("dragend", () => {
+        commitRingToFeature();
+        notify("Figura movida (en memoria).", 1200);
+      });
+    } else {
+      editor.centerMarker.setLatLng(c);
+    }
+
+    // scale handle: colócalo a la derecha del centro (distancia basada en bounds)
+    const bounds = L.latLngBounds(ringNow);
+    const w = Math.max(40, (bounds.getEast() - bounds.getWest()) * 0.15);
+    const handlePos = L.latLng(c.lat, c.lng + w);
+
+    if (!editor.scaleMarker){
+      editor.scaleMarker = L.marker(handlePos, { draggable:true, icon: editor.iconHandle }).addTo(map);
+
+      editor.scaleMarker.on("dragstart", () => {
+        editor._scaleCenterLL = editor.centerMarker.getLatLng();
+        const h0 = editor.scaleMarker.getLatLng();
+        editor._scaleStartDist = Math.max(1e-6, distPixels(editor._scaleCenterLL, h0));
+
+        // congela ring inicial (para escalar estable)
+        editor._scaleStartRing = getCurrentRing().map(p => L.latLng(p.lat, p.lng));
+      });
+
+      editor.scaleMarker.on("drag", () => {
+        if (!editor._scaleStartRing || !editor._scaleCenterLL || !editor._scaleStartDist) return;
+
+        const c0 = editor._scaleCenterLL;
+        const h1 = editor.scaleMarker.getLatLng();
+        const d1 = Math.max(1e-6, distPixels(c0, h1));
+        const k = d1 / editor._scaleStartDist;
+
+        // aplica escala sobre ring inicial
+        const scaled = editor._scaleStartRing.map(p => scaleLatLngAround(p, c0, k));
+
+        // actualiza markers + layer
+        editor.vertexMarkers.forEach((m, i) => m.setLatLng(scaled[i]));
+        layer.setLatLngs([scaled]);
+      });
+
+      editor.scaleMarker.on("dragend", () => {
+        // commit a feature
+        commitRingToFeature();
+        // reposicionar handles limpio
+        positionGroupHandles();
+        notify("Figura escalada (en memoria).", 1200);
+      });
+    } else {
+      // si ya existe, reposiciónalo si no está en drag
+      editor.scaleMarker.setLatLng(handlePos);
+    }
+  }
+
+
 }
 
 function editorStartEditCircle(layer){
