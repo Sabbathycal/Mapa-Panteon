@@ -307,7 +307,7 @@ function pinnedStyle(c){
   };
 }
 
-// NUEVO: estilo selección múltiple (editor)
+// estilo selección múltiple (editor)
 function multiSelectedStyle(){
   return {
     color: "#ef4444",
@@ -826,7 +826,6 @@ function openNichoModal(zonaFeature){
       img.style.display = "block";
       layer.style.display = "block";
 
-      // (mantener como lo tenías: el click layer usa tamaño de la imagen)
       layer.style.width = img.naturalWidth + "px";
       layer.style.height = img.naturalHeight + "px";
       img.style.width = img.naturalWidth + "px";
@@ -1032,7 +1031,9 @@ function setupButtons(){
    - Copiar/Pegar
    - Cuadrícula lotes y manzanas (rotación)
    - Mover CUADRÍCULA COMPLETA con 1 marcador
-   - NUEVO: MULTI-SELECT + MOVE + SCALE por handles
+   - MULTI-SELECT + MOVE + SCALE por handles
+   - NUEVO: selección simple abre por defecto “Mover/Escalar” (sin vértices)
+           y se entra a vértices con botón “Editar puntos”.
    ========================================================= */
 const editor = {
   mode: "edit",          // "edit" | "create" | "grid"
@@ -1058,6 +1059,9 @@ const editor = {
   originalGeometry: null,
   originalRadius: null,
 
+  // sub-mode for single selection: "transform" (default) | "vertices"
+  editSubmode: "transform",
+
   // MULTI selection set
   selectedSet: new Set(), // stores feature references (object identity)
   selectedLayers: [],
@@ -1071,7 +1075,7 @@ const editor = {
   groupScaleMarker: null,
   groupTransformActive: false,
   groupCenterLL: null,
-  groupScaleStart: null, // { baseDist, featuresSnapshot }
+  groupScaleStart: null, // { baseDist, center, snapshot }
 
   // copy/paste
   clipboardFeature: null,
@@ -1167,25 +1171,26 @@ function clearMultiSelection(){
   clearGroupTransformUI();
 }
 
-function editorStopEditing(){
+function editorStopVertexEditing(){
   editor.vertexMarkers.forEach(m => map.removeLayer(m));
   editor.vertexMarkers = [];
 
-  if (editor.circleCenterMarker && editor.mode === "edit" && editor.selectedIsCircle) {
-    map.removeLayer(editor.circleCenterMarker);
-    map.removeLayer(editor.circleRadiusMarker);
+  if (editor.circleCenterMarker && editor.selectedIsCircle) {
+    try { map.removeLayer(editor.circleCenterMarker); } catch {}
+    try { map.removeLayer(editor.circleRadiusMarker); } catch {}
     editor.circleCenterMarker = null;
     editor.circleRadiusMarker = null;
   }
+}
+
+function editorStopEditing(){
+  editorStopVertexEditing();
 
   editor.selectedLayer = null;
   editor.selectedFeature = null;
   editor.selectedIsCircle = false;
   editor.originalGeometry = null;
   editor.originalRadius = null;
-
-  // al salir de edición de un item, NO borres multi selección automáticamente;
-  // se maneja por el usuario (Ctrl/Shift).
 }
 
 function ringToGeoJsonCoords(ringLatLng){
@@ -1243,7 +1248,6 @@ function deleteSelectedFeature(){
     return;
   }
 
-  // borrar todos
   let removed = 0;
   for (const feat of targets){
     let idx = arr.indexOf(feat);
@@ -1367,16 +1371,14 @@ function boundsToLatLngBounds(b, pad=0){
   return L.latLngBounds(sw, ne);
 }
 
-/* ---------- MULTI: apply transform UI ---------- */
+/* ---------- MULTI selection visuals ---------- */
 function applyMultiSelectionStyle(){
-  // llamado después de rerender: re-estiliza layers seleccionados
   for (const lyr of editor.selectedLayers){
     try { lyr.setStyle(multiSelectedStyle()); } catch {}
   }
 }
 
 function rebuildSelectedLayersFromLayerGroup(layerGroup){
-  // Re-armar selectedLayers buscando por identidad de feature (object ref)
   editor.selectedLayers = [];
   if (!layerGroup) return;
 
@@ -1388,6 +1390,7 @@ function rebuildSelectedLayersFromLayerGroup(layerGroup){
   });
 }
 
+/* ---------- MODE: handles (move/scale) ---------- */
 function showGroupTransformHandles(){
   clearGroupTransformUI();
 
@@ -1400,7 +1403,6 @@ function showGroupTransformHandles(){
   const c = boundsCenter(b);
   const centerLL = L.latLng(c.y, c.x);
 
-  // bounding box polygon
   const rect = [
     [b.minY, b.minX],
     [b.minY, b.maxX],
@@ -1418,26 +1420,22 @@ function showGroupTransformHandles(){
 
   editor.groupCenterMarker = L.marker(centerLL, { draggable:true, icon: editor.iconCenter }).addTo(map);
 
-  // scale handle: esquina sup-der (top-right)
   const scaleLL = L.latLng(b.minY, b.maxX);
   editor.groupScaleMarker = L.marker(scaleLL, { draggable:true, icon: editor.iconScale }).addTo(map);
 
   editor.groupTransformActive = true;
   editor.groupCenterLL = centerLL;
 
-  // drag move
   let lastMove = editor.groupCenterMarker.getLatLng();
   editor.groupCenterMarker.on("drag", () => {
     const now = editor.groupCenterMarker.getLatLng();
     const dx = now.lng - lastMove.lng;
     const dy = now.lat - lastMove.lat;
 
-    // mover box visual
     const latlngs = editor.groupBoxLayer.getLatLngs()[0] || editor.groupBoxLayer.getLatLngs();
     const moved = latlngs.map(p => L.latLng(p.lat + dy, p.lng + dx));
     editor.groupBoxLayer.setLatLngs([moved]);
 
-    // mover scale handle visual (misma delta)
     const sh = editor.groupScaleMarker.getLatLng();
     editor.groupScaleMarker.setLatLng(L.latLng(sh.lat + dy, sh.lng + dx));
 
@@ -1449,17 +1447,14 @@ function showGroupTransformHandles(){
     const dx = now.lng - editor.groupCenterLL.lng;
     const dy = now.lat - editor.groupCenterLL.lat;
 
-    // aplicar a features
     for (const f of feats){
       translateFeatureInPlace(f, dx, dy);
     }
 
     rerenderActiveEditor();
-    // tras rerender, seleccion vuelve a pintar + handles
     notify("✅ Movido (en memoria).", 1200);
   });
 
-  // scale start snapshot
   editor.groupScaleMarker.on("dragstart", () => {
     const cLL = editor.groupCenterMarker.getLatLng();
     const hLL = editor.groupScaleMarker.getLatLng();
@@ -1467,22 +1462,19 @@ function showGroupTransformHandles(){
     editor.groupScaleStart = {
       baseDist: Math.max(baseDist, 1e-6),
       center: cLL,
-      // snapshot: copia profunda para scale incremental
       snapshot: feats.map(f => deepCopy(f))
     };
   });
 
   editor.groupScaleMarker.on("drag", () => {
     if (!editor.groupScaleStart) return;
+    const cx = c.x, cy = c.y;
     const cLL = editor.groupScaleStart.center;
     const nowHandle = editor.groupScaleMarker.getLatLng();
     const d = distPixels(cLL, nowHandle);
     const s = d / editor.groupScaleStart.baseDist;
 
-    // Solo preview visual: reconstruir box con scale
-    // (Preview simple: escalar el bbox original alrededor del centro)
     const bb = b;
-    const cx = c.x, cy = c.y;
     const cornersXY = [
       [bb.minX, bb.minY],
       [bb.maxX, bb.minY],
@@ -1492,8 +1484,6 @@ function showGroupTransformHandles(){
      .map(([x,y]) => L.latLng(y,x));
 
     editor.groupBoxLayer.setLatLngs([cornersXY]);
-
-    // no tocamos features aún hasta dragend
   });
 
   editor.groupScaleMarker.on("dragend", () => {
@@ -1504,18 +1494,13 @@ function showGroupTransformHandles(){
     const d = distPixels(cLL, nowHandle);
     const s = d / editor.groupScaleStart.baseDist;
 
-    // restaurar desde snapshot y aplicar scale “limpio”
-    const arr = getActiveEditDatasetArr();
     const snapshot = editor.groupScaleStart.snapshot;
 
-    // Reemplazar geometrías de los seleccionados por snapshot y luego escalar:
-    // (porque durante preview no tocamos features, pero para evitar acumulaciones raras si alguien arrastra varias veces)
     for (let i=0; i<feats.length; i++){
       const f = feats[i];
       const snap = snapshot[i];
       f.geometry = deepCopy(snap.geometry);
       f.properties = deepCopy(snap.properties);
-      // aplicar escala respecto al centro
       scaleFeatureInPlace(f, cLL.lng, cLL.lat, s);
     }
 
@@ -1524,53 +1509,54 @@ function showGroupTransformHandles(){
     notify("✅ Escalado (en memoria).", 1400);
   });
 
-  // Panel breve de multi
-  setPanel("Selección múltiple", `
-    <p><b>${feats.length}</b> figura(s) seleccionada(s).</p>
-    <p style="margin-top:8px">
-      • <b>Arrastra el punto rojo</b> para mover todo.<br/>
-      • <b>Arrastra el cuadro verde</b> para escalar todo.
-    </p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-      <button id="btnMultiDelete" style="padding:8px 12px;border-radius:8px;border:1px solid #ef4444;background:#fff;color:#b91c1c;cursor:pointer;">Borrar seleccionados</button>
-      <button id="btnMultiClear" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Limpiar selección</button>
-      <button id="btnMultiCopyGeo" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar GeoJSON</button>
-    </div>
-    <p style="font-size:12px;color:#6b7280;margin-top:10px;">
-      Tip: usa <b>Ctrl/Cmd</b> o <b>Shift</b> + click para seleccionar varias.
-    </p>
-  `);
+  if (editor.selectedSet.size > 1){
+    setPanel("Selección múltiple", `
+      <p><b>${feats.length}</b> figura(s) seleccionada(s).</p>
+      <p style="margin-top:8px">
+        • <b>Arrastra el punto rojo</b> para mover todo.<br/>
+        • <b>Arrastra el cuadro verde</b> para escalar todo.
+      </p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        <button id="btnMultiDelete" style="padding:8px 12px;border-radius:8px;border:1px solid #ef4444;background:#fff;color:#b91c1c;cursor:pointer;">Borrar seleccionados</button>
+        <button id="btnMultiClear" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Limpiar selección</button>
+        <button id="btnMultiCopyGeo" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar GeoJSON</button>
+      </div>
+      <p style="font-size:12px;color:#6b7280;margin-top:10px;">
+        Tip: usa <b>Ctrl/Cmd</b> o <b>Shift</b> + click para seleccionar varias.
+      </p>
+    `);
 
-  const btnDel = document.getElementById("btnMultiDelete");
-  if (btnDel) btnDel.onclick = () => {
-    if (!confirm("¿Seguro que quieres borrar todas las figuras seleccionadas?")) return;
-    deleteSelectedFeature();
-  };
-  const btnClr = document.getElementById("btnMultiClear");
-  if (btnClr) btnClr.onclick = () => {
-    clearMultiSelection();
-    rerenderActiveEditor();
-    notify("Selección limpiada.", 1200);
-  };
+    const btnDel = document.getElementById("btnMultiDelete");
+    if (btnDel) btnDel.onclick = () => {
+      if (!confirm("¿Seguro que quieres borrar todas las figuras seleccionadas?")) return;
+      deleteSelectedFeature();
+    };
+    const btnClr = document.getElementById("btnMultiClear");
+    if (btnClr) btnClr.onclick = () => {
+      clearMultiSelection();
+      rerenderActiveEditor();
+      notify("Selección limpiada.", 1200);
+    };
 
-  const btnCopy = document.getElementById("btnMultiCopyGeo");
-  if (btnCopy) btnCopy.onclick = async () => {
-    const ds = getEditDataset();
-    const txt = JSON.stringify(ds?.data || { type:"FeatureCollection", features:[] }, null, 2);
-    try {
-      await navigator.clipboard.writeText(txt);
-      notify("GeoJSON copiado. Pégalo en el archivo correspondiente.", 2000);
-    } catch {
-      setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
-    }
-  };
+    const btnCopy = document.getElementById("btnMultiCopyGeo");
+    if (btnCopy) btnCopy.onclick = async () => {
+      const ds = getEditDataset();
+      const txt = JSON.stringify(ds?.data || { type:"FeatureCollection", features:[] }, null, 2);
+      try {
+        await navigator.clipboard.writeText(txt);
+        notify("GeoJSON copiado. Pégalo en el archivo correspondiente.", 2000);
+      } catch {
+        setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
+      }
+    };
+  }
 
   try { flyToBoundsSmooth(boundsToLatLngBounds(b, 0.10), 0.35); } catch {}
 }
 
-/* ---------- START EDIT POLYGON/CIRCLE ---------- */
-function editorStartEditPolygon(layer){
-  editorStopEditing();
+/* ---------- SINGLE: editar puntos (vértices) ---------- */
+function editorStartEditPolygonVertices(layer){
+  editorStopVertexEditing();
 
   editor.selectedLayer = layer;
   editor.selectedFeature = layer.feature;
@@ -1605,8 +1591,8 @@ function editorStartEditPolygon(layer){
   renderEditSelectedPanel();
 }
 
-function editorStartEditCircle(layer){
-  editorStopEditing();
+function editorStartEditCircleVertices(layer){
+  editorStopVertexEditing();
 
   editor.selectedLayer = layer;
   editor.selectedFeature = layer.feature;
@@ -1667,6 +1653,8 @@ function getEditDataset(){
 
 /* =========================================================
    PANEL: EDIT SELECTED (borrar + copy/paste)
+   - Si editSubmode=transform: muestra botón “Editar puntos”
+   - Si editSubmode=vertices: muestra botón “Mover/Escalar”
    ========================================================= */
 function renderEditSelectedPanel(){
   const ds = getEditDataset();
@@ -1675,11 +1663,14 @@ function renderEditSelectedPanel(){
   const showColor = isEditSecciones && editor.selectedFeature?.properties;
   const currentColor = showColor ? (editor.selectedFeature.properties.color || DEFAULT_SECCION_COLOR) : DEFAULT_SECCION_COLOR;
 
+  const modeLabel = (editor.editSubmode === "vertices") ? "Edición de puntos" : "Mover/Escalar";
+
   setPanel(`Editar ${kind}: ${safe(currentId)}`, `
+    <p><b>Modo:</b> ${safe(modeLabel)}</p>
     <p><b>Tipo:</b> ${editor.selectedIsCircle ? "Círculo" : "Polígono"}</p>
     <p style="font-size:12px;color:#666;">Destino: <b>${safe(ds?.dest || "")}</b></p>
     <p style="font-size:12px;color:#6b7280;margin-top:8px;">
-      Tip multi: <b>Ctrl/Cmd</b> o <b>Shift</b> + click para seleccionar varios. Luego aparecerán handles para mover/escalar.
+      Tip multi: <b>Ctrl/Cmd</b> o <b>Shift</b> + click para seleccionar varios. (Multi usa solo mover/escalar).
     </p>
 
     <hr/>
@@ -1695,6 +1686,10 @@ function renderEditSelectedPanel(){
     ` : ""}
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+      <button id="btnToggleMode" style="padding:8px 12px;border-radius:8px;border:1px solid #111;background:#fff;cursor:pointer;">
+        ${editor.editSubmode === "vertices" ? "Mover/Escalar" : "Editar puntos"}
+      </button>
+
       <button id="btnDeleteShape" style="padding:8px 12px;border-radius:8px;border:1px solid #ef4444;background:#fff;color:#b91c1c;cursor:pointer;">Borrar</button>
       <button id="btnCopyShape" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar</button>
       <button id="btnPasteShape" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Pegar</button>
@@ -1704,7 +1699,6 @@ function renderEditSelectedPanel(){
     </div>
   `);
 
-  // edit ID
   const $idInput = document.getElementById("editIdInput");
   if ($idInput){
     $idInput.oninput = () => {
@@ -1715,7 +1709,6 @@ function renderEditSelectedPanel(){
     };
   }
 
-  // color secciones
   if (showColor){
     const $col = document.getElementById("editSeccionColor");
     if ($col){
@@ -1727,22 +1720,44 @@ function renderEditSelectedPanel(){
     }
   }
 
-  // borrar (confirm SI se queda)
+  const btnToggle = document.getElementById("btnToggleMode");
+  if (btnToggle){
+    btnToggle.onclick = () => {
+      if (!editor.selectedLayer || !editor.selectedFeature) return;
+
+      // Multi selection => no vertices
+      if (editor.selectedSet.size > 1){
+        notify("Para edición de puntos, selecciona solo 1 figura (sin Ctrl/Shift).", 2200);
+        return;
+      }
+
+      if (editor.editSubmode === "vertices"){
+        // pasar a transform
+        editor.editSubmode = "transform";
+        editorStopVertexEditing();
+        rerenderActiveEditor();
+        return;
+      }
+
+      // pasar a vertices
+      editor.editSubmode = "vertices";
+      clearGroupTransformUI();
+
+      const layer = editor.selectedLayer;
+      const feat = editor.selectedFeature;
+      if (isCircleFeature(feat) && layer instanceof L.Circle) editorStartEditCircleVertices(layer);
+      else editorStartEditPolygonVertices(layer);
+    };
+  }
+
   const btnDelete = document.getElementById("btnDeleteShape");
   if (btnDelete){
     btnDelete.onclick = () => {
       if (!confirm("¿Seguro que quieres borrar esta figura?")) return;
-      // si hay multi selección, borramos multi
-      if (editor.selectedSet.size > 0){
-        if (!confirm("También tienes selección múltiple. ¿Borrar TODA la selección?")) return;
-        deleteSelectedFeature();
-        return;
-      }
       deleteSelectedFeature();
     };
   }
 
-  // copy/paste
   const btnCopyShape = document.getElementById("btnCopyShape");
   const btnPasteShape = document.getElementById("btnPasteShape");
   const btnCancelPaste = document.getElementById("btnCancelPaste");
@@ -1777,7 +1792,6 @@ function renderEditSelectedPanel(){
     };
   }
 
-  // copy geojson
   document.getElementById("btnCopyGeo").onclick = async () => {
     const ds2 = getEditDataset();
     const txt = JSON.stringify(ds2?.data || { type:"FeatureCollection", features:[] }, null, 2);
@@ -1789,10 +1803,10 @@ function renderEditSelectedPanel(){
     }
   };
 
-  // back
   document.getElementById("btnBack").onclick = () => {
     editorStopEditing();
-    clearGroupTransformUI();
+    clearMultiSelection();
+    editor.pasteArmed = false;
     if (isEditSecciones) renderEditSeccionesPanel();
     else if (isEditManzanas) renderEditManzanasPanel();
     else if (isEditLotes) renderEditLotesPanel();
@@ -1801,7 +1815,7 @@ function renderEditSelectedPanel(){
 }
 
 /* =========================================================
-   GRID GROUP: (tu función existente para mover la última cuadrícula)
+   GRID GROUP: mover la última cuadrícula
    ========================================================= */
 function clearLastGridOverlay(){
   if (editor.lastGrid?.overlay){
@@ -1890,7 +1904,7 @@ function activateLastGridIfAny(){
 }
 
 /* =========================================================
-   EDIT PANELS (sin cambiar tu lógica: solo dejando como estaban)
+   EDIT PANELS
    ========================================================= */
 function renderEditSeccionesPanel(){
   editor.mode = "edit";
@@ -1907,8 +1921,9 @@ function renderEditSeccionesPanel(){
   setPanel("Edición: SECCIONES", `
     <p>Editor de <b>SECCIONES</b>.</p>
     <p style="font-size:12px;color:#6b7280;">
-      Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click para seleccionar varias.
-      Aparecerán handles para mover/escalar.
+      Click normal: selecciona y permite <b>mover/escalar</b>.<br/>
+      Botón “Editar puntos” para modificar vértices.<br/>
+      Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click (mover/escalar en grupo).
     </p>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -1931,13 +1946,16 @@ function renderEditSeccionesPanel(){
   document.getElementById("btnEdit").onclick = () => {
     editor.mode = "edit";
     editorClearPoly(); editorClearCircle();
-    $editBody.innerHTML = `<p><b>Editar:</b> clic en una sección para editar.</p>`;
+    editorStopEditing();
+    clearMultiSelection();
+    $editBody.innerHTML = `<p><b>Editar:</b> clic en una sección para seleccionar.</p>`;
     rerenderSecciones_Edit();
   };
 
   document.getElementById("btnCreate").onclick = () => {
     editor.mode = "create";
     editorStopEditing();
+    clearMultiSelection();
     clearGroupTransformUI();
     editorClearPoly(); editorClearCircle();
 
@@ -2024,7 +2042,8 @@ function renderEditManzanasPanel(){
   setPanel("Edición: MANZANAS", `
     <p>Editor de <b>MANZANAS</b> (IDs: A, B, C...).</p>
     <p style="font-size:12px;color:#6b7280;">
-      Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click para seleccionar varias.
+      Click normal: selecciona y permite <b>mover/escalar</b>. “Editar puntos” para vértices.<br/>
+      Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click.
     </p>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -2051,13 +2070,16 @@ function renderEditManzanasPanel(){
   document.getElementById("btnEdit").onclick = () => {
     editor.mode = "edit";
     editorClearPoly(); editorClearCircle();
-    $editBody.innerHTML = `<p><b>Editar:</b> clic en una manzana para editar.</p>`;
+    editorStopEditing();
+    clearMultiSelection();
+    $editBody.innerHTML = `<p><b>Editar:</b> clic en una manzana para seleccionar.</p>`;
     rerenderManzanas_Edit();
   };
 
   document.getElementById("btnCreate").onclick = () => {
     editor.mode = "create";
     editorStopEditing();
+    clearMultiSelection();
     clearGroupTransformUI();
     editorClearPoly(); editorClearCircle();
 
@@ -2122,12 +2144,12 @@ function renderEditManzanasPanel(){
     rerenderManzanas_Edit();
   };
 
-  // GRID MANZANAS (A,B,C...) con ROTACIÓN
   document.getElementById("btnGrid").onclick = () => {
     editor.mode = "grid";
     editor.gridArmed = true;
     editor.gridConfig = { target: "manzanas" };
     editorStopEditing();
+    clearMultiSelection();
     clearGroupTransformUI();
     editorClearPoly(); editorClearCircle();
 
@@ -2234,7 +2256,8 @@ function renderEditNichosPanel(){
   setPanel("Edición: NICHOS", `
     <p>Editor de <b>Zonas de Nichos</b>.</p>
     <p style="font-size:12px;color:#6b7280;">
-      Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click para seleccionar varias.
+      Click normal: selecciona y permite <b>mover/escalar</b>. “Editar puntos” para vértices.<br/>
+      Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click.
     </p>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -2257,13 +2280,16 @@ function renderEditNichosPanel(){
   document.getElementById("btnEdit").onclick = () => {
     editor.mode = "edit";
     editorClearPoly(); editorClearCircle();
-    $editBody.innerHTML = `<p><b>Editar:</b> clic en una zona de nichos para editar.</p>`;
+    editorStopEditing();
+    clearMultiSelection();
+    $editBody.innerHTML = `<p><b>Editar:</b> clic en una zona de nichos para seleccionar.</p>`;
     rerenderNichos_Edit();
   };
 
   document.getElementById("btnCreate").onclick = () => {
     editor.mode = "create";
     editorStopEditing();
+    clearMultiSelection();
     clearGroupTransformUI();
     editorClearPoly(); editorClearCircle();
 
@@ -2349,7 +2375,8 @@ function renderEditLotesPanel(){
   setPanel("Edición: LOTES", `
     <p>Primero elige SECCIÓN y MANZANA arriba.</p>
     <p style="font-size:12px;color:#6b7280;">
-      Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click para seleccionar varios lotes.
+      Click normal: selecciona y permite <b>mover/escalar</b>. “Editar puntos” para vértices.<br/>
+      Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click (mover/escalar en grupo).
     </p>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -2376,7 +2403,9 @@ function renderEditLotesPanel(){
   document.getElementById("btnEdit").onclick = () => {
     editor.mode = "edit";
     editorClearPoly(); editorClearCircle();
-    $editBody.innerHTML = `<p><b>Editar:</b> clic en un lote para editar.</p>`;
+    editorStopEditing();
+    clearMultiSelection();
+    $editBody.innerHTML = `<p><b>Editar:</b> clic en un lote para seleccionar.</p>`;
     rerenderLotes_Edit();
   };
 
@@ -2384,6 +2413,7 @@ function renderEditLotesPanel(){
     if (!currentManzanaFeature) return notify("Primero elige una MANZANA.", 2000);
     editor.mode = "create";
     editorStopEditing();
+    clearMultiSelection();
     clearGroupTransformUI();
     editorClearPoly(); editorClearCircle();
 
@@ -2445,13 +2475,13 @@ function renderEditLotesPanel(){
     rerenderLotes_Edit();
   };
 
-  // GRID LOTES (001,002...) con ROTACIÓN
   document.getElementById("btnGrid").onclick = () => {
     if (!currentManzanaFeature) return notify("Primero elige una MANZANA.", 2000);
     editor.mode = "grid";
     editor.gridArmed = true;
     editor.gridConfig = { target: "lotes" };
     editorStopEditing();
+    clearMultiSelection();
     clearGroupTransformUI();
     editorClearPoly(); editorClearCircle();
 
@@ -2557,48 +2587,58 @@ function renderEditLotesPanel(){
 }
 
 /* =========================================================
-   EDIT RENDERERS
-   - NUEVO: soporte multi-select (Ctrl/Cmd/Shift)
+   EDIT RENDERERS + CLICK HANDLER
    ========================================================= */
+function isMultiKeyEvent(ev){
+  const oe = ev?.originalEvent;
+  return !!(oe?.ctrlKey || oe?.metaKey || oe?.shiftKey);
+}
+
 function handleEditorFeatureClick(feature, layer, ev){
   if (editor.mode !== "edit") return;
 
-  // Ctrl/Cmd o Shift => multi toggle/add
-  const isMultiKey = !!(ev?.originalEvent?.ctrlKey || ev?.originalEvent?.metaKey || ev?.originalEvent?.shiftKey);
+  const multiKey = isMultiKeyEvent(ev);
 
-  // Si no hay tecla multi: selección simple (limpia multi, edita item)
-  if (!isMultiKey){
-    clearMultiSelection();
-    clearGroupTransformUI();
-    // edita normal
-    if (isCircleFeature(feature) && layer instanceof L.Circle) editorStartEditCircle(layer);
-    else editorStartEditPolygon(layer);
+  // Multi toggle selection
+  if (multiKey){
+    editorStopEditing();            // salir de vértices si estabas ahí
+    editor.editSubmode = "transform";
+    editor.pasteArmed = false;
 
-    // marcar como seleccion simple también
-    editor.selectedSet.add(feature);
-    editor.selectedLayers = [layer];
-    try { layer.setStyle(multiSelectedStyle()); } catch {}
-    showGroupTransformHandles(); // permite mover/escalar incluso 1
+    if (editor.selectedSet.has(feature)) editor.selectedSet.delete(feature);
+    else editor.selectedSet.add(feature);
+
+    // si queda 0, limpia handles
+    if (editor.selectedSet.size === 0){
+      clearGroupTransformUI();
+      rerenderActiveEditor();
+      notify("Selección vacía.", 900);
+      return;
+    }
+
+    rerenderActiveEditor(); // esto re-arma selectedLayers y handles
     return;
   }
 
-  // Multi: toggle selección
-  // Si estabas editando vértices, los quitamos (porque multi transforma por grupo)
+  // Single selection: por default TRANSFORM (mover/escalar) sin vértices
   editorStopEditing();
+  clearMultiSelection();
+  editor.editSubmode = "transform";
+  editor.pasteArmed = false;
 
-  if (editor.selectedSet.has(feature)){
-    editor.selectedSet.delete(feature);
-  } else {
-    editor.selectedSet.add(feature);
-  }
+  editor.selectedFeature = feature;
+  editor.selectedLayer = layer;
+  editor.selectedIsCircle = isCircleFeature(feature) && (layer instanceof L.Circle);
 
-  // Reconstruir selectedLayers según el layergroup correspondiente (se hará por rerender)
-  rerenderActiveEditor();
+  editor.selectedSet.add(feature);
+  editor.selectedLayers = [layer];
+
+  rerenderActiveEditor(); // re-pinta estilo y crea handles + panel
 }
 
 function rerenderSecciones_Edit(){
   if (seccionesLayer){ seccionesLayer.remove(); seccionesLayer = null; }
-  editorStopEditing();
+  editorStopVertexEditing();
   clearGroupTransformUI();
 
   seccionesLayer = L.geoJSON(seccionesTopRaw || { type:"FeatureCollection", features:[] }, {
@@ -2614,15 +2654,19 @@ function rerenderSecciones_Edit(){
     }
   }).addTo(map);
 
-  // rearmar selección y UI
   rebuildSelectedLayersFromLayerGroup(seccionesLayer);
   applyMultiSelectionStyle();
-  if (editor.selectedSet.size > 0) showGroupTransformHandles();
+  if (editor.selectedSet.size > 0){
+    showGroupTransformHandles();
+    if (editor.selectedSet.size === 1 && editor.editSubmode === "transform"){
+      renderEditSelectedPanel();
+    }
+  }
 }
 
 function rerenderManzanas_Edit(){
   if (manzanasLayer){ manzanasLayer.remove(); manzanasLayer = null; }
-  editorStopEditing();
+  editorStopVertexEditing();
   clearGroupTransformUI();
 
   manzanasLayer = L.geoJSON(manzanasRaw || { type:"FeatureCollection", features:[] }, {
@@ -2640,12 +2684,17 @@ function rerenderManzanas_Edit(){
 
   rebuildSelectedLayersFromLayerGroup(manzanasLayer);
   applyMultiSelectionStyle();
-  if (editor.selectedSet.size > 0) showGroupTransformHandles();
+  if (editor.selectedSet.size > 0){
+    showGroupTransformHandles();
+    if (editor.selectedSet.size === 1 && editor.editSubmode === "transform"){
+      renderEditSelectedPanel();
+    }
+  }
 }
 
 function rerenderLotes_Edit(){
   if (lotesLayer){ lotesLayer.remove(); lotesLayer = null; }
-  editorStopEditing();
+  editorStopVertexEditing();
   clearGroupTransformUI();
   if (!currentLotesRaw) return;
 
@@ -2664,12 +2713,17 @@ function rerenderLotes_Edit(){
 
   rebuildSelectedLayersFromLayerGroup(lotesLayer);
   applyMultiSelectionStyle();
-  if (editor.selectedSet.size > 0) showGroupTransformHandles();
+  if (editor.selectedSet.size > 0){
+    showGroupTransformHandles();
+    if (editor.selectedSet.size === 1 && editor.editSubmode === "transform"){
+      renderEditSelectedPanel();
+    }
+  }
 }
 
 function rerenderNichos_Edit(){
   if (nichosLayerEdit){ nichosLayerEdit.remove(); nichosLayerEdit = null; }
-  editorStopEditing();
+  editorStopVertexEditing();
   clearGroupTransformUI();
 
   nichosLayerEdit = L.geoJSON(nichosZonasRaw || { type:"FeatureCollection", features:[] }, {
@@ -2687,7 +2741,12 @@ function rerenderNichos_Edit(){
 
   rebuildSelectedLayersFromLayerGroup(nichosLayerEdit);
   applyMultiSelectionStyle();
-  if (editor.selectedSet.size > 0) showGroupTransformHandles();
+  if (editor.selectedSet.size > 0){
+    showGroupTransformHandles();
+    if (editor.selectedSet.size === 1 && editor.editSubmode === "transform"){
+      renderEditSelectedPanel();
+    }
+  }
 }
 
 /* =========================================================
@@ -2862,7 +2921,7 @@ async function main(){
       const h = img.naturalHeight;
       const bounds = [[0,0],[h,w]];
 
-      // OJO: este scale se usa solo en PUBLICO (por si DATA_COORD_* no coincide)
+      // scale solo en PUBLICO (por si DATA_COORD_* no coincide)
       COORD_SCALE_X = w / DATA_COORD_WIDTH;
       COORD_SCALE_Y = h / DATA_COORD_HEIGHT;
 
