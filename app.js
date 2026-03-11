@@ -4,9 +4,9 @@
 const BASE_IMAGE_PUBLIC_URL = "./assets/map/base-public.webp"; // ligero (público)
 const BASE_IMAGE_EDIT_URL   = "./assets/map/base.png";         // alta res (edición)
 
-// Tus GeoJSON están guardados en coordenadas del mapa base.png
-const DATA_COORD_WIDTH  = 11045;
-const DATA_COORD_HEIGHT = 9079;
+// Tus GeoJSON están guardados en coordenadas del mapa base.png (referencia histórica)
+const DATA_COORD_WIDTH  = 11100;
+const DATA_COORD_HEIGHT = 9250;
 
 // Archivos de datos
 const SECCIONES_TOP_URL = "./data/secciones-top.geojson"; // editor ?edit=secciones + PUBLICO secciones
@@ -38,7 +38,7 @@ const IS_MOBILE = window.matchMedia && window.matchMedia("(pointer: coarse)").ma
 
 /* =========================================================
    UX: NOTIFICACIONES (sin pop-ups)
-   - En index.html ya definimos window.toast(msg)
+   - En index.html idealmente defines window.toast(msg)
    - Aquí usamos notify() en lugar de alert()
    - confirm() se mantiene para borrados/acciones críticas
    ========================================================= */
@@ -85,7 +85,7 @@ let currentLotesRaw = null;
 
 let showAllLots = false;
 
-// escala data->imagen cargada
+// escala data->imagen cargada (para público)
 let COORD_SCALE_X = 1;
 let COORD_SCALE_Y = 1;
 
@@ -209,7 +209,7 @@ function makeRotatedRect(x0, y0, localX, localY, w, h, rotDeg){
 }
 
 /* =========================================================
-   COORD SCALE
+   COORD SCALE (solo para público: data->imagen cargada)
    ========================================================= */
 function scaleCoordsRecursive(obj, sx, sy){
   if (Array.isArray(obj)){
@@ -304,6 +304,18 @@ function pinnedStyle(c){
     opacity: 1,
     fillColor: c || "#111827",
     fillOpacity: 0.40
+  };
+}
+
+// NUEVO: estilo selección múltiple (editor)
+function multiSelectedStyle(){
+  return {
+    color: "#ef4444",
+    weight: 3,
+    opacity: 1,
+    fillColor: "#ef4444",
+    fillOpacity: 0.10,
+    dashArray: "6 4"
   };
 }
 
@@ -695,7 +707,7 @@ function showLoteInfo(feature){
 }
 
 /* =========================================================
-   NICHOS: selección dentro de la imagen
+   NICHOS: selección dentro de la imagen (modal)
    ========================================================= */
 const NICHOS_ROWS = ["A","B","C","D","E","F"]; // 6 filas
 const NICHOS_COLS = 79;                        // 79 nichos por fila
@@ -812,9 +824,9 @@ function openNichoModal(zonaFeature){
     img.src = src;
     img.onload = () => {
       img.style.display = "block";
-
-      // capa de click = tamaño real de la imagen
       layer.style.display = "block";
+
+      // (mantener como lo tenías: el click layer usa tamaño de la imagen)
       layer.style.width = img.naturalWidth + "px";
       layer.style.height = img.naturalHeight + "px";
       img.style.width = img.naturalWidth + "px";
@@ -1019,7 +1031,8 @@ function setupButtons(){
    - Borrar
    - Copiar/Pegar
    - Cuadrícula lotes y manzanas (rotación)
-   - Mover y ESCALAR figura completa (NUEVO)
+   - Mover CUADRÍCULA COMPLETA con 1 marcador
+   - NUEVO: MULTI-SELECT + MOVE + SCALE por handles
    ========================================================= */
 const editor = {
   mode: "edit",          // "edit" | "create" | "grid"
@@ -1038,18 +1051,27 @@ const editor = {
   circlePreview: null,
   circleRadius: null,
 
-  // editing existing
+  // selection (single + multi)
   selectedLayer: null,
   selectedFeature: null,
   selectedIsCircle: false,
   originalGeometry: null,
   originalRadius: null,
+
+  // MULTI selection set
+  selectedSet: new Set(), // stores feature references (object identity)
+  selectedLayers: [],
+
+  // vertex edit markers
   vertexMarkers: [],
 
-  // NEW: move/scale handles (para mover y escalar la figura completa)
-  moveMarker: null,
-  scaleMarker: null,
-  scaleBaseDist: null, // distancia centro->handle al iniciar drag (para factor)
+  // group transform handles
+  groupBoxLayer: null,
+  groupCenterMarker: null,
+  groupScaleMarker: null,
+  groupTransformActive: false,
+  groupCenterLL: null,
+  groupScaleStart: null, // { baseDist, featuresSnapshot }
 
   // copy/paste
   clipboardFeature: null,
@@ -1060,7 +1082,7 @@ const editor = {
   gridConfig: null,
 
   // last created grid group (for moving whole grid)
-  lastGrid: null,
+  lastGrid: null, // { datasetArr, features[], overlay, centerMarker, bounds, centerLL }
 
   iconVertex: L.divIcon({
     className: "",
@@ -1080,10 +1102,9 @@ const editor = {
     iconSize: [18,18],
     iconAnchor: [9,9]
   }),
-  // NEW: escala (azul)
   iconScale: L.divIcon({
     className: "",
-    html: `<div style="width:14px;height:14px;border-radius:50%;background:#3b82f6;border:2px solid #fff;box-shadow:0 0 0 1px #111;"></div>`,
+    html: `<div style="width:14px;height:14px;border-radius:4px;background:#22c55e;border:2px solid #fff;box-shadow:0 0 0 1px #111;"></div>`,
     iconSize: [18,18],
     iconAnchor: [9,9]
   })
@@ -1128,6 +1149,24 @@ function editorClearCircle(){
   editor.circlePreview = null;
 }
 
+function clearGroupTransformUI(){
+  if (editor.groupBoxLayer) { try { map.removeLayer(editor.groupBoxLayer); } catch {} }
+  if (editor.groupCenterMarker) { try { map.removeLayer(editor.groupCenterMarker); } catch {} }
+  if (editor.groupScaleMarker) { try { map.removeLayer(editor.groupScaleMarker); } catch {} }
+  editor.groupBoxLayer = null;
+  editor.groupCenterMarker = null;
+  editor.groupScaleMarker = null;
+  editor.groupTransformActive = false;
+  editor.groupCenterLL = null;
+  editor.groupScaleStart = null;
+}
+
+function clearMultiSelection(){
+  editor.selectedSet.clear();
+  editor.selectedLayers = [];
+  clearGroupTransformUI();
+}
+
 function editorStopEditing(){
   editor.vertexMarkers.forEach(m => map.removeLayer(m));
   editor.vertexMarkers = [];
@@ -1139,16 +1178,14 @@ function editorStopEditing(){
     editor.circleRadiusMarker = null;
   }
 
-  // NEW: remove move/scale handles
-  if (editor.moveMarker){ try { map.removeLayer(editor.moveMarker); } catch {} editor.moveMarker = null; }
-  if (editor.scaleMarker){ try { map.removeLayer(editor.scaleMarker); } catch {} editor.scaleMarker = null; }
-  editor.scaleBaseDist = null;
-
   editor.selectedLayer = null;
   editor.selectedFeature = null;
   editor.selectedIsCircle = false;
   editor.originalGeometry = null;
   editor.originalRadius = null;
+
+  // al salir de edición de un item, NO borres multi selección automáticamente;
+  // se maneja por el usuario (Ctrl/Shift).
 }
 
 function ringToGeoJsonCoords(ringLatLng){
@@ -1173,7 +1210,64 @@ function rerenderActiveEditor(){
   if (isEditNichos)    return rerenderNichos_Edit();
 }
 
-/* ---------- TRANSLATE FEATURE (mover grids y figura completa) ---------- */
+/* ---------- FEATURE ID helpers ---------- */
+function getFeatureId(f){
+  return (f?.properties?.id || f?.properties?.lote || f?.properties?.manzana || f?.properties?.seccion || "").toString().trim();
+}
+function setFeatureId(f, newId){
+  if (!f?.properties) f.properties = {};
+  f.properties.id = newId;
+  if (f.properties.lote !== undefined) f.properties.lote = newId;
+}
+function ensureUniqueId(feature, arr){
+  const base = getFeatureId(feature) || "item";
+  const exists = (id) => arr.some(x => getFeatureId(x) === id);
+
+  if (!exists(base)) { setFeatureId(feature, base); return; }
+  let i = 1;
+  while (exists(`${base}-copy-${i}`)) i++;
+  setFeatureId(feature, `${base}-copy-${i}`);
+}
+
+/* ---------- BORRAR FEATURE (single o multi) ---------- */
+function deleteSelectedFeature(){
+  const arr = getActiveEditDatasetArr();
+  if (!arr) return;
+
+  const targets = (editor.selectedSet.size > 0)
+    ? Array.from(editor.selectedSet)
+    : (editor.selectedFeature ? [editor.selectedFeature] : []);
+
+  if (!targets.length){
+    notify("No hay figuras seleccionadas para borrar.", 1800);
+    return;
+  }
+
+  // borrar todos
+  let removed = 0;
+  for (const feat of targets){
+    let idx = arr.indexOf(feat);
+    if (idx < 0){
+      const id = getFeatureId(feat);
+      if (id) idx = arr.findIndex(f => getFeatureId(f) === id);
+    }
+    if (idx >= 0){
+      arr.splice(idx, 1);
+      removed++;
+    }
+  }
+
+  editorStopEditing();
+  clearMultiSelection();
+  rerenderActiveEditor();
+  notify(`✅ Borradas ${removed} figura(s) (en memoria).`, 2200);
+}
+
+/* ---------- TRANSFORM HELPERS: translate + scale ---------- */
+function transformPointAround(x, y, cx, cy, s){
+  return [cx + (x - cx) * s, cy + (y - cy) * s];
+}
+
 function translateFeatureInPlace(feature, dx, dy){
   if (!feature?.geometry) return;
 
@@ -1190,15 +1284,13 @@ function translateFeatureInPlace(feature, dx, dy){
   }
 }
 
-/* ---------- SCALE FEATURE (NUEVO) ---------- */
 function scaleFeatureInPlace(feature, cx, cy, scale){
   if (!feature?.geometry) return;
-  if (!(scale > 0)) return;
 
   if (feature.geometry.type === "Point"){
     const [x,y] = feature.geometry.coordinates;
-    feature.geometry.coordinates = [cx + (x - cx) * scale, cy + (y - cy) * scale];
-    // si es círculo, escalar radio también
+    const [nx, ny] = transformPointAround(x,y,cx,cy,scale);
+    feature.geometry.coordinates = [nx, ny];
     if (isCircleFeature(feature) && typeof feature.properties.radius === "number"){
       feature.properties.radius = feature.properties.radius * scale;
     }
@@ -1207,12 +1299,12 @@ function scaleFeatureInPlace(feature, cx, cy, scale){
 
   if (feature.geometry.type === "Polygon"){
     const coords = feature.geometry.coordinates || [];
-    feature.geometry.coordinates = coords.map(ring => ring.map(([x,y]) => [cx + (x - cx) * scale, cy + (y - cy) * scale]));
+    feature.geometry.coordinates = coords.map(ring => ring.map(([x,y]) => transformPointAround(x,y,cx,cy,scale)));
     return;
   }
 }
 
-/* ---------- BOUNDS for feature list (overlay grid) ---------- */
+/* ---------- BOUNDS from features ---------- */
 function expandBoundsWithXY(b, x, y){
   if (!b) return { minX:x, minY:y, maxX:x, maxY:y };
   if (x < b.minX) b.minX = x;
@@ -1261,6 +1353,9 @@ function boundsFromFeatures(features){
   }
   return b;
 }
+function boundsCenter(b){
+  return { x: (b.minX + b.maxX)/2, y: (b.minY + b.maxY)/2 };
+}
 function boundsToLatLngBounds(b, pad=0){
   if (!b) return null;
   const w = (b.maxX - b.minX);
@@ -1271,11 +1366,443 @@ function boundsToLatLngBounds(b, pad=0){
   const ne = L.latLng((b.maxY + pY), (b.maxX + pX));
   return L.latLngBounds(sw, ne);
 }
-function boundsCenter(b){
-  return { x: (b.minX + b.maxX)/2, y: (b.minY + b.maxY)/2 };
+
+/* ---------- MULTI: apply transform UI ---------- */
+function applyMultiSelectionStyle(){
+  // llamado después de rerender: re-estiliza layers seleccionados
+  for (const lyr of editor.selectedLayers){
+    try { lyr.setStyle(multiSelectedStyle()); } catch {}
+  }
 }
 
-/* ---------- GRID GROUP: seleccionar y mover todo el grid ---------- */
+function rebuildSelectedLayersFromLayerGroup(layerGroup){
+  // Re-armar selectedLayers buscando por identidad de feature (object ref)
+  editor.selectedLayers = [];
+  if (!layerGroup) return;
+
+  layerGroup.eachLayer(lyr => {
+    const f = lyr.feature;
+    if (f && editor.selectedSet.has(f)){
+      editor.selectedLayers.push(lyr);
+    }
+  });
+}
+
+function showGroupTransformHandles(){
+  clearGroupTransformUI();
+
+  const feats = Array.from(editor.selectedSet);
+  if (!feats.length) return;
+
+  const b = boundsFromFeatures(feats);
+  if (!b) return;
+
+  const c = boundsCenter(b);
+  const centerLL = L.latLng(c.y, c.x);
+
+  // bounding box polygon
+  const rect = [
+    [b.minY, b.minX],
+    [b.minY, b.maxX],
+    [b.maxY, b.maxX],
+    [b.maxY, b.minX]
+  ].map(([y,x]) => L.latLng(y,x));
+
+  editor.groupBoxLayer = L.polygon(rect, {
+    weight: 2,
+    color: "#ef4444",
+    fillColor: "#ef4444",
+    fillOpacity: 0.05,
+    dashArray: "6 6"
+  }).addTo(map);
+
+  editor.groupCenterMarker = L.marker(centerLL, { draggable:true, icon: editor.iconCenter }).addTo(map);
+
+  // scale handle: esquina sup-der (top-right)
+  const scaleLL = L.latLng(b.minY, b.maxX);
+  editor.groupScaleMarker = L.marker(scaleLL, { draggable:true, icon: editor.iconScale }).addTo(map);
+
+  editor.groupTransformActive = true;
+  editor.groupCenterLL = centerLL;
+
+  // drag move
+  let lastMove = editor.groupCenterMarker.getLatLng();
+  editor.groupCenterMarker.on("drag", () => {
+    const now = editor.groupCenterMarker.getLatLng();
+    const dx = now.lng - lastMove.lng;
+    const dy = now.lat - lastMove.lat;
+
+    // mover box visual
+    const latlngs = editor.groupBoxLayer.getLatLngs()[0] || editor.groupBoxLayer.getLatLngs();
+    const moved = latlngs.map(p => L.latLng(p.lat + dy, p.lng + dx));
+    editor.groupBoxLayer.setLatLngs([moved]);
+
+    // mover scale handle visual (misma delta)
+    const sh = editor.groupScaleMarker.getLatLng();
+    editor.groupScaleMarker.setLatLng(L.latLng(sh.lat + dy, sh.lng + dx));
+
+    lastMove = now;
+  });
+
+  editor.groupCenterMarker.on("dragend", () => {
+    const now = editor.groupCenterMarker.getLatLng();
+    const dx = now.lng - editor.groupCenterLL.lng;
+    const dy = now.lat - editor.groupCenterLL.lat;
+
+    // aplicar a features
+    for (const f of feats){
+      translateFeatureInPlace(f, dx, dy);
+    }
+
+    rerenderActiveEditor();
+    // tras rerender, seleccion vuelve a pintar + handles
+    notify("✅ Movido (en memoria).", 1200);
+  });
+
+  // scale start snapshot
+  editor.groupScaleMarker.on("dragstart", () => {
+    const cLL = editor.groupCenterMarker.getLatLng();
+    const hLL = editor.groupScaleMarker.getLatLng();
+    const baseDist = distPixels(cLL, hLL);
+    editor.groupScaleStart = {
+      baseDist: Math.max(baseDist, 1e-6),
+      center: cLL,
+      // snapshot: copia profunda para scale incremental
+      snapshot: feats.map(f => deepCopy(f))
+    };
+  });
+
+  editor.groupScaleMarker.on("drag", () => {
+    if (!editor.groupScaleStart) return;
+    const cLL = editor.groupScaleStart.center;
+    const nowHandle = editor.groupScaleMarker.getLatLng();
+    const d = distPixels(cLL, nowHandle);
+    const s = d / editor.groupScaleStart.baseDist;
+
+    // Solo preview visual: reconstruir box con scale
+    // (Preview simple: escalar el bbox original alrededor del centro)
+    const bb = b;
+    const cx = c.x, cy = c.y;
+    const cornersXY = [
+      [bb.minX, bb.minY],
+      [bb.maxX, bb.minY],
+      [bb.maxX, bb.maxY],
+      [bb.minX, bb.maxY]
+    ].map(([x,y]) => transformPointAround(x,y,cx,cy,s))
+     .map(([x,y]) => L.latLng(y,x));
+
+    editor.groupBoxLayer.setLatLngs([cornersXY]);
+
+    // no tocamos features aún hasta dragend
+  });
+
+  editor.groupScaleMarker.on("dragend", () => {
+    if (!editor.groupScaleStart) return;
+
+    const cLL = editor.groupScaleStart.center;
+    const nowHandle = editor.groupScaleMarker.getLatLng();
+    const d = distPixels(cLL, nowHandle);
+    const s = d / editor.groupScaleStart.baseDist;
+
+    // restaurar desde snapshot y aplicar scale “limpio”
+    const arr = getActiveEditDatasetArr();
+    const snapshot = editor.groupScaleStart.snapshot;
+
+    // Reemplazar geometrías de los seleccionados por snapshot y luego escalar:
+    // (porque durante preview no tocamos features, pero para evitar acumulaciones raras si alguien arrastra varias veces)
+    for (let i=0; i<feats.length; i++){
+      const f = feats[i];
+      const snap = snapshot[i];
+      f.geometry = deepCopy(snap.geometry);
+      f.properties = deepCopy(snap.properties);
+      // aplicar escala respecto al centro
+      scaleFeatureInPlace(f, cLL.lng, cLL.lat, s);
+    }
+
+    editor.groupScaleStart = null;
+    rerenderActiveEditor();
+    notify("✅ Escalado (en memoria).", 1400);
+  });
+
+  // Panel breve de multi
+  setPanel("Selección múltiple", `
+    <p><b>${feats.length}</b> figura(s) seleccionada(s).</p>
+    <p style="margin-top:8px">
+      • <b>Arrastra el punto rojo</b> para mover todo.<br/>
+      • <b>Arrastra el cuadro verde</b> para escalar todo.
+    </p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+      <button id="btnMultiDelete" style="padding:8px 12px;border-radius:8px;border:1px solid #ef4444;background:#fff;color:#b91c1c;cursor:pointer;">Borrar seleccionados</button>
+      <button id="btnMultiClear" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Limpiar selección</button>
+      <button id="btnMultiCopyGeo" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar GeoJSON</button>
+    </div>
+    <p style="font-size:12px;color:#6b7280;margin-top:10px;">
+      Tip: usa <b>Ctrl/Cmd</b> o <b>Shift</b> + click para seleccionar varias.
+    </p>
+  `);
+
+  const btnDel = document.getElementById("btnMultiDelete");
+  if (btnDel) btnDel.onclick = () => {
+    if (!confirm("¿Seguro que quieres borrar todas las figuras seleccionadas?")) return;
+    deleteSelectedFeature();
+  };
+  const btnClr = document.getElementById("btnMultiClear");
+  if (btnClr) btnClr.onclick = () => {
+    clearMultiSelection();
+    rerenderActiveEditor();
+    notify("Selección limpiada.", 1200);
+  };
+
+  const btnCopy = document.getElementById("btnMultiCopyGeo");
+  if (btnCopy) btnCopy.onclick = async () => {
+    const ds = getEditDataset();
+    const txt = JSON.stringify(ds?.data || { type:"FeatureCollection", features:[] }, null, 2);
+    try {
+      await navigator.clipboard.writeText(txt);
+      notify("GeoJSON copiado. Pégalo en el archivo correspondiente.", 2000);
+    } catch {
+      setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
+    }
+  };
+
+  try { flyToBoundsSmooth(boundsToLatLngBounds(b, 0.10), 0.35); } catch {}
+}
+
+/* ---------- START EDIT POLYGON/CIRCLE ---------- */
+function editorStartEditPolygon(layer){
+  editorStopEditing();
+
+  editor.selectedLayer = layer;
+  editor.selectedFeature = layer.feature;
+  editor.selectedIsCircle = false;
+  editor.originalGeometry = deepCopy(layer.feature.geometry);
+
+  const latlngs = layer.getLatLngs();
+  const ring = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
+
+  let ring2 = ring;
+  if (ring2.length >= 2){
+    const a = ring2[0], b = ring2[ring2.length-1];
+    if (Math.abs(a.lat-b.lat)<1e-9 && Math.abs(a.lng-b.lng)<1e-9) ring2 = ring2.slice(0, -1);
+  }
+
+  editor.vertexMarkers = ring2.map((p) => {
+    const mk = L.marker(p, { draggable:true, icon: editor.iconVertex }).addTo(map);
+    mk.on("drag", () => {
+      const newRing = editor.vertexMarkers.map(m => m.getLatLng());
+      layer.setLatLngs([newRing]);
+    });
+    mk.on("dragend", () => {
+      const newRing = editor.vertexMarkers.map(m => m.getLatLng());
+      layer.setLatLngs([newRing]);
+      editor.selectedFeature.geometry.coordinates = ringToGeoJsonCoords(newRing);
+      renderEditSelectedPanel();
+      notify("Puntos actualizados (en memoria).", 900);
+    });
+    return mk;
+  });
+
+  renderEditSelectedPanel();
+}
+
+function editorStartEditCircle(layer){
+  editorStopEditing();
+
+  editor.selectedLayer = layer;
+  editor.selectedFeature = layer.feature;
+  editor.selectedIsCircle = true;
+
+  editor.originalGeometry = deepCopy(layer.feature.geometry);
+  editor.originalRadius = layer.feature.properties.radius;
+
+  const center = layer.getLatLng();
+  const radius = layer.feature.properties.radius;
+
+  editor.circleCenterMarker = L.marker(center, { draggable:true, icon: editor.iconCenter }).addTo(map);
+
+  const handle = L.latLng(center.lat, center.lng + radius);
+  editor.circleRadiusMarker = L.marker(handle, { draggable:true, icon: editor.iconHandle }).addTo(map);
+
+  const updateCircle = () => {
+    const c = editor.circleCenterMarker.getLatLng();
+    const h = editor.circleRadiusMarker.getLatLng();
+    const r = distPixels(c, h);
+
+    layer.setLatLng(c);
+    layer.setRadius(r);
+
+    editor.selectedFeature.geometry.coordinates = latLngToXY(c);
+    editor.selectedFeature.properties.radius = r;
+
+    renderEditSelectedPanel();
+    notify("Círculo actualizado (en memoria).", 900);
+  };
+
+  editor.circleCenterMarker.on("drag", () => {
+    const c = editor.circleCenterMarker.getLatLng();
+    const r = layer.getRadius();
+    editor.circleRadiusMarker.setLatLng(L.latLng(c.lat, c.lng + r));
+    layer.setLatLng(c);
+  });
+  editor.circleCenterMarker.on("dragend", updateCircle);
+
+  editor.circleRadiusMarker.on("drag", () => {
+    const c = editor.circleCenterMarker.getLatLng();
+    const h = editor.circleRadiusMarker.getLatLng();
+    layer.setRadius(distPixels(c,h));
+  });
+  editor.circleRadiusMarker.on("dragend", updateCircle);
+
+  renderEditSelectedPanel();
+}
+
+/* ---------- EDIT DATASET META ---------- */
+function getEditDataset(){
+  if (isEditSecciones) return { label:"SECCIONES", data: seccionesTopRaw, dest: SECCIONES_TOP_URL };
+  if (isEditManzanas)  return { label:"MANZANAS",  data: manzanasRaw,     dest: MANZANAS_URL };
+  if (isEditLotes)     return { label:"LOTES",     data: currentLotesRaw, dest: currentManzanaFeature?.properties?.lotesFile || "(sin manzana)" };
+  if (isEditNichos)    return { label:"NICHOS",    data: nichosZonasRaw,  dest: NICHOS_ZONAS_URL };
+  return null;
+}
+
+/* =========================================================
+   PANEL: EDIT SELECTED (borrar + copy/paste)
+   ========================================================= */
+function renderEditSelectedPanel(){
+  const ds = getEditDataset();
+  const kind = ds?.label || "ITEM";
+  const currentId = getFeatureId(editor.selectedFeature) || "(sin id)";
+  const showColor = isEditSecciones && editor.selectedFeature?.properties;
+  const currentColor = showColor ? (editor.selectedFeature.properties.color || DEFAULT_SECCION_COLOR) : DEFAULT_SECCION_COLOR;
+
+  setPanel(`Editar ${kind}: ${safe(currentId)}`, `
+    <p><b>Tipo:</b> ${editor.selectedIsCircle ? "Círculo" : "Polígono"}</p>
+    <p style="font-size:12px;color:#666;">Destino: <b>${safe(ds?.dest || "")}</b></p>
+    <p style="font-size:12px;color:#6b7280;margin-top:8px;">
+      Tip multi: <b>Ctrl/Cmd</b> o <b>Shift</b> + click para seleccionar varios. Luego aparecerán handles para mover/escalar.
+    </p>
+
+    <hr/>
+    <label><b>Nombre / ID</b></label><br/>
+    <input id="editIdInput" value="${safe(getFeatureId(editor.selectedFeature))}"
+      style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+    ${showColor ? `
+      <hr/>
+      <label><b>Color de la sección</b></label><br/>
+      <input id="editSeccionColor" type="color" value="${safe(currentColor)}"
+        style="width:100%;height:44px;border:1px solid #ccc;border-radius:10px;padding:4px;cursor:pointer;" />
+    ` : ""}
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+      <button id="btnDeleteShape" style="padding:8px 12px;border-radius:8px;border:1px solid #ef4444;background:#fff;color:#b91c1c;cursor:pointer;">Borrar</button>
+      <button id="btnCopyShape" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar</button>
+      <button id="btnPasteShape" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Pegar</button>
+      <button id="btnCancelPaste" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;display:none;">Cancelar pegado</button>
+      <button id="btnCopyGeo" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar GeoJSON</button>
+      <button id="btnBack" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Volver</button>
+    </div>
+  `);
+
+  // edit ID
+  const $idInput = document.getElementById("editIdInput");
+  if ($idInput){
+    $idInput.oninput = () => {
+      const newId = ($idInput.value || "").trim();
+      if (!newId) return;
+      setFeatureId(editor.selectedFeature, newId);
+      $title.textContent = `Editar ${kind}: ${newId}`;
+    };
+  }
+
+  // color secciones
+  if (showColor){
+    const $col = document.getElementById("editSeccionColor");
+    if ($col){
+      $col.oninput = () => {
+        editor.selectedFeature.properties.color = $col.value;
+        try { editor.selectedLayer.setStyle({ weight: 2, opacity: 1, fillOpacity: 0.06, fillColor: $col.value }); } catch {}
+        notify("Color actualizado (en memoria).", 900);
+      };
+    }
+  }
+
+  // borrar (confirm SI se queda)
+  const btnDelete = document.getElementById("btnDeleteShape");
+  if (btnDelete){
+    btnDelete.onclick = () => {
+      if (!confirm("¿Seguro que quieres borrar esta figura?")) return;
+      // si hay multi selección, borramos multi
+      if (editor.selectedSet.size > 0){
+        if (!confirm("También tienes selección múltiple. ¿Borrar TODA la selección?")) return;
+        deleteSelectedFeature();
+        return;
+      }
+      deleteSelectedFeature();
+    };
+  }
+
+  // copy/paste
+  const btnCopyShape = document.getElementById("btnCopyShape");
+  const btnPasteShape = document.getElementById("btnPasteShape");
+  const btnCancelPaste = document.getElementById("btnCancelPaste");
+
+  if (btnCopyShape) btnCopyShape.disabled = !editor.selectedFeature;
+  if (btnPasteShape) btnPasteShape.disabled = !editor.clipboardFeature;
+
+  if (btnCancelPaste){
+    btnCancelPaste.style.display = editor.pasteArmed ? "inline-block" : "none";
+    btnCancelPaste.onclick = () => {
+      editor.pasteArmed = false;
+      notify("Pegado cancelado.", 1200);
+      renderEditSelectedPanel();
+    };
+  }
+
+  if (btnCopyShape){
+    btnCopyShape.onclick = () => {
+      if (!editor.selectedFeature) return;
+      editor.clipboardFeature = deepCopy(editor.selectedFeature);
+      notify("Figura copiada. Presiona 'Pegar' y luego haz click en el mapa.", 2200);
+      renderEditSelectedPanel();
+    };
+  }
+
+  if (btnPasteShape){
+    btnPasteShape.onclick = () => {
+      if (!editor.clipboardFeature) return;
+      editor.pasteArmed = true;
+      notify("Modo PEGAR activado. Haz click en el mapa para colocar la copia.", 2200);
+      renderEditSelectedPanel();
+    };
+  }
+
+  // copy geojson
+  document.getElementById("btnCopyGeo").onclick = async () => {
+    const ds2 = getEditDataset();
+    const txt = JSON.stringify(ds2?.data || { type:"FeatureCollection", features:[] }, null, 2);
+    try {
+      await navigator.clipboard.writeText(txt);
+      notify("GeoJSON copiado. Pégalo en el archivo correspondiente.", 2200);
+    } catch {
+      setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
+    }
+  };
+
+  // back
+  document.getElementById("btnBack").onclick = () => {
+    editorStopEditing();
+    clearGroupTransformUI();
+    if (isEditSecciones) renderEditSeccionesPanel();
+    else if (isEditManzanas) renderEditManzanasPanel();
+    else if (isEditLotes) renderEditLotesPanel();
+    else renderEditNichosPanel();
+  };
+}
+
+/* =========================================================
+   GRID GROUP: (tu función existente para mover la última cuadrícula)
+   ========================================================= */
 function clearLastGridOverlay(){
   if (editor.lastGrid?.overlay){
     try { map.removeLayer(editor.lastGrid.overlay); } catch {}
@@ -1339,7 +1866,6 @@ function activateGridGroup(datasetArr, features){
 
     rerenderActiveEditor();
     activateGridGroup(datasetArr, features);
-
     notify("✅ Cuadrícula movida (guardado en memoria). Usa 'Copiar GeoJSON' para pegar en tu archivo.", 2200);
   });
 
@@ -1363,459 +1889,8 @@ function activateLastGridIfAny(){
   }
 }
 
-/* ---------- FEATURE ID helpers ---------- */
-function getFeatureId(f){
-  return (f?.properties?.id || f?.properties?.lote || f?.properties?.manzana || f?.properties?.seccion || "").toString().trim();
-}
-function setFeatureId(f, newId){
-  if (!f?.properties) f.properties = {};
-  f.properties.id = newId;
-  if (f.properties.lote !== undefined) f.properties.lote = newId;
-}
-function ensureUniqueId(feature, arr){
-  const base = getFeatureId(feature) || "item";
-  const exists = (id) => arr.some(x => getFeatureId(x) === id);
-
-  if (!exists(base)) { setFeatureId(feature, base); return; }
-  let i = 1;
-  while (exists(`${base}-copy-${i}`)) i++;
-  setFeatureId(feature, `${base}-copy-${i}`);
-}
-
-/* ---------- BORRAR FEATURE ---------- */
-function deleteSelectedFeature(){
-  const arr = getActiveEditDatasetArr();
-  if (!arr || !editor.selectedFeature) return;
-
-  let idx = arr.indexOf(editor.selectedFeature);
-  if (idx < 0){
-    const id = getFeatureId(editor.selectedFeature);
-    if (id) idx = arr.findIndex(f => getFeatureId(f) === id);
-  }
-  if (idx < 0){
-    notify("No pude encontrar la figura en el dataset para borrarla.", 2200);
-    return;
-  }
-
-  arr.splice(idx, 1);
-  editorStopEditing();
-  rerenderActiveEditor();
-  notify("✅ Figura borrada (en memoria). Usa 'Copiar GeoJSON' para guardar en el archivo.", 2200);
-}
-
-/* ---------- NEW: helpers para mover/escalar (handles) ---------- */
-function getFeatureCenterLL(layer, feature){
-  try {
-    if (isCircleFeature(feature) && layer instanceof L.Circle){
-      return layer.getLatLng();
-    }
-    const b = layer.getBounds ? layer.getBounds() : L.geoJSON(feature).getBounds();
-    return b.getCenter();
-  } catch {
-    const b2 = boundsFromFeature(feature);
-    const c = boundsCenter(b2 || {minX:0,minY:0,maxX:0,maxY:0});
-    return L.latLng(c.y, c.x);
-  }
-}
-
-function removeMoveScaleHandles(){
-  if (editor.moveMarker){ try { map.removeLayer(editor.moveMarker); } catch {} editor.moveMarker = null; }
-  if (editor.scaleMarker){ try { map.removeLayer(editor.scaleMarker); } catch {} editor.scaleMarker = null; }
-  editor.scaleBaseDist = null;
-}
-
-function attachMoveScaleHandles(layer){
-  if (!editor.selectedFeature || !layer) return;
-
-  removeMoveScaleHandles();
-
-  const center = getFeatureCenterLL(layer, editor.selectedFeature);
-
-  // move marker (rojo) = mover figura completa
-  editor.moveMarker = L.marker(center, { draggable:true, icon: editor.iconCenter }).addTo(map);
-
-  // scale marker (azul) = escalar figura completa
-  // lo ponemos a la derecha del centro usando un offset relativo al tamaño (bounds)
-  let scalePos = null;
-  try {
-    if (layer.getBounds){
-      const b = layer.getBounds();
-      const c = b.getCenter();
-      const ne = b.getNorthEast();
-      // un poco hacia NE para que no estorbe
-      scalePos = L.latLng(c.lat + (ne.lat - c.lat) * 0.65, c.lng + (ne.lng - c.lng) * 0.65);
-    } else {
-      scalePos = L.latLng(center.lat, center.lng + 60);
-    }
-  } catch {
-    scalePos = L.latLng(center.lat, center.lng + 60);
-  }
-  editor.scaleMarker = L.marker(scalePos, { draggable:true, icon: editor.iconScale }).addTo(map);
-
-  let lastMove = editor.moveMarker.getLatLng();
-
-  editor.moveMarker.on("drag", () => {
-    const now = editor.moveMarker.getLatLng();
-    const dx = now.lng - lastMove.lng;
-    const dy = now.lat - lastMove.lat;
-
-    // mover layer visual
-    if (editor.selectedIsCircle && layer instanceof L.Circle){
-      const c = layer.getLatLng();
-      layer.setLatLng(L.latLng(c.lat + dy, c.lng + dx));
-    } else {
-      const latlngs = layer.getLatLngs();
-      const ring = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
-      const moved = ring.map(p => L.latLng(p.lat + dy, p.lng + dx));
-      layer.setLatLngs([moved]);
-    }
-
-    // mover vertex markers si existen
-    editor.vertexMarkers.forEach(m => {
-      const p = m.getLatLng();
-      m.setLatLng(L.latLng(p.lat + dy, p.lng + dx));
-    });
-
-    // mover scale marker junto con la figura
-    if (editor.scaleMarker){
-      const sp = editor.scaleMarker.getLatLng();
-      editor.scaleMarker.setLatLng(L.latLng(sp.lat + dy, sp.lng + dx));
-    }
-
-    lastMove = now;
-  });
-
-  editor.moveMarker.on("dragend", () => {
-    const now = editor.moveMarker.getLatLng();
-    const start = lastMove; // ya quedó actualizado en drag, así que “delta final” = 0
-    // Para persistir correctamente, recalculamos del layer vs feature:
-    // 1) calculamos centro anterior por geometry actual vs layer actual no es directo.
-    // Solución robusta: escribir geometry desde el layer.
-    persistFeatureFromLayer(layer);
-    notify("✅ Movido (en memoria).", 1200);
-  });
-
-  // scale handling
-  editor.scaleMarker.on("dragstart", () => {
-    const c = editor.moveMarker.getLatLng();
-    editor.scaleBaseDist = Math.max(1e-6, distPixels(c, editor.scaleMarker.getLatLng()));
-  });
-
-  editor.scaleMarker.on("drag", () => {
-    const c = editor.moveMarker.getLatLng();
-    const d0 = editor.scaleBaseDist || 1;
-    const d1 = Math.max(1e-6, distPixels(c, editor.scaleMarker.getLatLng()));
-    const s = d1 / d0;
-
-    // limitar escala para evitar locuras
-    const scale = Math.min(Math.max(s, 0.1), 10);
-
-    // escalar visualmente el layer con base en su centro actual
-    if (editor.selectedIsCircle && layer instanceof L.Circle){
-      layer.setRadius(layer.getRadius() * scale);
-    } else {
-      const latlngs = layer.getLatLngs();
-      const ring = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
-      const scaled = ring.map(p => L.latLng(
-        c.lat + (p.lat - c.lat) * scale,
-        c.lng + (p.lng - c.lng) * scale
-      ));
-      layer.setLatLngs([scaled]);
-
-      // escalar vertex markers igual
-      editor.vertexMarkers.forEach(m => {
-        const p = m.getLatLng();
-        m.setLatLng(L.latLng(
-          c.lat + (p.lat - c.lat) * scale,
-          c.lng + (p.lng - c.lng) * scale
-        ));
-      });
-    }
-
-    // IMPORTANT: para que sea incremental durante drag, “reseteamos” baseDist a la nueva
-    editor.scaleBaseDist = d1;
-  });
-
-  editor.scaleMarker.on("dragend", () => {
-    persistFeatureFromLayer(layer);
-    notify("✅ Escalado (en memoria).", 1200);
-  });
-}
-
-function persistFeatureFromLayer(layer){
-  if (!editor.selectedFeature || !layer) return;
-
-  if (editor.selectedIsCircle && layer instanceof L.Circle){
-    const c = layer.getLatLng();
-    editor.selectedFeature.geometry.coordinates = latLngToXY(c);
-    editor.selectedFeature.properties.radius = layer.getRadius();
-    return;
-  }
-
-  // polygon: tomar latlngs del layer y llevarlos a geojson coords
-  const latlngs = layer.getLatLngs();
-  const ring = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
-
-  // asegurar que no venga cerrado duplicado (leaflet a veces no cierra)
-  const coords = ring.map(latLngToXY);
-  if (coords.length){
-    const a = coords[0], b = coords[coords.length - 1];
-    if (!(Math.abs(a[0]-b[0])<1e-9 && Math.abs(a[1]-b[1])<1e-9)){
-      coords.push(coords[0]);
-    }
-  }
-  editor.selectedFeature.geometry.coordinates = [coords];
-}
-
-/* ---------- START EDIT POLYGON/CIRCLE ---------- */
-function editorStartEditPolygon(layer){
-  editorStopEditing();
-
-  editor.selectedLayer = layer;
-  editor.selectedFeature = layer.feature;
-  editor.selectedIsCircle = false;
-  editor.originalGeometry = deepCopy(layer.feature.geometry);
-
-  const latlngs = layer.getLatLngs();
-  const ring = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
-
-  let ring2 = ring;
-  if (ring2.length >= 2){
-    const a = ring2[0], b = ring2[ring2.length-1];
-    if (Math.abs(a.lat-b.lat)<1e-9 && Math.abs(a.lng-b.lng)<1e-9) ring2 = ring2.slice(0, -1);
-  }
-
-  editor.vertexMarkers = ring2.map((p) => {
-    const mk = L.marker(p, { draggable:true, icon: editor.iconVertex }).addTo(map);
-    mk.on("drag", () => {
-      const newRing = editor.vertexMarkers.map(m => m.getLatLng());
-      layer.setLatLngs([newRing]);
-      // mantener handles siguiendo el movimiento de vértices
-      if (editor.moveMarker){
-        const c = getFeatureCenterLL(layer, editor.selectedFeature);
-        editor.moveMarker.setLatLng(c);
-      }
-    });
-    mk.on("dragend", () => {
-      const newRing = editor.vertexMarkers.map(m => m.getLatLng());
-      layer.setLatLngs([newRing]);
-      editor.selectedFeature.geometry.coordinates = ringToGeoJsonCoords(newRing);
-      // refrescar handles (centro / scale)
-      attachMoveScaleHandles(layer);
-      renderEditSelectedPanel();
-      notify("Puntos actualizados (en memoria).", 900);
-    });
-    return mk;
-  });
-
-  // NEW: attach move+scale handles
-  attachMoveScaleHandles(layer);
-
-  renderEditSelectedPanel();
-}
-
-function editorStartEditCircle(layer){
-  editorStopEditing();
-
-  editor.selectedLayer = layer;
-  editor.selectedFeature = layer.feature;
-  editor.selectedIsCircle = true;
-
-  editor.originalGeometry = deepCopy(layer.feature.geometry);
-  editor.originalRadius = layer.feature.properties.radius;
-
-  // Reutilizamos tus handles de centro/radio para editar el círculo “fino”,
-  // pero ADEMÁS añadimos move/scale handles (mismo comportamiento) para consistencia.
-  const center = layer.getLatLng();
-  const radius = layer.feature.properties.radius;
-
-  editor.circleCenterMarker = L.marker(center, { draggable:true, icon: editor.iconCenter }).addTo(map);
-
-  const handle = L.latLng(center.lat, center.lng + radius);
-  editor.circleRadiusMarker = L.marker(handle, { draggable:true, icon: editor.iconHandle }).addTo(map);
-
-  const updateCircle = () => {
-    const c = editor.circleCenterMarker.getLatLng();
-    const h = editor.circleRadiusMarker.getLatLng();
-    const r = distPixels(c, h);
-
-    layer.setLatLng(c);
-    layer.setRadius(r);
-
-    editor.selectedFeature.geometry.coordinates = latLngToXY(c);
-    editor.selectedFeature.properties.radius = r;
-
-    // refrescar move/scale handles
-    attachMoveScaleHandles(layer);
-
-    renderEditSelectedPanel();
-    notify("Círculo actualizado (en memoria).", 900);
-  };
-
-  editor.circleCenterMarker.on("drag", () => {
-    const c = editor.circleCenterMarker.getLatLng();
-    const r = layer.getRadius();
-    editor.circleRadiusMarker.setLatLng(L.latLng(c.lat, c.lng + r));
-    layer.setLatLng(c);
-
-    attachMoveScaleHandles(layer);
-  });
-  editor.circleCenterMarker.on("dragend", updateCircle);
-
-  editor.circleRadiusMarker.on("drag", () => {
-    const c = editor.circleCenterMarker.getLatLng();
-    const h = editor.circleRadiusMarker.getLatLng();
-    layer.setRadius(distPixels(c,h));
-    attachMoveScaleHandles(layer);
-  });
-  editor.circleRadiusMarker.on("dragend", updateCircle);
-
-  // NEW: attach move+scale handles
-  attachMoveScaleHandles(layer);
-
-  renderEditSelectedPanel();
-}
-
-/* ---------- EDIT DATASET META ---------- */
-function getEditDataset(){
-  if (isEditSecciones) return { label:"SECCIONES", data: seccionesTopRaw, dest: SECCIONES_TOP_URL };
-  if (isEditManzanas)  return { label:"MANZANAS",  data: manzanasRaw,     dest: MANZANAS_URL };
-  if (isEditLotes)     return { label:"LOTES",     data: currentLotesRaw, dest: currentManzanaFeature?.properties?.lotesFile || "(sin manzana)" };
-  if (isEditNichos)    return { label:"NICHOS",    data: nichosZonasRaw,  dest: NICHOS_ZONAS_URL };
-  return null;
-}
-
 /* =========================================================
-   PANEL: EDIT SELECTED (borrar + copy/paste)
-   ========================================================= */
-function renderEditSelectedPanel(){
-  const ds = getEditDataset();
-  const kind = ds?.label || "ITEM";
-  const currentId = getFeatureId(editor.selectedFeature) || "(sin id)";
-  const showColor = isEditSecciones && editor.selectedFeature?.properties;
-  const currentColor = showColor ? (editor.selectedFeature.properties.color || DEFAULT_SECCION_COLOR) : DEFAULT_SECCION_COLOR;
-
-  setPanel(`Editar ${kind}: ${safe(currentId)}`, `
-    <p><b>Tipo:</b> ${editor.selectedIsCircle ? "Círculo" : "Polígono"}</p>
-    <p style="font-size:12px;color:#666;">Destino: <b>${safe(ds?.dest || "")}</b></p>
-
-    <p style="font-size:12px;color:#6b7280;margin-top:6px;">
-      Tip: usa el <b>punto rojo</b> para <b>mover</b> toda la figura y el <b>punto azul</b> para <b>escalar</b>.
-    </p>
-
-    <hr/>
-    <label><b>Nombre / ID</b></label><br/>
-    <input id="editIdInput" value="${safe(getFeatureId(editor.selectedFeature))}"
-      style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
-
-    ${showColor ? `
-      <hr/>
-      <label><b>Color de la sección</b></label><br/>
-      <input id="editSeccionColor" type="color" value="${safe(currentColor)}"
-        style="width:100%;height:44px;border:1px solid #ccc;border-radius:10px;padding:4px;cursor:pointer;" />
-    ` : ""}
-
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-      <button id="btnDeleteShape" style="padding:8px 12px;border-radius:8px;border:1px solid #ef4444;background:#fff;color:#b91c1c;cursor:pointer;">Borrar</button>
-      <button id="btnCopyShape" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar</button>
-      <button id="btnPasteShape" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Pegar</button>
-      <button id="btnCancelPaste" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;display:none;">Cancelar pegado</button>
-      <button id="btnCopyGeo" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar GeoJSON</button>
-      <button id="btnBack" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Volver</button>
-    </div>
-  `);
-
-  // edit ID
-  const $idInput = document.getElementById("editIdInput");
-  if ($idInput){
-    $idInput.oninput = () => {
-      const newId = ($idInput.value || "").trim();
-      if (!newId) return;
-      setFeatureId(editor.selectedFeature, newId);
-      $title.textContent = `Editar ${kind}: ${newId}`;
-    };
-  }
-
-  // color secciones
-  if (showColor){
-    const $col = document.getElementById("editSeccionColor");
-    if ($col){
-      $col.oninput = () => {
-        editor.selectedFeature.properties.color = $col.value;
-        try { editor.selectedLayer.setStyle({ weight: 2, opacity: 1, fillOpacity: 0.06, fillColor: $col.value }); } catch {}
-        notify("Color actualizado (en memoria).", 900);
-      };
-    }
-  }
-
-  // borrar (confirm SI se queda)
-  const btnDelete = document.getElementById("btnDeleteShape");
-  if (btnDelete){
-    btnDelete.onclick = () => {
-      if (!confirm("¿Seguro que quieres borrar esta figura?")) return;
-      deleteSelectedFeature();
-    };
-  }
-
-  // copy/paste
-  const btnCopyShape = document.getElementById("btnCopyShape");
-  const btnPasteShape = document.getElementById("btnPasteShape");
-  const btnCancelPaste = document.getElementById("btnCancelPaste");
-
-  if (btnCopyShape) btnCopyShape.disabled = !editor.selectedFeature;
-  if (btnPasteShape) btnPasteShape.disabled = !editor.clipboardFeature;
-
-  if (btnCancelPaste){
-    btnCancelPaste.style.display = editor.pasteArmed ? "inline-block" : "none";
-    btnCancelPaste.onclick = () => {
-      editor.pasteArmed = false;
-      notify("Pegado cancelado.", 1200);
-      renderEditSelectedPanel();
-    };
-  }
-
-  if (btnCopyShape){
-    btnCopyShape.onclick = () => {
-      if (!editor.selectedFeature) return;
-      editor.clipboardFeature = deepCopy(editor.selectedFeature);
-      notify("Figura copiada. Presiona 'Pegar' y luego haz click en el mapa.", 2200);
-      renderEditSelectedPanel();
-    };
-  }
-
-  if (btnPasteShape){
-    btnPasteShape.onclick = () => {
-      if (!editor.clipboardFeature) return;
-      editor.pasteArmed = true;
-      notify("Modo PEGAR activado. Haz click en el mapa para colocar la copia.", 2200);
-      renderEditSelectedPanel();
-    };
-  }
-
-  // copy geojson
-  document.getElementById("btnCopyGeo").onclick = async () => {
-    const ds2 = getEditDataset();
-    const txt = JSON.stringify(ds2?.data || { type:"FeatureCollection", features:[] }, null, 2);
-    try {
-      await navigator.clipboard.writeText(txt);
-      notify("GeoJSON copiado. Pégalo en el archivo correspondiente.", 2200);
-    } catch {
-      setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
-    }
-  };
-
-  // back
-  document.getElementById("btnBack").onclick = () => {
-    editorStopEditing();
-    if (isEditSecciones) renderEditSeccionesPanel();
-    else if (isEditManzanas) renderEditManzanasPanel();
-    else if (isEditLotes) renderEditLotesPanel();
-    else renderEditNichosPanel();
-  };
-}
-
-/* =========================================================
-   EDIT PANELS
+   EDIT PANELS (sin cambiar tu lógica: solo dejando como estaban)
    ========================================================= */
 function renderEditSeccionesPanel(){
   editor.mode = "edit";
@@ -1827,9 +1902,14 @@ function renderEditSeccionesPanel(){
   editorClearPoly();
   editorClearCircle();
   editorStopEditing();
+  clearMultiSelection();
 
   setPanel("Edición: SECCIONES", `
     <p>Editor de <b>SECCIONES</b>.</p>
+    <p style="font-size:12px;color:#6b7280;">
+      Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click para seleccionar varias.
+      Aparecerán handles para mover/escalar.
+    </p>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button id="btnEdit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Editar existente</button>
@@ -1858,6 +1938,7 @@ function renderEditSeccionesPanel(){
   document.getElementById("btnCreate").onclick = () => {
     editor.mode = "create";
     editorStopEditing();
+    clearGroupTransformUI();
     editorClearPoly(); editorClearCircle();
 
     $editBody.innerHTML = `
@@ -1931,7 +2012,6 @@ function renderEditSeccionesPanel(){
 }
 
 function renderEditManzanasPanel(){
-  // (SIN CAMBIOS del flujo original — solo se conserva)
   editor.mode = "edit";
   editor.drawShape = "polygon";
   editor.gridArmed = false;
@@ -1939,9 +2019,13 @@ function renderEditManzanasPanel(){
   editor.pasteArmed = false;
 
   editorClearPoly(); editorClearCircle(); editorStopEditing();
+  clearMultiSelection();
 
   setPanel("Edición: MANZANAS", `
     <p>Editor de <b>MANZANAS</b> (IDs: A, B, C...).</p>
+    <p style="font-size:12px;color:#6b7280;">
+      Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click para seleccionar varias.
+    </p>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button id="btnEdit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Editar existente</button>
@@ -1974,6 +2058,7 @@ function renderEditManzanasPanel(){
   document.getElementById("btnCreate").onclick = () => {
     editor.mode = "create";
     editorStopEditing();
+    clearGroupTransformUI();
     editorClearPoly(); editorClearCircle();
 
     $editBody.innerHTML = `
@@ -2043,6 +2128,7 @@ function renderEditManzanasPanel(){
     editor.gridArmed = true;
     editor.gridConfig = { target: "manzanas" };
     editorStopEditing();
+    clearGroupTransformUI();
     editorClearPoly(); editorClearCircle();
 
     $editBody.innerHTML = `
@@ -2143,9 +2229,13 @@ function renderEditNichosPanel(){
   editor.pasteArmed = false;
 
   editorClearPoly(); editorClearCircle(); editorStopEditing();
+  clearMultiSelection();
 
   setPanel("Edición: NICHOS", `
     <p>Editor de <b>Zonas de Nichos</b>.</p>
+    <p style="font-size:12px;color:#6b7280;">
+      Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click para seleccionar varias.
+    </p>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button id="btnEdit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Editar existente</button>
@@ -2174,6 +2264,7 @@ function renderEditNichosPanel(){
   document.getElementById("btnCreate").onclick = () => {
     editor.mode = "create";
     editorStopEditing();
+    clearGroupTransformUI();
     editorClearPoly(); editorClearCircle();
 
     $editBody.innerHTML = `
@@ -2244,7 +2335,6 @@ function renderEditNichosPanel(){
 }
 
 function renderEditLotesPanel(){
-  // (SIN CAMBIOS del flujo original — solo se conserva)
   editor.mode = "edit";
   editor.drawShape = "polygon";
   editor.gridArmed = false;
@@ -2252,11 +2342,15 @@ function renderEditLotesPanel(){
   editor.pasteArmed = false;
 
   editorClearPoly(); editorClearCircle(); editorStopEditing();
+  clearMultiSelection();
 
   const lotesFile = currentManzanaFeature?.properties?.lotesFile || "(elige manzana)";
 
   setPanel("Edición: LOTES", `
     <p>Primero elige SECCIÓN y MANZANA arriba.</p>
+    <p style="font-size:12px;color:#6b7280;">
+      Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click para seleccionar varios lotes.
+    </p>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button id="btnEdit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Editar existente</button>
@@ -2290,6 +2384,7 @@ function renderEditLotesPanel(){
     if (!currentManzanaFeature) return notify("Primero elige una MANZANA.", 2000);
     editor.mode = "create";
     editorStopEditing();
+    clearGroupTransformUI();
     editorClearPoly(); editorClearCircle();
 
     $editBody.innerHTML = `
@@ -2357,6 +2452,7 @@ function renderEditLotesPanel(){
     editor.gridArmed = true;
     editor.gridConfig = { target: "lotes" };
     editorStopEditing();
+    clearGroupTransformUI();
     editorClearPoly(); editorClearCircle();
 
     $editBody.innerHTML = `
@@ -2462,10 +2558,48 @@ function renderEditLotesPanel(){
 
 /* =========================================================
    EDIT RENDERERS
+   - NUEVO: soporte multi-select (Ctrl/Cmd/Shift)
    ========================================================= */
+function handleEditorFeatureClick(feature, layer, ev){
+  if (editor.mode !== "edit") return;
+
+  // Ctrl/Cmd o Shift => multi toggle/add
+  const isMultiKey = !!(ev?.originalEvent?.ctrlKey || ev?.originalEvent?.metaKey || ev?.originalEvent?.shiftKey);
+
+  // Si no hay tecla multi: selección simple (limpia multi, edita item)
+  if (!isMultiKey){
+    clearMultiSelection();
+    clearGroupTransformUI();
+    // edita normal
+    if (isCircleFeature(feature) && layer instanceof L.Circle) editorStartEditCircle(layer);
+    else editorStartEditPolygon(layer);
+
+    // marcar como seleccion simple también
+    editor.selectedSet.add(feature);
+    editor.selectedLayers = [layer];
+    try { layer.setStyle(multiSelectedStyle()); } catch {}
+    showGroupTransformHandles(); // permite mover/escalar incluso 1
+    return;
+  }
+
+  // Multi: toggle selección
+  // Si estabas editando vértices, los quitamos (porque multi transforma por grupo)
+  editorStopEditing();
+
+  if (editor.selectedSet.has(feature)){
+    editor.selectedSet.delete(feature);
+  } else {
+    editor.selectedSet.add(feature);
+  }
+
+  // Reconstruir selectedLayers según el layergroup correspondiente (se hará por rerender)
+  rerenderActiveEditor();
+}
+
 function rerenderSecciones_Edit(){
   if (seccionesLayer){ seccionesLayer.remove(); seccionesLayer = null; }
   editorStopEditing();
+  clearGroupTransformUI();
 
   seccionesLayer = L.geoJSON(seccionesTopRaw || { type:"FeatureCollection", features:[] }, {
     style: (feature) => ({ weight: 2, opacity: 1, fillOpacity: 0.06, fillColor: getSeccionColor(feature) }),
@@ -2476,18 +2610,20 @@ function rerenderSecciones_Edit(){
       return layer;
     },
     onEachFeature: (feature, layer) => {
-      layer.on("click", () => {
-        if (editor.mode !== "edit") return;
-        if (isCircleFeature(feature) && layer instanceof L.Circle) editorStartEditCircle(layer);
-        else editorStartEditPolygon(layer);
-      });
+      layer.on("click", (ev) => handleEditorFeatureClick(feature, layer, ev));
     }
   }).addTo(map);
+
+  // rearmar selección y UI
+  rebuildSelectedLayersFromLayerGroup(seccionesLayer);
+  applyMultiSelectionStyle();
+  if (editor.selectedSet.size > 0) showGroupTransformHandles();
 }
 
 function rerenderManzanas_Edit(){
   if (manzanasLayer){ manzanasLayer.remove(); manzanasLayer = null; }
   editorStopEditing();
+  clearGroupTransformUI();
 
   manzanasLayer = L.geoJSON(manzanasRaw || { type:"FeatureCollection", features:[] }, {
     style: { weight: 2, opacity: 1, fillOpacity: 0.06 },
@@ -2498,18 +2634,19 @@ function rerenderManzanas_Edit(){
       return layer;
     },
     onEachFeature: (feature, layer) => {
-      layer.on("click", () => {
-        if (editor.mode !== "edit") return;
-        if (isCircleFeature(feature) && layer instanceof L.Circle) editorStartEditCircle(layer);
-        else editorStartEditPolygon(layer);
-      });
+      layer.on("click", (ev) => handleEditorFeatureClick(feature, layer, ev));
     }
   }).addTo(map);
+
+  rebuildSelectedLayersFromLayerGroup(manzanasLayer);
+  applyMultiSelectionStyle();
+  if (editor.selectedSet.size > 0) showGroupTransformHandles();
 }
 
 function rerenderLotes_Edit(){
   if (lotesLayer){ lotesLayer.remove(); lotesLayer = null; }
   editorStopEditing();
+  clearGroupTransformUI();
   if (!currentLotesRaw) return;
 
   lotesLayer = L.geoJSON(currentLotesRaw, {
@@ -2521,18 +2658,19 @@ function rerenderLotes_Edit(){
       return layer;
     },
     onEachFeature: (feature, layer) => {
-      layer.on("click", () => {
-        if (editor.mode !== "edit") return;
-        if (isCircleFeature(feature) && layer instanceof L.Circle) editorStartEditCircle(layer);
-        else editorStartEditPolygon(layer);
-      });
+      layer.on("click", (ev) => handleEditorFeatureClick(feature, layer, ev));
     }
   }).addTo(map);
+
+  rebuildSelectedLayersFromLayerGroup(lotesLayer);
+  applyMultiSelectionStyle();
+  if (editor.selectedSet.size > 0) showGroupTransformHandles();
 }
 
 function rerenderNichos_Edit(){
   if (nichosLayerEdit){ nichosLayerEdit.remove(); nichosLayerEdit = null; }
   editorStopEditing();
+  clearGroupTransformUI();
 
   nichosLayerEdit = L.geoJSON(nichosZonasRaw || { type:"FeatureCollection", features:[] }, {
     style: { weight: 2, opacity: 1, fillOpacity: 0.06 },
@@ -2543,13 +2681,13 @@ function rerenderNichos_Edit(){
       return layer;
     },
     onEachFeature: (feature, layer) => {
-      layer.on("click", () => {
-        if (editor.mode !== "edit") return;
-        if (isCircleFeature(feature) && layer instanceof L.Circle) editorStartEditCircle(layer);
-        else editorStartEditPolygon(layer);
-      });
+      layer.on("click", (ev) => handleEditorFeatureClick(feature, layer, ev));
     }
   }).addTo(map);
+
+  rebuildSelectedLayersFromLayerGroup(nichosLayerEdit);
+  applyMultiSelectionStyle();
+  if (editor.selectedSet.size > 0) showGroupTransformHandles();
 }
 
 /* =========================================================
@@ -2579,7 +2717,7 @@ function attachEditorMapClick(){
       ensureUniqueId(temp, arr);
       arr.push(temp);
 
-      editor.pasteArmed = false; // apagar pegado automáticamente
+      editor.pasteArmed = false;
       rerenderActiveEditor();
       notify("✅ Pegado. Selecciona la figura para cambiar ID si quieres.", 2200);
       return;
@@ -2724,6 +2862,7 @@ async function main(){
       const h = img.naturalHeight;
       const bounds = [[0,0],[h,w]];
 
+      // OJO: este scale se usa solo en PUBLICO (por si DATA_COORD_* no coincide)
       COORD_SCALE_X = w / DATA_COORD_WIDTH;
       COORD_SCALE_Y = h / DATA_COORD_HEIGHT;
 
@@ -2824,7 +2963,6 @@ async function main(){
       seccionesTopScaled = deepCopy(seccionesTopRaw);
       applyCoordScaleToGeoJSON(seccionesTopScaled, COORD_SCALE_X, COORD_SCALE_Y);
 
-      manzanasScaledBuild:
       manzanasScaled = deepCopy(manzanasRaw);
       applyCoordScaleToGeoJSON(manzanasScaled, COORD_SCALE_X, COORD_SCALE_Y);
 
