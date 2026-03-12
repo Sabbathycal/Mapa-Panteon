@@ -1116,6 +1116,7 @@ const editor = {
 
   // circular repeat (lotes)
   circularArmed: false,
+  circularPickingTemplate: false,
   circularConfig: null,
 
   // sub-mode for single selection: "transform" (default) | "vertices"
@@ -1823,6 +1824,7 @@ function renderEditSelectedPanel(){
     };
   }
 
+  
   // borrar
   const btnDelete = document.getElementById("btnDeleteShape");
   if (btnDelete){
@@ -1894,6 +1896,104 @@ function renderEditSelectedPanel(){
     else renderEditNichosPanel();
   };
 }
+
+function renderCircularRepeatPanel(){
+  const $editBody = document.getElementById("editBody");
+  const tplId = editor.circularConfig?.template
+    ? (getFeatureId(editor.circularConfig.template) || "(sin id)")
+    : null;
+
+  $editBody.innerHTML = `
+    <p><b>Repetir circular (LOTES)</b></p>
+    <p style="color:#6b7280;font-size:12px;">
+      1) Define <b>Copias (X)</b> y <b>Grados (Y)</b>.<br/>
+      2) Selecciona el <b>lote plantilla</b> (click en 1 lote).<br/>
+      3) Haz <b>1 click</b> en el mapa para poner el <b>centro</b>.
+    </p>
+
+    <label><b>Copias (X)</b></label><br/>
+    <input id="circCount" type="number" value="${editor.circularConfig?.count ?? 12}" min="1"
+      style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+    <label><b>Grados totales (Y)</b></label><br/>
+    <input id="circDegrees" type="number" value="${editor.circularConfig?.degrees ?? 360}" step="1"
+      style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+    <label><b>Ángulo inicial (opcional)</b></label><br/>
+    <input id="circStartDeg" type="number" value="${editor.circularConfig?.startDeg ?? ""}"
+      placeholder="vacío = calcularlo con centro→plantilla"
+      style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+    <label style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+      <input id="circIncludeOriginal" type="checkbox" ${editor.circularConfig?.includeOriginal !== false ? "checked" : ""} />
+      <span>Incluir la plantilla como una de las copias</span>
+    </label>
+
+    <div style="margin-top:10px;padding:10px;border:1px dashed #d1d5db;border-radius:10px;">
+      <div style="font-size:12px;color:#6b7280;">Plantilla seleccionada:</div>
+      <div style="font-weight:700;">${tplId ? tplId : "NINGUNA (haz click en un lote)"}</div>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+      <button id="btnArmCirc"
+        style="padding:8px 12px;border-radius:8px;border:1px solid #111;cursor:pointer;">
+        Armar
+      </button>
+      <button id="btnCancelCirc"
+        style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">
+        Cancelar
+      </button>
+    </div>
+
+    <p id="circHint" style="margin-top:10px;color:#6b7280;font-size:12px;"></p>
+  `;
+
+  const hint = document.getElementById("circHint");
+
+  document.getElementById("btnCancelCirc").onclick = () => {
+    editor.circularArmed = false;
+    editor.circularPickingTemplate = false;
+    editor.circularConfig = null;
+    editor.mode = "edit";
+    notify("Repetición circular cancelada.", 1400);
+    renderEditLotesPanel();
+  };
+
+  document.getElementById("btnArmCirc").onclick = () => {
+    const count = Number(document.getElementById("circCount").value || 0);
+    const degrees = Number(document.getElementById("circDegrees").value || 0);
+    const startDegRaw = (document.getElementById("circStartDeg").value || "").trim();
+    const includeOriginal = !!document.getElementById("circIncludeOriginal").checked;
+
+    if (!count || count < 1) return notify("Copias debe ser >= 1.", 2200);
+    if (!isFinite(degrees)) return notify("Grados inválidos.", 2200);
+
+    const startDeg = startDegRaw === "" ? null : Number(startDegRaw);
+    if (startDegRaw !== "" && !isFinite(startDeg)) return notify("Ángulo inicial inválido.", 2200);
+
+    // guardamos config (sin plantilla aún si no la han seleccionado)
+    editor.circularConfig = {
+      target: "lotes_circular",
+      count,
+      degrees,
+      startDeg,
+      includeOriginal,
+      template: editor.circularConfig?.template ? deepCopy(editor.circularConfig.template) : null
+    };
+
+    if (!editor.circularConfig.template){
+      editor.circularPickingTemplate = true;
+      if (hint) hint.textContent = "⚠️ Falta plantilla: haz click en 1 lote para usarlo como plantilla.";
+      return;
+    }
+
+    editor.circularArmed = true;
+    editor.circularPickingTemplate = false;
+    if (hint) hint.textContent = "✅ Listo. Ahora da 1 click en el mapa para colocar el CENTRO.";
+    notify("Repetición circular armada. Click en el mapa para colocar el centro.", 2200);
+  };
+}
+
 
 /* =========================================================
    GRID GROUP: mover la última cuadrícula
@@ -2488,6 +2588,31 @@ function renderEditLotesPanel(){
 
   const $editBody = document.getElementById("editBody");
 
+  const btnCirc = document.getElementById("btnCirc");
+  if (btnCirc){
+    btnCirc.onclick = () => {
+      if (!currentManzanaFeature) return notify("Primero elige una MANZANA.", 2000);
+
+      // entrar modo circular y mostrar panel
+      editor.mode = "circular";
+      editor.circularArmed = false;
+      editor.circularPickingTemplate = true;   // primero escoger plantilla
+      editor.circularConfig = {
+        target: "lotes_circular",
+        count: 12,
+        degrees: 360,
+        startDeg: null,
+        includeOriginal: true,
+        template: null
+      };
+
+      // NO borrar el layer/selección visual del mapa; solo el panel
+      notify("Modo circular: selecciona 1 lote como plantilla.", 2200);
+      renderCircularRepeatPanel();
+    };
+  }
+
+
   document.getElementById("btnSelectGrid").onclick = () => activateLastGridIfAny();
 
   document.getElementById("btnEdit").onclick = () => {
@@ -2790,6 +2915,24 @@ function isMultiKeyEvent(ev){
 }
 
 function handleEditorFeatureClick(feature, layer, ev){
+  // Si estamos en modo circular (lotes) y falta plantilla: este click es para seleccionar plantilla
+  if (isEditLotes && editor.mode === "circular" && editor.circularPickingTemplate){
+    editor.circularConfig = editor.circularConfig || { target:"lotes_circular" };
+    editor.circularConfig.template = deepCopy(feature);
+
+    editor.circularPickingTemplate = false;
+    notify(`Plantilla seleccionada: ${getFeatureId(feature) || "(sin id)"}. Ahora presiona "Armar".`, 2400);
+
+    // refresca panel circular para que muestre la plantilla
+    renderCircularRepeatPanel();
+
+    // opcional: resaltar visualmente el layer como seleccionado
+    try { layer.setStyle(multiSelectedStyle()); } catch {}
+
+    return; // IMPORTANTÍSIMO: no sigas al editor normal
+  }
+
+
   if (editor.mode !== "edit") return;
 
   const multiKey = isMultiKeyEvent(ev);
