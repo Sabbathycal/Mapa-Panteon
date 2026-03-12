@@ -1364,6 +1364,15 @@ function scaleFeatureInPlace(feature, cx, cy, scale){
   }
 }
 
+function getFeatureCenterXY(feature){
+  const b = boundsFromFeature(feature);
+  if (!b) return null;
+  const c = boundsCenter(b);
+  return { cx: c.x, cy: c.y };
+}
+
+
+
 /* ---------- BOUNDS from features ---------- */
 function expandBoundsWithXY(b, x, y){
   if (!b) return { minX:x, minY:y, maxX:x, maxY:y };
@@ -1741,6 +1750,22 @@ function renderEditSelectedPanel(){
         style="width:100%;height:44px;border:1px solid #ccc;border-radius:10px;padding:4px;cursor:pointer;" />
     ` : ""}
 
+
+    <hr/>
+    <label><b>Escalar (factor)</b></label><br/>
+    <div style="display:flex;gap:8px;align-items:center;margin:6px 0;">
+      <input id="scaleFactorInput" type="number" value="1" step="0.01"
+        style="flex:1;padding:8px;border:1px solid #ccc;border-radius:8px;" />
+      <button id="btnApplyScale"
+        style="padding:8px 12px;border-radius:8px;border:1px solid #22c55e;background:#fff;color:#15803d;cursor:pointer;">
+        Aplicar
+      </button>
+    </div>
+    <p style="font-size:12px;color:#6b7280;margin-top:-2px;">
+      Ejemplos: 1.10 = +10% · 0.90 = -10% · 2.00 = doble tamaño
+    </p>
+
+
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
       <button id="btnToggleMode" style="padding:8px 12px;border-radius:8px;border:1px solid #111;background:#fff;cursor:pointer;">
         ${editor.editSubmode === "vertices" ? "Mover/Escalar" : "Editar puntos"}
@@ -1754,6 +1779,28 @@ function renderEditSelectedPanel(){
       <button id="btnBack" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Volver</button>
     </div>
   `);
+
+  // Escalar por número (solo el objeto seleccionado)
+  const btnApplyScale = document.getElementById("btnApplyScale");
+  if (btnApplyScale){
+    btnApplyScale.onclick = () => {
+      if (!editor.selectedFeature) return notify("No hay figura seleccionada.", 1600);
+
+      const raw = Number(document.getElementById("scaleFactorInput")?.value || 1);
+      if (!isFinite(raw) || raw <= 0) return notify("Factor inválido. Usa un número > 0.", 2000);
+      if (raw === 1) return notify("Factor = 1. No cambia nada.", 1400);
+
+      const center = getFeatureCenterXY(editor.selectedFeature);
+      if (!center) return notify("No pude calcular el centro de la figura.", 2000);
+
+      // aplica escala respecto al centro del feature
+      scaleFeatureInPlace(editor.selectedFeature, center.cx, center.cy, raw);
+
+      // IMPORTANTE: re-render para ver cambios
+      rerenderActiveEditor();
+      notify(`✅ Escalado aplicado: x${raw}`, 1600);
+    };
+  }
 
   const $idInput = document.getElementById("editIdInput");
   if ($idInput){
