@@ -2666,65 +2666,79 @@ function renderEditLotesPanel(){
   // REPETIR CIRCULAR
   document.getElementById("btnCirc").onclick = () => {
     if (!currentManzanaFeature) return notify("Primero elige una MANZANA.", 2000);
-    if (!editor.selectedFeature || editor.selectedSet.size !== 1) {
+    if (!editor.selectedFeature || editor.selectedSet.size !== 1){
       return notify("Selecciona 1 lote (sin Ctrl/Shift) como plantilla.", 2400);
     }
 
+    // activar modo circular
     editor.mode = "circular";
-    editor.circularArmed = true;
+    editor.circularArmed = false;     // hasta que presiones “Armar”
     editor.gridArmed = false;
     editor.gridConfig = null;
 
-    // congelar plantilla (no dependas de editor.selectedFeature luego)
+    // congelar plantilla
     const template = deepCopy(editor.selectedFeature);
     const tplId = getFeatureId(template) || "(sin id)";
+    editor.circularConfig = {
+      target: "lotes_circular",
+      count: 12,
+      degrees: 360,
+      startDeg: null,
+      includeOriginal: true,
+      template
+    };
 
-    editorStopEditing();
-    clearMultiSelection();
-    clearGroupTransformUI();
-    editorClearPoly(); editorClearCircle();
+    // IMPORTANTÍSIMO: aquí NO volvemos a llamar renderEditLotesPanel()
+    // ni hacemos rerenderLotes_Edit(), para que no se pise el formulario.
 
     $editBody.innerHTML = `
-      <p><b>Repetir circular</b> (plantilla: <b>${safe(tplId)}</b>)</p>
-      <p style="color:#6b7280;font-size:12px;">
-        1) Define cuántas copias y cuántos grados cubrir.<br/>
-        2) Presiona <b>Armar</b>.<br/>
-        3) Da <b>1 click</b> en el mapa para colocar el <b>centro</b> del círculo.
-      </p>
+      <div style="border:1px solid #e5e7eb;border-radius:12px;padding:10px;background:#fff;">
+        <p style="margin:0 0 6px 0;"><b>Repetir circular</b> (plantilla: <b>${safe(tplId)}</b>)</p>
+        <p style="margin:0 0 10px 0;color:#6b7280;font-size:12px;">
+          1) Define X (copias) y Y (grados). 2) Presiona <b>Armar</b>. 3) Click en el mapa para poner el <b>centro</b>.
+        </p>
 
-      <label><b>Copias (X)</b></label><br/>
-      <input id="circCount" type="number" value="12" min="1"
-        style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+        <label><b>Copias (X)</b></label><br/>
+        <input id="circCount" type="number" value="12" min="1"
+          style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
 
-      <label><b>Grados totales (Y)</b></label><br/>
-      <input id="circDegrees" type="number" value="360" step="1"
-        style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+        <label><b>Grados totales (Y)</b></label><br/>
+        <input id="circDegrees" type="number" value="360" step="1"
+          style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
 
-      <label><b>Ángulo inicial (grados)</b> (opcional)</label><br/>
-      <input id="circStartDeg" type="number" value=""
-        placeholder="vacío = usar dirección centro→plantilla"
-        style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+        <label><b>Ángulo inicial (grados)</b> (opcional)</label><br/>
+        <input id="circStartDeg" type="number" value=""
+          placeholder="vacío = usar dirección centro→plantilla"
+          style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
 
-      <label style="display:flex;gap:8px;align-items:center;margin-top:8px;">
-        <input id="circIncludeOriginal" type="checkbox" checked />
-        <span>Incluir la plantilla como una de las copias</span>
-      </label>
+        <label style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+          <input id="circIncludeOriginal" type="checkbox" checked />
+          <span>Incluir la plantilla como una de las copias</span>
+        </label>
 
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-        <button id="btnArmCirc" style="padding:8px 12px;border-radius:8px;border:1px solid #111;cursor:pointer;">Armar</button>
-        <button id="btnCancelCirc" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Cancelar</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+          <button id="btnArmCirc" style="padding:8px 12px;border-radius:8px;border:1px solid #111;cursor:pointer;">
+            Armar
+          </button>
+          <button id="btnCancelCirc" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">
+            Cancelar
+          </button>
+        </div>
+
+        <p id="circHint" style="margin-top:10px;color:#6b7280;font-size:12px;">
+          Estado: <b>no armado</b>
+        </p>
       </div>
-
-      <p id="circHint" style="margin-top:10px;color:#6b7280;font-size:12px;"></p>
     `;
 
     const hint = document.getElementById("circHint");
 
     document.getElementById("btnCancelCirc").onclick = () => {
+      editor.mode = "edit";
       editor.circularArmed = false;
       editor.circularConfig = null;
-      editor.mode = "edit";
       notify("Repetición circular cancelada.", 1400);
+      // vuelve al panel normal
       renderEditLotesPanel();
     };
 
@@ -2740,23 +2754,19 @@ function renderEditLotesPanel(){
       const startDeg = startDegRaw === "" ? null : Number(startDegRaw);
       if (startDegRaw !== "" && (!isFinite(startDeg))) return notify("Ángulo inicial inválido.", 2200);
 
-      editor.circularConfig = {
-        target: "lotes_circular",
-        count,
-        degrees,
-        startDeg,
-        includeOriginal,
-        template
-      };
+      editor.circularConfig.count = count;
+      editor.circularConfig.degrees = degrees;
+      editor.circularConfig.startDeg = startDeg;
+      editor.circularConfig.includeOriginal = includeOriginal;
+
       editor.circularArmed = true;
 
-      if (hint) hint.textContent = "✅ Listo. Ahora da 1 click en el mapa para colocar el CENTRO del círculo.";
+      if (hint){
+        hint.innerHTML = `Estado: <b>armado</b>. Ahora da <b>1 click</b> en el mapa para colocar el <b>centro</b>.`;
+      }
       notify("Repetición circular armada. Click en el mapa para colocar el centro.", 2200);
     };
-
-    rerenderLotes_Edit();
   };
-
   document.getElementById("btnCopy").onclick = async () => {
     const txt = JSON.stringify(currentLotesRaw || { type:"FeatureCollection", features:[] }, null, 2);
     try {
