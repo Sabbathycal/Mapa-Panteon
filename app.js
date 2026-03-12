@@ -138,6 +138,33 @@ function isCircleFeature(f){
   );
 }
 
+function slugifySeccionPath(s){
+  return (s || "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")  // quita acentos
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+// Convención: data/lotes/<seccion_slug>/lotes.geojson
+function getSharedLotesUrlForSeccion(seccion){
+  const slug = slugifySeccionPath(seccion);
+  return `./data/lotes/${slug}/lotes.geojson`;
+}
+
+// Decide qué archivo leer (compat: si manzana trae lotesFile, úsalo)
+// Si NO trae lotesFile => usa el archivo compartido por sección
+function getLotesUrlForManzana(manzanaFeature){
+  const lf = (manzanaFeature?.properties?.lotesFile || "").toString().trim();
+  if (lf) return lf;
+  const sec = getPropSeccion(manzanaFeature);
+  return getSharedLotesUrlForSeccion(sec);
+}
+
+
+
 // Color default para secciones
 const DEFAULT_SECCION_COLOR = "#C9A227";
 function getSeccionColor(feature){
@@ -609,17 +636,42 @@ async function loadLotesForCurrentManzana(){
   showAllLots = false;
   updateToggleLotsButton();
 
-  const lotesFile = currentManzanaFeature?.properties?.lotesFile;
-  if (!lotesFile){
-    setPanel("MANZANA sin lotesFile", `<p>Esta manzana no tiene <b>lotesFile</b>.</p>`);
+  if (!currentManzanaFeature){
+    setPanel("Sin manzana", `<p>Primero selecciona una MANZANA.</p>`);
+    return;
+  }
+
+  const lotesUrl = getLotesUrlForManzana(currentManzanaFeature);
+  if (!lotesUrl){
+    setPanel("MANZANA sin lotes", `<p>Esta manzana no tiene fuente de lotes.</p>`);
     return;
   }
 
   let raw;
-  try { raw = await loadJson(lotesFile); }
-  catch { raw = { type:"FeatureCollection", features: [] }; }
+  try { raw = await loadJson(lotesUrl); }
+  catch {
+    setPanel("Lotes no encontrados", `<p>No pude cargar: <code>${safe(lotesUrl)}</code></p>`);
+    return;
+  }
 
-  lotesScaled = deepCopy(raw);
+  // Si el archivo es compartido por sección, filtramos por properties.manzana
+  const manzanaKey = getPropManzana(currentManzanaFeature);
+  const hasManzanaProp = (raw.features || []).some(f => (f?.properties?.manzana || f?.properties?.manzanaId));
+
+  let filtered = raw;
+  if (hasManzanaProp){
+    const feats = (raw.features || []).filter(f => {
+      const pm = (f?.properties?.manzana || f?.properties?.manzanaId || "").toString().trim().toUpperCase();
+      return pm === manzanaKey.toUpperCase();
+    });
+    filtered = { type:"FeatureCollection", features: feats };
+
+    if (feats.length === 0){
+      notify(`No encontré lotes con properties.manzana="${manzanaKey}" en ${lotesUrl}`, 2600);
+    }
+  }
+
+  lotesScaled = deepCopy(filtered);
   applyCoordScaleToGeoJSON(lotesScaled, COORD_SCALE_X, COORD_SCALE_Y);
 
   lotesLayer = L.geoJSON(lotesScaled, {
@@ -663,6 +715,10 @@ async function loadLotesForCurrentManzana(){
   const man = getPropManzana(currentManzanaFeature);
   setPanel(`SECCIÓN ${safe(sec)} — MANZANA ${safe(man)}`, `
     <p>Selecciona un lote o usa <b>Mostrar lotes</b>.</p>
+    <p style="font-size:12px;color:#6b7280;">
+      Fuente lotes: <code>${safe(lotesUrl)}</code>
+      ${hasManzanaProp ? "(filtrado por manzana)" : "(sin filtro: archivo por manzana)"}
+    </p>
   `);
 }
 
