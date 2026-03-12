@@ -33,6 +33,7 @@
       "properties": {
         "id": "001",
         "lote": "001",
+        "manzana": "A",
         "estatus": "disponible",
         "paquete": "TS PLATINO"
       }
@@ -69,6 +70,7 @@
       "properties": {
         "id": "002",
         "lote": "002",
+        "manzana": "A",
         "estatus": "disponible",
         "paquete": "TS PLATINO"
       }
@@ -105,6 +107,7 @@
       "properties": {
         "id": "003",
         "lote": "003",
+        "manzana": "A",
         "estatus": "disponible",
         "paquete": "TS PLATINO"
       }
@@ -141,6 +144,7 @@
       "properties": {
         "id": "004",
         "lote": "004",
+        "manzana": "A",
         "estatus": "disponible",
         "paquete": "TS PLATINO"
       }
@@ -177,6 +181,7 @@
       "properties": {
         "id": "005",
         "lote": "005",
+        "manzana": "A",
         "estatus": "disponible",
         "paquete": "TS PLATINO"
       }
@@ -213,6 +218,7 @@
       "properties": {
         "id": "006",
         "lote": "006",
+        "manzana": "A",
         "estatus": "disponible",
         "paquete": "TS PLATINO"
       }
@@ -249,6 +255,7 @@
       "properties": {
         "id": "007",
         "lote": "007",
+        "manzana": "A",
         "estatus": "disponible",
         "paquete": "TS PLATINO"
       }
@@ -285,6 +292,7 @@
       "properties": {
         "id": "008",
         "lote": "008",
+        "manzana": "A",
         "estatus": "disponible",
         "paquete": "TS PLATINO"
       }
@@ -321,6 +329,7 @@
       "properties": {
         "id": "009",
         "lote": "009",
+        "manzana": "A",
         "estatus": "disponible",
         "paquete": "TS PLATINO"
       }
@@ -357,6 +366,7 @@
       "properties": {
         "id": "010",
         "lote": "010",
+        "manzana": "A",
         "estatus": "disponible",
         "paquete": "TS PLATINO"
       }
