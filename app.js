@@ -466,16 +466,36 @@ function getBoundsForCircleFeature(feature, layer){
 
 function flyToManzanaFeature(feature, layer){
   const isC = isCircleFeature(feature);
-  const pad = isC ? 0.55 : 0.20;
-  const mz  = isC ? 3 : null;
+
+  // En manzanas circulares (VIP), queremos ver el círculo exterior completo.
+  // - pad más grande = más “aire” alrededor del círculo.
+  // - maxZoom más bajo = evita que Leaflet se acerque de más.
+  const pad = isC ? 1.10 : 0.20;
+
+  // SOLO en público. En editor puedes querer acercarte más.
+  const mz = (isC && !IS_EDIT) ? 1 : null;
 
   try {
     let b;
     if (isC) b = getBoundsForCircleFeature(feature, layer).pad(pad);
     else b = (layer?.getBounds ? layer.getBounds() : L.geoJSON(feature).getBounds()).pad(pad);
+
     flyToBoundsSmooth(b, 0.65, mz);
   } catch {}
 }
+
+function centerOnLayerNoZoom(layer){
+  try {
+    if (layer?.getBounds){
+      map.panTo(layer.getBounds().getCenter(), { animate: !IS_MOBILE, duration: 0.35 });
+      return;
+    }
+    if (layer?.getLatLng){
+      map.panTo(layer.getLatLng(), { animate: !IS_MOBILE, duration: 0.35 });
+    }
+  } catch {}
+}
+
 
 /* =========================================================
    ================= PÚBLICO: SECCIONES → MANZANAS → LOTES =================
@@ -730,7 +750,14 @@ async function loadLotesForCurrentManzana(){
         layer.setStyle(base);
         pulseLayer(layer, base, { ms: 200 });
 
-        flyToBoundsSmooth(layer.getBounds().pad(0.30), 0.45);
+        // Si la manzana actual es circular (VIP), NO hacemos zoom extra al lote.
+        // Solo centramos el lote y dejamos el zoom como está para que siga viéndose el círculo exterior.
+        if (isCircleFeature(currentManzanaFeature) && !IS_EDIT){
+          centerOnLayerNoZoom(layer);
+        } else {
+          flyToBoundsSmooth(layer.getBounds().pad(0.30), 0.45);
+        }
+
         showLoteInfo(feature);
       });
     }
@@ -1025,7 +1052,11 @@ function setupSearch(){
       return;
     }
 
-    flyToBoundsSmooth(layer.getBounds().pad(0.35), 0.45);
+    if (isCircleFeature(currentManzanaFeature) && !IS_EDIT){
+      centerOnLayerNoZoom(layer);
+    } else {
+      flyToBoundsSmooth(layer.getBounds().pad(0.35), 0.45);
+    }
 
     const st = layer.feature?.properties?.estatus;
     const base = lotPinnedStyle(st);
