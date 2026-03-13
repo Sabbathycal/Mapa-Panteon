@@ -380,6 +380,26 @@ function getPropSeccion(f){
 function getPropManzana(f){
   return (f?.properties?.manzana || f?.properties?.id || "").toString().trim();
 }
+
+function getCurrentSeccionManzana(){
+  const seccion = (currentManzanaFeature?.properties?.seccion || $seccionSelect?.value || "").toString().trim();
+  const manzana = (currentManzanaFeature?.properties?.manzana || $manzanaSelect?.value || "").toString().trim();
+  return { seccion, manzana };
+}
+
+function ensureLoteContextProps(feature){
+  if (!feature) return;
+  if (!feature.properties) feature.properties = {};
+  const { seccion, manzana } = getCurrentSeccionManzana();
+
+  // Solo en modo lotes
+  if (seccion && !feature.properties.seccion) feature.properties.seccion = seccion;
+  if (manzana && !feature.properties.manzana) feature.properties.manzana = manzana;
+
+  // (opcional pero recomendado) compat por si usas manzanaId en otros lados
+  if (manzana && !feature.properties.manzanaId) feature.properties.manzanaId = manzana;
+}
+
 function getPropNombre(f){
   return (f?.properties?.nombre || `${getPropSeccion(f)} - ${getPropManzana(f)}`).toString().trim();
 }
@@ -2647,7 +2667,8 @@ function renderEditLotesPanel(){
       const estatus = document.getElementById("newStatus").value;
       const paquete = (document.getElementById("newPkg").value || "").trim() || null;
 
-      const props = { lote, id: lote, estatus, paquete };
+      const { seccion, manzana } = getCurrentSeccionManzana();
+      const props = { lote, id: lote, estatus, paquete, seccion, manzana, manzanaId: manzana };
 
       let feature = null;
       if (editor.drawShape === "polygon"){
@@ -2657,6 +2678,8 @@ function renderEditLotesPanel(){
         if (!editor.circleCenter || typeof editor.circleRadius !== "number") return notify("Círculo: clic centro y luego borde.", 2200);
         feature = { type:"Feature", geometry:{ type:"Point", coordinates: latLngToXY(editor.circleCenter) }, properties:{ ...props, shape:"circle", radius: editor.circleRadius } };
       }
+
+      ensureLoteContextProps(feature);
 
       currentLotesRaw.features.push(feature);
       editorClearPoly(); editorClearCircle();
@@ -2803,6 +2826,11 @@ function renderEditLotesPanel(){
   };
 
   document.getElementById("btnCopy").onclick = async () => {
+    if (currentLotesRaw?.features?.length){
+      for (const f of currentLotesRaw.features){
+        ensureLoteContextProps(f);
+      }
+    }
     const txt = JSON.stringify(currentLotesRaw || { type:"FeatureCollection", features:[] }, null, 2);
     try {
       await navigator.clipboard.writeText(txt);
@@ -3016,6 +3044,9 @@ function attachEditorMapClick(){
 
       translateFeatureInPlace(temp, dx, dy);
       ensureUniqueId(temp, arr);
+
+      if (isEditLotes) ensureLoteContextProps(temp);
+      
       arr.push(temp);
 
       editor.pasteArmed = false;
@@ -3045,7 +3076,7 @@ function attachEditorMapClick(){
           const feature = {
             type:"Feature",
             geometry:{ type:"Polygon", coordinates:[corners] },
-            properties:{ id:loteId, lote:loteId, estatus:cfg.estatus, paquete:cfg.paquete }
+            properties:{ id:loteId, lote:loteId, estatus:cfg.estatus, paquete:cfg.paquete, seccion, manzana, manzanaId: manzana }
           };
 
           arr.push(feature);
@@ -3145,7 +3176,7 @@ function attachEditorMapClick(){
         const ang = baseAngleDeg + step * i;
 
         const f = deepCopy(tpl);
-
+        ensureLoteContextProps(f);
         rotateFeatureInPlace(f, centerX, centerY, (ang - baseAngleDeg));
         ensureUniqueId(f, arr);
 
