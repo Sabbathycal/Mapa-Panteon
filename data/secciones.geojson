@@ -1626,25 +1626,6 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          6569.5,
-          5398
-        ]
-      },
-      "properties": {
-        "seccion": "SAN MATEO VIP",
-        "manzana": "K",
-        "nombre": "TS - SJV - K",
-        "lotesFile": "./data/lotes/san-mateo-vip/lotes.geojson",
-        "id": "SAN MATEO-E",
-        "shape": "circle",
-        "radius": 100.43816669103141
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
           6832,
           5397
         ]
@@ -1654,7 +1635,7 @@
         "manzana": "D",
         "nombre": "TS - SJV - D",
         "lotesFile": "./data/lotes/san-mateo-vip/lotes.geojson",
-        "id": "SAN MATEO-D",
+        "id": "D",
         "shape": "circle",
         "radius": 100.43816669103141
       }
@@ -1673,7 +1654,7 @@
         "manzana": "C",
         "nombre": "TS - SJV - C",
         "lotesFile": "./data/lotes/san-mateo-vip/lotes.geojson",
-        "id": "SAN MATEO-C",
+        "id": "C",
         "shape": "circle",
         "radius": 100.43816669103141
       }
@@ -1692,7 +1673,7 @@
         "manzana": "B",
         "nombre": "TS - SJV - B",
         "lotesFile": "./data/lotes/san-mateo-vip/lotes.geojson",
-        "id": "SAN MATEO-B",
+        "id": "B",
         "shape": "circle",
         "radius": 100.43816669103141
       }
@@ -1711,7 +1692,7 @@
         "manzana": "A",
         "nombre": "TS - SJV - A",
         "lotesFile": "./data/lotes/san-mateo-vip/lotes.geojson",
-        "id": "SAN MATEO-A",
+        "id": "A",
         "shape": "circle",
         "radius": 100.43816669103141
       }
@@ -1730,7 +1711,7 @@
         "manzana": "G",
         "nombre": "TS - SJV - G",
         "lotesFile": "./data/lotes/san-mateo-vip/lotes.geojson",
-        "id": "SAN MATEO-G",
+        "id": "G",
         "shape": "circle",
         "radius": 100.43816669103141
       }
@@ -1749,7 +1730,7 @@
         "manzana": "F",
         "nombre": "TS - SJV - F",
         "lotesFile": "./data/lotes/san-mateo-vip/lotes.geojson",
-        "id": "SAN MATEO-F",
+        "id": "F",
         "shape": "circle",
         "radius": 100.43816669103141
       }
