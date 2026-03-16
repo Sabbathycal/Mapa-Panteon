@@ -239,7 +239,16 @@ function slugifySeccionPath(s){
 // Convención: data/lotes/<seccion_slug>/lotes.geojson
 function getSharedLotesUrlForSeccion(seccion){
   const slug = slugifySeccionPath(seccion);
-  return `./data/lotes/${slug}/lotes.geojson`;
+  
+  // Overrides de carpetas cuando el nombre real NO coincide con el slug default
+  const FOLDER_OVERRIDES = {
+    "san-mateo-vip": "sanmateovip",
+    "san-juan-vip": "sanjuanvip",
+    "san-pedro-vip": "sanpedrovip",
+  };
+
+  const folder = FOLDER_OVERRIDES[slug] || slug;
+  return `./data/lotes/${folder}/lotes.geojson`;
 }
 
 // Decide qué archivo leer (compat: si manzana trae lotesFile, úsalo)
