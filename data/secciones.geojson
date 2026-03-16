@@ -17,7 +17,7 @@
         "id": "SAN PEDRO VIP-A",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanpedrovip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -36,7 +36,7 @@
         "id": "SAN PEDRO VIP-B",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanpedrovip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -55,7 +55,7 @@
         "id": "SAN PEDRO VIP-C",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanpedrovip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -74,7 +74,7 @@
         "id": "SAN PEDRO VIP-D",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanpedrovip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -93,7 +93,7 @@
         "id": "SAN PEDRO VIP-E",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanpedrovip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -112,7 +112,7 @@
         "id": "SAN PEDRO VIP-F",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanpedrovip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -131,7 +131,7 @@
         "id": "SAN PEDRO VIP-G",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanpedrovip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -150,7 +150,7 @@
         "id": "SAN JUAN VIP-A",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanjuanvip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -169,7 +169,7 @@
         "id": "SAN JUAN VIP-B",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanjuanvip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -188,7 +188,7 @@
         "id": "SAN JUAN VIP-C",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanjuanvip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -207,7 +207,7 @@
         "id": "SAN JUAN VIP-D",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanjuanvip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -226,7 +226,7 @@
         "id": "SAN JUAN VIP-E",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanjuanvip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -245,7 +245,7 @@
         "id": "SAN JUAN VIP-F",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanjuanvip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -264,7 +264,7 @@
         "id": "SAN JUAN VIP-G",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanjuanvip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -283,7 +283,7 @@
         "id": "SAN JUAN VIP-H",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanjuanvip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -302,7 +302,7 @@
         "id": "SAN JUAN VIP-I",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanjuanvip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -321,7 +321,7 @@
         "id": "SAN JUAN VIP-J",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanjuanvip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -340,7 +340,7 @@
         "id": "SAN JUAN VIP-K",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanjuanvip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -359,7 +359,7 @@
         "id": "SAN JUAN VIP-L",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanjuanvip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -378,7 +378,7 @@
         "id": "SAN JUAN VIP-M",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanjuanvip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -397,7 +397,7 @@
         "id": "SAN JUAN VIP-N",
         "shape": "circle",
         "radius": 99.75858588186408,
-        "lotesFile": "./data/lotes/sanjuanvip/lotes.geojson"
+        "paquete": "VIP"
       }
     },
     {
@@ -434,7 +434,7 @@
         "seccion": "PLATINO",
         "manzana": "B",
         "nombre": "PLATINO - B",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -471,7 +471,7 @@
         "seccion": "PLATINO",
         "manzana": "C",
         "nombre": "PLATINO - C",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -508,7 +508,7 @@
         "seccion": "PLATINO",
         "manzana": "D",
         "nombre": "PLATINO - D",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -545,7 +545,7 @@
         "seccion": "PLATINO",
         "manzana": "E",
         "nombre": "PLATINO - E",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -582,7 +582,7 @@
         "seccion": "PLATINO",
         "manzana": "F",
         "nombre": "PLATINO - F",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -619,7 +619,7 @@
         "seccion": "PLATINO",
         "manzana": "G",
         "nombre": "PLATINO - G",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -656,7 +656,7 @@
         "seccion": "PLATINO",
         "manzana": "H",
         "nombre": "PLATINO - H",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -693,7 +693,7 @@
         "seccion": "PLATINO",
         "manzana": "I",
         "nombre": "PLATINO - I",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -730,7 +730,7 @@
         "seccion": "PLATINO",
         "manzana": "J",
         "nombre": "PLATINO - J",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -767,7 +767,7 @@
         "seccion": "PLATINO",
         "manzana": "K",
         "nombre": "PLATINO - K",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -804,7 +804,7 @@
         "seccion": "PLATINO",
         "manzana": "H",
         "nombre": "PLATINO - H",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -841,7 +841,7 @@
         "seccion": "PLATINO",
         "manzana": "I",
         "nombre": "PLATINO - I",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -878,7 +878,7 @@
         "seccion": "PLATINO",
         "manzana": "J",
         "nombre": "PLATINO - J",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -915,7 +915,7 @@
         "seccion": "PLATINO",
         "manzana": "O",
         "nombre": "PLATINO - O",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -952,7 +952,7 @@
         "seccion": "PLATINO",
         "manzana": "P",
         "nombre": "PLATINO - P",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -989,7 +989,7 @@
         "seccion": "PLATINO",
         "manzana": "Q",
         "nombre": "PLATINO - Q",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -1026,7 +1026,7 @@
         "seccion": "PLATINO",
         "manzana": "R",
         "nombre": "PLATINO - R",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -1063,7 +1063,7 @@
         "seccion": "PLATINO",
         "manzana": "S",
         "nombre": "PLATINO - S",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -1100,7 +1100,7 @@
         "seccion": "PLATINO",
         "manzana": "T",
         "nombre": "PLATINO - T",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -1137,7 +1137,7 @@
         "seccion": "PLATINO",
         "manzana": "U",
         "nombre": "PLATINO - U",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -1174,7 +1174,7 @@
         "seccion": "PLATINO",
         "manzana": "V",
         "nombre": "PLATINO - V",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -1211,7 +1211,7 @@
         "seccion": "PLATINO",
         "manzana": "S",
         "nombre": "PLATINO - S",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -1248,7 +1248,7 @@
         "seccion": "PLATINO",
         "manzana": "T",
         "nombre": "PLATINO - T",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -1285,7 +1285,7 @@
         "seccion": "PLATINO",
         "manzana": "U",
         "nombre": "PLATINO - U",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -1322,7 +1322,7 @@
         "seccion": "PLATINO",
         "manzana": "V",
         "nombre": "PLATINO - V",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -1359,7 +1359,7 @@
         "seccion": "PLATINO",
         "manzana": "W",
         "nombre": "PLATINO - W",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -1396,7 +1396,7 @@
         "seccion": "PLATINO",
         "manzana": "X",
         "nombre": "PLATINO - X",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -1433,7 +1433,7 @@
         "seccion": "PLATINO",
         "manzana": "Y",
         "nombre": "PLATINO - Y",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -1470,7 +1470,7 @@
         "seccion": "PLATINO",
         "manzana": "Z",
         "nombre": "PLATINO - Z",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -1507,7 +1507,7 @@
         "seccion": "PLATINO",
         "manzana": "AF",
         "nombre": "PLATINO - AF",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -1544,7 +1544,7 @@
         "seccion": "PLATINO",
         "manzana": "AG",
         "nombre": "PLATINO - AG",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -1581,7 +1581,7 @@
         "seccion": "PLATINO",
         "manzana": "AG",
         "nombre": "PLATINO - AG",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -1618,7 +1618,7 @@
         "seccion": "PLATINO",
         "manzana": "A",
         "nombre": "PLATINO - A",
-        "lotesFile": "./data/lotes/platino/lotes.geojson"
+        "paquete": "PLATINO"
       }
     },
     {
@@ -1634,10 +1634,10 @@
         "seccion": "SAN MATEO VIP",
         "manzana": "D",
         "nombre": "SAN MATEO VIP - D",
-        "lotesFile": "./data/lotes/sanmateovip/lotes.geojson",
         "id": "SAN MATEO VIP-D",
         "shape": "circle",
-        "radius": 100.43816669103141
+        "radius": 100.43816669103141,
+        "paquete": "VIP"
       }
     },
     {
@@ -1653,10 +1653,10 @@
         "seccion": "SAN MATEO VIP",
         "manzana": "C",
         "nombre": "SAN MATEO VIP - C",
-        "lotesFile": "./data/lotes/sanmateovip/lotes.geojson",
         "id": "SAN MATEO VIP-C",
         "shape": "circle",
-        "radius": 100.43816669103141
+        "radius": 100.43816669103141,
+        "paquete": "VIP"
       }
     },
     {
@@ -1672,10 +1672,10 @@
         "seccion": "SAN MATEO VIP",
         "manzana": "B",
         "nombre": "SAN MATEO VIP - B",
-        "lotesFile": "./data/lotes/sanmateovip/lotes.geojson",
         "id": "SAN MATEO VIP-B",
         "shape": "circle",
-        "radius": 100.43816669103141
+        "radius": 100.43816669103141,
+        "paquete": "VIP"
       }
     },
     {
@@ -1691,10 +1691,10 @@
         "seccion": "SAN MATEO VIP",
         "manzana": "A",
         "nombre": "SAN MATEO VIP - A",
-        "lotesFile": "./data/lotes/sanmateovip/lotes.geojson",
         "id": "SAN MATEO VIP-A",
         "shape": "circle",
-        "radius": 100.43816669103141
+        "radius": 100.43816669103141,
+        "paquete": "VIP"
       }
     },
     {
@@ -1710,10 +1710,10 @@
         "seccion": "SAN MATEO VIP",
         "manzana": "G",
         "nombre": "SAN MATEO VIP - G",
-        "lotesFile": "./data/lotes/sanmateovip/lotes.geojson",
         "id": "SAN MATEO VIP-G",
         "shape": "circle",
-        "radius": 100.43816669103141
+        "radius": 100.43816669103141,
+        "paquete": "VIP"
       }
     },
     {
@@ -1729,10 +1729,10 @@
         "seccion": "SAN MATEO VIP",
         "manzana": "F",
         "nombre": "SAN MATEO VIP - F",
-        "lotesFile": "./data/lotes/sanmateovip/lotes.geojson",
         "id": "SAN MATEO VIP-F",
         "shape": "circle",
-        "radius": 100.43816669103141
+        "radius": 100.43816669103141,
+        "paquete": "VIP"
       }
     },
     {
@@ -1769,7 +1769,7 @@
         "seccion": "ORO",
         "manzana": "A",
         "nombre": "ORO - A",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -1806,7 +1806,7 @@
         "seccion": "ORO",
         "manzana": "B",
         "nombre": "ORO - B",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -1843,7 +1843,7 @@
         "seccion": "ORO",
         "manzana": "C",
         "nombre": "ORO - C",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -1880,7 +1880,7 @@
         "seccion": "ORO",
         "manzana": "D",
         "nombre": "ORO - D",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -1917,7 +1917,7 @@
         "seccion": "ORO",
         "manzana": "E",
         "nombre": "ORO - E",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -1954,7 +1954,7 @@
         "seccion": "ORO",
         "manzana": "F",
         "nombre": "ORO - F",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -1991,7 +1991,7 @@
         "seccion": "ORO",
         "manzana": "G",
         "nombre": "ORO - G",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2028,7 +2028,7 @@
         "seccion": "ORO",
         "manzana": "H",
         "nombre": "ORO - H",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2065,7 +2065,7 @@
         "seccion": "ORO",
         "manzana": "I",
         "nombre": "ORO - I",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2102,7 +2102,7 @@
         "seccion": "ORO",
         "manzana": "J",
         "nombre": "ORO - J",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2139,7 +2139,7 @@
         "seccion": "ORO",
         "manzana": "K",
         "nombre": "ORO - K",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2176,7 +2176,7 @@
         "seccion": "ORO",
         "manzana": "L",
         "nombre": "ORO - L",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2213,7 +2213,7 @@
         "seccion": "ORO",
         "manzana": "M",
         "nombre": "ORO - M",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2250,7 +2250,7 @@
         "seccion": "ORO",
         "manzana": "N",
         "nombre": "ORO - N",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2287,7 +2287,7 @@
         "seccion": "ORO",
         "manzana": "O",
         "nombre": "ORO - O",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2324,7 +2324,7 @@
         "seccion": "ORO",
         "manzana": "P",
         "nombre": "ORO - P",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2361,7 +2361,7 @@
         "seccion": "ORO",
         "manzana": "Q",
         "nombre": "ORO - Q",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2398,7 +2398,7 @@
         "seccion": "ORO",
         "manzana": "R",
         "nombre": "ORO - R",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2435,7 +2435,7 @@
         "seccion": "ORO",
         "manzana": "S",
         "nombre": "ORO - S",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2472,7 +2472,7 @@
         "seccion": "ORO",
         "manzana": "T",
         "nombre": "ORO - T",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2509,7 +2509,7 @@
         "seccion": "ORO",
         "manzana": "U",
         "nombre": "ORO - U",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2546,7 +2546,7 @@
         "seccion": "ORO",
         "manzana": "V",
         "nombre": "ORO - V",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2583,7 +2583,7 @@
         "seccion": "ORO",
         "manzana": "W",
         "nombre": "ORO - W",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2620,7 +2620,7 @@
         "seccion": "ORO",
         "manzana": "X",
         "nombre": "ORO - X",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2657,7 +2657,7 @@
         "seccion": "ORO",
         "manzana": "Y",
         "nombre": "ORO - Y",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2694,7 +2694,7 @@
         "seccion": "ORO",
         "manzana": "Z",
         "nombre": "ORO - Z",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2731,7 +2731,7 @@
         "seccion": "ORO",
         "manzana": "W",
         "nombre": "ORO - W",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2768,7 +2768,7 @@
         "seccion": "ORO",
         "manzana": "X",
         "nombre": "ORO - X",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2805,7 +2805,7 @@
         "seccion": "ORO",
         "manzana": "Y",
         "nombre": "ORO - Y",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2842,7 +2842,7 @@
         "seccion": "ORO",
         "manzana": "Z",
         "nombre": "ORO - Z",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2879,7 +2879,7 @@
         "seccion": "ORO",
         "manzana": "W",
         "nombre": "ORO - W",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2916,7 +2916,7 @@
         "seccion": "ORO",
         "manzana": "X",
         "nombre": "ORO - X",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2953,7 +2953,7 @@
         "seccion": "ORO",
         "manzana": "Y",
         "nombre": "ORO - Y",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -2990,7 +2990,7 @@
         "seccion": "ORO",
         "manzana": "W",
         "nombre": "ORO - W",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -3027,7 +3027,7 @@
         "seccion": "ORO",
         "manzana": "X",
         "nombre": "ORO - X",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -3064,7 +3064,7 @@
         "seccion": "ORO",
         "manzana": "W",
         "nombre": "ORO - W",
-        "lotesFile": "./data/lotes/oro/lotes.geojson"
+        "paquete": "ORO"
       }
     },
     {
@@ -3101,7 +3101,7 @@
         "seccion": "PLATA",
         "manzana": "A",
         "nombre": "PLATA - A",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3138,7 +3138,7 @@
         "seccion": "PLATA",
         "manzana": "B",
         "nombre": "PLATA - B",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3175,7 +3175,7 @@
         "seccion": "PLATA",
         "manzana": "C",
         "nombre": "PLATA - C",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3212,7 +3212,7 @@
         "seccion": "PLATA",
         "manzana": "D",
         "nombre": "PLATA - D",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3249,7 +3249,7 @@
         "seccion": "PLATA",
         "manzana": "A",
         "nombre": "PLATA - A",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3286,7 +3286,7 @@
         "seccion": "PLATA",
         "manzana": "B",
         "nombre": "PLATA - B",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3323,7 +3323,7 @@
         "seccion": "PLATA",
         "manzana": "C",
         "nombre": "PLATA - C",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3360,7 +3360,7 @@
         "seccion": "PLATA",
         "manzana": "D",
         "nombre": "PLATA - D",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3397,7 +3397,7 @@
         "seccion": "PLATA",
         "manzana": "A",
         "nombre": "PLATA - A",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3434,7 +3434,7 @@
         "seccion": "PLATA",
         "manzana": "B",
         "nombre": "PLATA - B",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3471,7 +3471,7 @@
         "seccion": "PLATA",
         "manzana": "C",
         "nombre": "PLATA - C",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3508,7 +3508,7 @@
         "seccion": "PLATA",
         "manzana": "D",
         "nombre": "PLATA - D",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3545,7 +3545,7 @@
         "seccion": "PLATA",
         "manzana": "E",
         "nombre": "PLATA - E",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3582,7 +3582,7 @@
         "seccion": "PLATA",
         "manzana": "A",
         "nombre": "PLATA - A",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3619,7 +3619,7 @@
         "seccion": "PLATA",
         "manzana": "B",
         "nombre": "PLATA - B",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3656,7 +3656,7 @@
         "seccion": "PLATA",
         "manzana": "C",
         "nombre": "PLATA - C",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3693,7 +3693,7 @@
         "seccion": "PLATA",
         "manzana": "A",
         "nombre": "PLATA - A",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3730,7 +3730,7 @@
         "seccion": "PLATA",
         "manzana": "B",
         "nombre": "PLATA - B",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3767,7 +3767,7 @@
         "seccion": "PLATA",
         "manzana": "C",
         "nombre": "PLATA - C",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3804,7 +3804,7 @@
         "seccion": "PLATA",
         "manzana": "A",
         "nombre": "PLATA - A",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3841,7 +3841,7 @@
         "seccion": "PLATA",
         "manzana": "B",
         "nombre": "PLATA - B",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3878,7 +3878,7 @@
         "seccion": "PLATA",
         "manzana": "C",
         "nombre": "PLATA - C",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3915,7 +3915,7 @@
         "seccion": "PLATA",
         "manzana": "A",
         "nombre": "PLATA - A",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3952,7 +3952,7 @@
         "seccion": "PLATA",
         "manzana": "B",
         "nombre": "PLATA - B",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -3989,7 +3989,7 @@
         "seccion": "PLATA",
         "manzana": "C",
         "nombre": "PLATA - C",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -4026,7 +4026,7 @@
         "seccion": "PLATA",
         "manzana": "D",
         "nombre": "PLATA - D",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -4063,7 +4063,7 @@
         "seccion": "PLATA",
         "manzana": "A",
         "nombre": "PLATA - A",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -4100,7 +4100,7 @@
         "seccion": "PLATA",
         "manzana": "B",
         "nombre": "PLATA - B",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -4137,7 +4137,7 @@
         "seccion": "PLATA",
         "manzana": "C",
         "nombre": "PLATA - C",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -4174,7 +4174,7 @@
         "seccion": "PLATA",
         "manzana": "D",
         "nombre": "PLATA - D",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -4211,7 +4211,7 @@
         "seccion": "PLATA",
         "manzana": "A",
         "nombre": "PLATA - A",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -4248,7 +4248,7 @@
         "seccion": "PLATA",
         "manzana": "B",
         "nombre": "PLATA - B",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -4285,7 +4285,7 @@
         "seccion": "PLATA",
         "manzana": "C",
         "nombre": "PLATA - C",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -4322,7 +4322,7 @@
         "seccion": "PLATA",
         "manzana": "D",
         "nombre": "PLATA - D",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -4359,7 +4359,7 @@
         "seccion": "PLATA",
         "manzana": "A",
         "nombre": "PLATA - A",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -4396,7 +4396,7 @@
         "seccion": "PLATA",
         "manzana": "A",
         "nombre": "PLATA - A",
-        "lotesFile": "./data/lotes/plata/lotes.geojson"
+        "paquete": "PLATA"
       }
     },
     {
@@ -4412,10 +4412,972 @@
         "seccion": "SAN MATEO VIP",
         "manzana": "E",
         "nombre": "SAN MATEO VIP - E",
-        "lotesFile": "./data/lotes/sanmateovip/lotes.geojson",
         "id": "SAN MATEO VIP-E",
         "shape": "circle",
-        "radius": 100.43816669103141
+        "radius": 100.43816669103141,
+        "paquete": "VIP"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2227.241542865991,
+              6304.772497671765
+            ],
+            [
+              2493.139636179287,
+              6257.887489701694
+            ],
+            [
+              2529.258457134009,
+              6462.727502328234
+            ],
+            [
+              2263.3603638207123,
+              6509.612510298305
+            ],
+            [
+              2227.241542865991,
+              6304.772497671765
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1935.6078692919295,
+              6356.452483466909
+            ],
+            [
+              2201.5059626052257,
+              6309.567475496838
+            ],
+            [
+              2237.6247835599474,
+              6514.407488123377
+            ],
+            [
+              1971.7266902466508,
+              6561.292496093449
+            ],
+            [
+              1935.6078692919295,
+              6356.452483466909
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1976.241542865991,
+              6586.897497671765
+            ],
+            [
+              2242.139636179287,
+              6540.012489701695
+            ],
+            [
+              2278.258457134009,
+              6744.852502328234
+            ],
+            [
+              2012.3603638207128,
+              6791.737510298305
+            ],
+            [
+              1976.241542865991,
+              6586.897497671765
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-B",
+        "seccion": "PLATA",
+        "manzana": "B",
+        "nombre": "PLATA - B",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2016.875216440053,
+              6817.342511876623
+            ],
+            [
+              2282.773309753349,
+              6770.457503906551
+            ],
+            [
+              2318.8921307080705,
+              6975.297516533091
+            ],
+            [
+              2052.9940373947743,
+              7022.182524503161
+            ],
+            [
+              2016.875216440053,
+              6817.342511876623
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-C",
+        "seccion": "PLATA",
+        "manzana": "C",
+        "nombre": "PLATA - C",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1645.0410325048986,
+              6408.2299763644805
+            ],
+            [
+              1910.9391258181947,
+              6361.344968394409
+            ],
+            [
+              1947.0579467729165,
+              6566.184981020949
+            ],
+            [
+              1681.15985345962,
+              6613.06998899102
+            ],
+            [
+              1645.0410325048986,
+              6408.2299763644805
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1685.6747060789603,
+              6638.674990569337
+            ],
+            [
+              1951.5727993922562,
+              6591.789982599266
+            ],
+            [
+              1987.691620346978,
+              6796.629995225805
+            ],
+            [
+              1721.7935270336818,
+              6843.5150031958765
+            ],
+            [
+              1685.6747060789603,
+              6638.674990569337
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-B",
+        "seccion": "PLATA",
+        "manzana": "B",
+        "nombre": "PLATA - B",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1726.308379653022,
+              6869.120004774194
+            ],
+            [
+              1992.2064729663182,
+              6822.234996804123
+            ],
+            [
+              2028.3252939210395,
+              7027.075009430662
+            ],
+            [
+              1762.4272006077435,
+              7073.960017400733
+            ],
+            [
+              1726.308379653022,
+              6869.120004774194
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-C",
+        "seccion": "PLATA",
+        "manzana": "C",
+        "nombre": "PLATA - C",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1766.9420532270838,
+              7099.56501897905
+            ],
+            [
+              2032.8401465403797,
+              7052.680011008979
+            ],
+            [
+              2068.958967495101,
+              7257.520023635519
+            ],
+            [
+              1803.0608741818053,
+              7304.40503160559
+            ],
+            [
+              1766.9420532270838,
+              7099.56501897905
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-D",
+        "seccion": "PLATA",
+        "manzana": "D",
+        "nombre": "PLATA - D",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1327.2328692919295,
+              6463.45248346691
+            ],
+            [
+              1593.1309626052257,
+              6416.567475496839
+            ],
+            [
+              1629.2497835599472,
+              6621.407488123378
+            ],
+            [
+              1363.351690246651,
+              6668.29249609345
+            ],
+            [
+              1327.2328692919295,
+              6463.45248346691
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1367.8665428659913,
+              6693.897497671766
+            ],
+            [
+              1633.7646361792874,
+              6647.012489701696
+            ],
+            [
+              1669.883457134009,
+              6851.852502328235
+            ],
+            [
+              1403.9853638207128,
+              6898.737510298306
+            ],
+            [
+              1367.8665428659913,
+              6693.897497671766
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-B",
+        "seccion": "PLATA",
+        "manzana": "B",
+        "nombre": "PLATA - B",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1408.500216440053,
+              6924.342511876624
+            ],
+            [
+              1674.3983097533492,
+              6877.457503906552
+            ],
+            [
+              1710.5171307080707,
+              7082.297516533092
+            ],
+            [
+              1444.6190373947745,
+              7129.182524503162
+            ],
+            [
+              1408.500216440053,
+              6924.342511876624
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-C",
+        "seccion": "PLATA",
+        "manzana": "C",
+        "nombre": "PLATA - C",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1034.7328692919295,
+              6514.20248346691
+            ],
+            [
+              1300.6309626052257,
+              6467.317475496839
+            ],
+            [
+              1336.7497835599472,
+              6672.157488123378
+            ],
+            [
+              1070.851690246651,
+              6719.04249609345
+            ],
+            [
+              1034.7328692919295,
+              6514.20248346691
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1075.3665428659913,
+              6744.647497671766
+            ],
+            [
+              1341.2646361792874,
+              6697.762489701696
+            ],
+            [
+              1377.383457134009,
+              6902.602502328235
+            ],
+            [
+              1111.4853638207128,
+              6949.487510298306
+            ],
+            [
+              1075.3665428659913,
+              6744.647497671766
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-B",
+        "seccion": "PLATA",
+        "manzana": "B",
+        "nombre": "PLATA - B",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1116.000216440053,
+              6975.092511876624
+            ],
+            [
+              1381.8983097533492,
+              6928.207503906552
+            ],
+            [
+              1418.0171307080707,
+              7133.047516533092
+            ],
+            [
+              1152.1190373947745,
+              7179.932524503162
+            ],
+            [
+              1116.000216440053,
+              6975.092511876624
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-C",
+        "seccion": "PLATA",
+        "manzana": "C",
+        "nombre": "PLATA - C",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1199.7328692919295,
+              5740.32748346691
+            ],
+            [
+              1465.6309626052257,
+              5693.442475496839
+            ],
+            [
+              1501.7497835599472,
+              5898.282488123378
+            ],
+            [
+              1235.851690246651,
+              5945.16749609345
+            ],
+            [
+              1199.7328692919295,
+              5740.32748346691
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1240.3665428659913,
+              5970.772497671766
+            ],
+            [
+              1506.2646361792874,
+              5923.887489701696
+            ],
+            [
+              1542.383457134009,
+              6128.727502328235
+            ],
+            [
+              1276.4853638207128,
+              6175.612510298306
+            ],
+            [
+              1240.3665428659913,
+              5970.772497671766
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-B",
+        "seccion": "PLATA",
+        "manzana": "B",
+        "nombre": "PLATA - B",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1281.000216440053,
+              6201.217511876624
+            ],
+            [
+              1546.8983097533492,
+              6154.332503906552
+            ],
+            [
+              1583.0171307080707,
+              6359.172516533092
+            ],
+            [
+              1317.1190373947745,
+              6406.057524503162
+            ],
+            [
+              1281.000216440053,
+              6201.217511876624
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-C",
+        "seccion": "PLATA",
+        "manzana": "C",
+        "nombre": "PLATA - C",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              868.2910325048986,
+              5560.9799763644805
+            ],
+            [
+              1134.1891258181947,
+              5514.094968394409
+            ],
+            [
+              1170.3079467729162,
+              5718.934981020949
+            ],
+            [
+              904.4098534596201,
+              5765.81998899102
+            ],
+            [
+              868.2910325048986,
+              5560.9799763644805
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              908.9247060789603,
+              5791.424990569337
+            ],
+            [
+              1174.8227993922565,
+              5744.539982599266
+            ],
+            [
+              1210.941620346978,
+              5949.379995225805
+            ],
+            [
+              945.0435270336818,
+              5996.2650031958765
+            ],
+            [
+              908.9247060789603,
+              5791.424990569337
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-B",
+        "seccion": "PLATA",
+        "manzana": "B",
+        "nombre": "PLATA - B",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              949.558379653022,
+              6021.870004774194
+            ],
+            [
+              1215.4564729663182,
+              5974.984996804123
+            ],
+            [
+              1251.5752939210397,
+              6179.825009430662
+            ],
+            [
+              985.6772006077435,
+              6226.710017400733
+            ],
+            [
+              949.558379653022,
+              6021.870004774194
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-C",
+        "seccion": "PLATA",
+        "manzana": "C",
+        "nombre": "PLATA - C",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              990.1920532270838,
+              6252.31501897905
+            ],
+            [
+              1256.0901465403797,
+              6205.430011008979
+            ],
+            [
+              1292.2089674951014,
+              6410.270023635519
+            ],
+            [
+              1026.3108741818053,
+              6457.15503160559
+            ],
+            [
+              990.1920532270838,
+              6252.31501897905
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-D",
+        "seccion": "PLATA",
+        "manzana": "D",
+        "nombre": "PLATA - D",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1557.9247060789603,
+              5915.799990569338
+            ],
+            [
+              1823.8227993922565,
+              5868.914982599266
+            ],
+            [
+              1859.941620346978,
+              6073.754995225806
+            ],
+            [
+              1594.0435270336818,
+              6120.640003195877
+            ],
+            [
+              1557.9247060789603,
+              5915.799990569338
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1598.558379653022,
+              6146.245004774194
+            ],
+            [
+              1864.4564729663182,
+              6099.3599968041235
+            ],
+            [
+              1900.5752939210397,
+              6304.200009430662
+            ],
+            [
+              1634.6772006077435,
+              6351.085017400734
+            ],
+            [
+              1598.558379653022,
+              6146.245004774194
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-B",
+        "seccion": "PLATA",
+        "manzana": "B",
+        "nombre": "PLATA - B",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1851.6747060789603,
+              5864.299990569338
+            ],
+            [
+              2117.5727993922565,
+              5817.414982599266
+            ],
+            [
+              2153.691620346978,
+              6022.254995225806
+            ],
+            [
+              1887.7935270336816,
+              6069.140003195877
+            ],
+            [
+              1851.6747060789603,
+              5864.299990569338
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1892.3083796530218,
+              6094.745004774194
+            ],
+            [
+              2158.206472966318,
+              6047.8599968041235
+            ],
+            [
+              2194.3252939210397,
+              6252.700009430662
+            ],
+            [
+              1928.4272006077435,
+              6299.585017400734
+            ],
+            [
+              1892.3083796530218,
+              6094.745004774194
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-B",
+        "seccion": "PLATA",
+        "manzana": "B",
+        "nombre": "PLATA - B",
+        "paquete": "PLATA"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2182.491542865991,
+              6044.522497671765
+            ],
+            [
+              2448.389636179287,
+              5997.637489701694
+            ],
+            [
+              2484.508457134009,
+              6202.477502328234
+            ],
+            [
+              2218.6103638207123,
+              6249.362510298305
+            ],
+            [
+              2182.491542865991,
+              6044.522497671765
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "paquete": "PLATA"
       }
     }
   ]
