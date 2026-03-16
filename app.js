@@ -854,10 +854,6 @@ async function loadLotesForCurrentManzana(){
   const man = getPropManzana(currentManzanaFeature);
   setPanel(`SECCIÓN ${safe(sec)} — MANZANA ${safe(man)}`, `
     <p>Selecciona un lote o usa <b>Mostrar lotes</b>.</p>
-    <p style="font-size:12px;color:#6b7280;">
-      Fuente lotes: <code>${safe(lotesUrl)}</code>
-      ${hasManzanaProp ? "(filtrado por manzana)" : "(sin filtro: archivo por manzana)"}
-    </p>
   `);
 }
 
