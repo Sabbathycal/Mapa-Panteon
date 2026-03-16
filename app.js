@@ -119,6 +119,92 @@ async function loadJson(url){
 }
 function deepCopy(obj){ return JSON.parse(JSON.stringify(obj)); }
 
+// Normaliza las manzanas para que no queden inconsistencias tipo:
+// id="PLATA-H" pero seccion="PLATA", manzana="A", nombre="PLATA - A".
+// Regla: si existe seccion+manzana, el id y nombre se recalculan.
+// También elimina lotesFile (la app ya resuelve el archivo de lotes por sección).
+function normalizeManzanasGeoJSON(geojson){
+  if (!geojson || !Array.isArray(geojson.features)) return geojson;
+
+  const usedIds = new Set();
+
+  function normStr(v){
+    return (v ?? "").toString().trim();
+  }
+  function normSeccion(v){
+    return normStr(v).toUpperCase();
+  }
+  function normManzana(v){
+    // A, B, C... / 1,2... o cualquier etiqueta corta
+    return normStr(v).toUpperCase();
+  }
+  function makeId(seccion, manzana){
+    return `${seccion}-${manzana}`;
+  }
+  function makeNombre(seccion, manzana){
+    return `${seccion} - ${manzana}`;
+  }
+  function uniqueId(base){
+    if (!usedIds.has(base)){
+      usedIds.add(base);
+      return base;
+    }
+    let i = 2;
+    while (usedIds.has(`${base}__DUP${i}`)) i++;
+    const id = `${base}__DUP${i}`;
+    usedIds.add(id);
+    return id;
+  }
+
+  // primer pase: registrar ids existentes para detectar duplicados
+  for (const f of geojson.features){
+    const p = f?.properties || {};
+    const id = normStr(p.id);
+    if (id) usedIds.add(id);
+  }
+
+  for (const f of geojson.features){
+    if (!f.properties) f.properties = {};
+    const p = f.properties;
+
+    // elimina lotesFile viejo si existe
+    if ("lotesFile" in p) delete p.lotesFile;
+
+    const seccion = normSeccion(p.seccion);
+    const manzana = normManzana(p.manzana);
+
+    // si no hay seccion/manzana, intenta inferir desde id
+    let finalSeccion = seccion;
+    let finalManzana = manzana;
+    if ((!finalSeccion || !finalManzana) && p.id){
+      const parts = normStr(p.id).split("-");
+      if (!finalSeccion && parts[0]) finalSeccion = normSeccion(parts[0]);
+      if (!finalManzana && parts[1]) finalManzana = normManzana(parts.slice(1).join("-"));
+    }
+
+    // si aún falta algo, deja lo que haya sin romper
+    if (finalSeccion) p.seccion = finalSeccion;
+    if (finalManzana) p.manzana = finalManzana;
+
+    // regla principal: si hay seccion+manzana, recalcula id/nombre
+    if (finalSeccion && finalManzana){
+      const baseId = makeId(finalSeccion, finalManzana);
+      // si el id actual es otro, se reemplaza; si genera colisión, se vuelve único
+      const desired = baseId;
+      const alreadyUsed = usedIds.has(desired) && normStr(p.id) !== desired;
+      const newId = alreadyUsed ? uniqueId(desired) : desired;
+      p.id = newId;
+      p.nombre = makeNombre(finalSeccion, finalManzana);
+    } else {
+      // fallback: normaliza strings
+      if (p.id) p.id = normStr(p.id);
+      if (p.nombre) p.nombre = normStr(p.nombre);
+    }
+  }
+
+  return geojson;
+}
+
 // CRS.Simple: lat=y, lng=x; GeoJSON: [x,y]=[lng,lat]
 function xyToLatLng(xy){ return L.latLng(xy[1], xy[0]); }
 function latLngToXY(ll){ return [ll.lng, ll.lat]; }
@@ -2468,10 +2554,13 @@ function renderEditManzanasPanel(){
   };
 
   document.getElementById("btnCopy").onclick = async () => {
-    const txt = JSON.stringify(manzanasRaw || { type:"FeatureCollection", features:[] }, null, 2);
+    const snapshot = deepCopy(manzanasRaw || { type:"FeatureCollection", features:[] });
+    // Arregla id/seccion/manzana/nombre y elimina lotesFile para evitar inconsistencias al pegar
+    const normalized = normalizeManzanasGeoJSON(snapshot);
+    const txt = JSON.stringify(normalized, null, 2);
     try {
       await navigator.clipboard.writeText(txt);
-      notify("GeoJSON copiado. Pégalo en data/secciones.geojson.", 2400);
+      notify("GeoJSON copiado (normalizado). Pégalo en data/secciones.geojson.", 2600);
     } catch {
       setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
     }
