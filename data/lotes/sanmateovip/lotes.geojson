@@ -35,7 +35,9 @@
         "lote": "007",
         "estatus": "disponible",
         "paquete": null,
-        "seccion": "SAN MATEO VIP"
+        "seccion": "SAN MATEO VIP",
+        "manzana": "A",
+        "manzanaId": "A"
       }
     },
     {
@@ -72,7 +74,9 @@
         "lote": "006",
         "estatus": "disponible",
         "paquete": null,
-        "seccion": "SAN MATEO VIP"
+        "seccion": "SAN MATEO VIP",
+        "manzana": "A",
+        "manzanaId": "A"
       }
     },
     {
@@ -109,7 +113,9 @@
         "lote": "005",
         "estatus": "disponible",
         "paquete": null,
-        "seccion": "SAN MATEO VIP"
+        "seccion": "SAN MATEO VIP",
+        "manzana": "A",
+        "manzanaId": "A"
       }
     },
     {
@@ -146,7 +152,9 @@
         "lote": "004",
         "estatus": "disponible",
         "paquete": null,
-        "seccion": "SAN MATEO VIP"
+        "seccion": "SAN MATEO VIP",
+        "manzana": "A",
+        "manzanaId": "A"
       }
     },
     {
@@ -183,7 +191,9 @@
         "lote": "003",
         "estatus": "disponible",
         "paquete": null,
-        "seccion": "SAN MATEO VIP"
+        "seccion": "SAN MATEO VIP",
+        "manzana": "A",
+        "manzanaId": "A"
       }
     },
     {
@@ -220,7 +230,9 @@
         "lote": "002",
         "estatus": "disponible",
         "paquete": null,
-        "seccion": "SAN MATEO VIP"
+        "seccion": "SAN MATEO VIP",
+        "manzana": "A",
+        "manzanaId": "A"
       }
     },
     {
@@ -257,7 +269,9 @@
         "lote": "001",
         "estatus": "disponible",
         "paquete": null,
-        "seccion": "SAN MATEO VIP"
+        "seccion": "SAN MATEO VIP",
+        "manzana": "A",
+        "manzanaId": "A"
       }
     },
     {
@@ -294,7 +308,9 @@
         "lote": "008",
         "estatus": "disponible",
         "paquete": null,
-        "seccion": "SAN MATEO VIP"
+        "seccion": "SAN MATEO VIP",
+        "manzana": "A",
+        "manzanaId": "A"
       }
     },
     {
@@ -1894,6 +1910,318 @@
         "seccion": "SAN MATEO VIP",
         "manzana": "G",
         "manzanaId": "G"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6565.61672997881,
+              5441.33739290823
+            ],
+            [
+              6591.696727288615,
+              5434.349278690463
+            ],
+            [
+              6604.508270021191,
+              5482.162607091771
+            ],
+            [
+              6578.428272711386,
+              5489.150721309538
+            ],
+            [
+              6565.61672997881,
+              5441.33739290823
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "039",
+        "lote": "039",
+        "estatus": "disponible",
+        "paquete": null,
+        "seccion": "SAN MATEO VIP",
+        "manzana": "E",
+        "manzanaId": "E"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6535.8711570489095,
+              5427.0033712563345
+            ],
+            [
+              6559.253842951089,
+              5440.503371256335
+            ],
+            [
+              6534.50384295109,
+              5483.371628743665
+            ],
+            [
+              6511.12115704891,
+              5469.871628743665
+            ],
+            [
+              6535.8711570489095,
+              5427.0033712563345
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "038",
+        "lote": "038",
+        "estatus": "disponible",
+        "paquete": null,
+        "seccion": "SAN MATEO VIP",
+        "manzana": "E",
+        "manzanaId": "E"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6525.66260709177,
+              5395.92922997881
+            ],
+            [
+              6532.650721309537,
+              5422.009227288615
+            ],
+            [
+              6484.837392908229,
+              5434.820770021191
+            ],
+            [
+              6477.849278690462,
+              5408.740772711386
+            ],
+            [
+              6525.66260709177,
+              5395.92922997881
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "037",
+        "lote": "037",
+        "estatus": "disponible",
+        "paquete": null,
+        "seccion": "SAN MATEO VIP",
+        "manzana": "E",
+        "manzanaId": "E"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6540.4341287436655,
+              5366.1836570489095
+            ],
+            [
+              6526.934128743665,
+              5389.566342951089
+            ],
+            [
+              6484.065871256335,
+              5364.81634295109
+            ],
+            [
+              6497.565871256335,
+              5341.43365704891
+            ],
+            [
+              6540.4341287436655,
+              5366.1836570489095
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "036",
+        "lote": "036",
+        "estatus": "disponible",
+        "paquete": null,
+        "seccion": "SAN MATEO VIP",
+        "manzana": "E",
+        "manzanaId": "E"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6571.07077002119,
+              5355.16260709177
+            ],
+            [
+              6544.990772711385,
+              5362.150721309537
+            ],
+            [
+              6532.179229978809,
+              5314.337392908229
+            ],
+            [
+              6558.259227288614,
+              5307.349278690462
+            ],
+            [
+              6571.07077002119,
+              5355.16260709177
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "035",
+        "lote": "035",
+        "estatus": "disponible",
+        "paquete": null,
+        "seccion": "SAN MATEO VIP",
+        "manzana": "E",
+        "manzanaId": "E"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6601.5663429510905,
+              5369.4966287436655
+            ],
+            [
+              6578.183657048911,
+              5355.996628743665
+            ],
+            [
+              6602.93365704891,
+              5313.128371256335
+            ],
+            [
+              6626.31634295109,
+              5326.628371256335
+            ],
+            [
+              6601.5663429510905,
+              5369.4966287436655
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "034",
+        "lote": "034",
+        "estatus": "disponible",
+        "paquete": null,
+        "seccion": "SAN MATEO VIP",
+        "manzana": "E",
+        "manzanaId": "E"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6611.46239290823,
+              5401.57077002119
+            ],
+            [
+              6604.474278690463,
+              5375.490772711385
+            ],
+            [
+              6652.287607091771,
+              5362.679229978809
+            ],
+            [
+              6659.275721309538,
+              5388.759227288614
+            ],
+            [
+              6611.46239290823,
+              5401.57077002119
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "033",
+        "lote": "033",
+        "estatus": "disponible",
+        "paquete": null,
+        "seccion": "SAN MATEO VIP",
+        "manzana": "E",
+        "manzanaId": "E"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6597.6908712563345,
+              5431.5663429510905
+            ],
+            [
+              6611.190871256335,
+              5408.183657048911
+            ],
+            [
+              6654.059128743665,
+              5432.93365704891
+            ],
+            [
+              6640.559128743665,
+              5456.31634295109
+            ],
+            [
+              6597.6908712563345,
+              5431.5663429510905
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "040",
+        "lote": "040",
+        "estatus": "disponible",
+        "paquete": null,
+        "seccion": "SAN MATEO VIP",
+        "manzana": "E",
+        "manzanaId": "E"
       }
     }
   ]
