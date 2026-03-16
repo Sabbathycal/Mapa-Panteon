@@ -6,17 +6,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          15139.79,
-          4180.11
+          7988.875,
+          2360
         ]
       },
       "properties": {
         "seccion": "SAN PEDRO VIP",
         "manzana": "A",
-        "nombre": "TS - SPV - A",
+        "nombre": "SAN PEDRO VIP - A",
         "id": "SAN PEDRO VIP-A",
         "shape": "circle",
-        "radius": 199.63
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN PEDRO VIP-A.geojson"
       }
     },
     {
@@ -24,17 +25,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          15354.7,
-          4595.48
+          8095.25,
+          2568
         ]
       },
       "properties": {
         "seccion": "SAN PEDRO VIP",
         "manzana": "B",
-        "nombre": "TS - SPV - B",
+        "nombre": "SAN PEDRO VIP - B",
         "id": "SAN PEDRO VIP-B",
         "shape": "circle",
-        "radius": 199.37
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN PEDRO VIP-B.geojson"
       }
     },
     {
@@ -42,17 +44,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          14672.83,
-          4213.64
+          7755.5,
+          2377.75
         ]
       },
       "properties": {
         "seccion": "SAN PEDRO VIP",
         "manzana": "C",
-        "nombre": "TS - SPV - C",
+        "nombre": "SAN PEDRO VIP - C",
         "id": "SAN PEDRO VIP-C",
         "shape": "circle",
-        "radius": 198.97
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN PEDRO VIP-C.geojson"
       }
     },
     {
@@ -60,17 +63,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          14817.02,
-          4673.44
+          7827.25,
+          2607
         ]
       },
       "properties": {
         "seccion": "SAN PEDRO VIP",
         "manzana": "D",
-        "nombre": "TS - SPV - D",
+        "nombre": "SAN PEDRO VIP - D",
         "id": "SAN PEDRO VIP-D",
         "shape": "circle",
-        "radius": 198.47
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN PEDRO VIP-D.geojson"
       }
     },
     {
@@ -78,17 +82,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          15132.57,
-          5065.7
+          7984.5,
+          2802.625
         ]
       },
       "properties": {
         "seccion": "SAN PEDRO VIP",
         "manzana": "E",
-        "nombre": "TS - SPV - E",
+        "nombre": "SAN PEDRO VIP - E",
         "id": "SAN PEDRO VIP-E",
         "shape": "circle",
-        "radius": 198.72
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN PEDRO VIP-E.geojson"
       }
     },
     {
@@ -96,17 +101,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          14856.49,
-          5398.97
+          7847.375,
+          2969.25
         ]
       },
       "properties": {
         "seccion": "SAN PEDRO VIP",
         "manzana": "F",
-        "nombre": "TS - SPV - F",
+        "nombre": "SAN PEDRO VIP - F",
         "id": "SAN PEDRO VIP-F",
         "shape": "circle",
-        "radius": 198.94
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN PEDRO VIP-F.geojson"
       }
     },
     {
@@ -114,17 +120,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          14287.08,
-          5646.98
+          7562.125,
+          3094.25
         ]
       },
       "properties": {
         "seccion": "SAN PEDRO VIP",
         "manzana": "G",
-        "nombre": "TS - SPV - G",
+        "nombre": "SAN PEDRO VIP - G",
         "id": "SAN PEDRO VIP-G",
         "shape": "circle",
-        "radius": 198.59
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN PEDRO VIP-G.geojson"
       }
     },
     {
@@ -132,17 +139,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          15129.91,
-          6425.6
+          7983.75,
+          3483.5
         ]
       },
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "A",
-        "nombre": "TS - SJV - A",
+        "nombre": "SAN JUAN VIP - A",
         "id": "SAN JUAN VIP-A",
         "shape": "circle",
-        "radius": 198.43
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN JUAN VIP-A.geojson"
       }
     },
     {
@@ -150,17 +158,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          14963.09,
-          6844.58
+          7899.25,
+          3692
         ]
       },
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "B",
-        "nombre": "TS - SJV - B",
+        "nombre": "SAN JUAN VIP - B",
         "id": "SAN JUAN VIP-B",
         "shape": "circle",
-        "radius": 197.64
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN JUAN VIP-B.geojson"
       }
     },
     {
@@ -168,17 +177,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          15219.71,
-          7228.21
+          8029,
+          3885
         ]
       },
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "C",
-        "nombre": "TS - SJV - C",
+        "nombre": "SAN JUAN VIP - C",
         "id": "SAN JUAN VIP-C",
         "shape": "circle",
-        "radius": 202.49
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN JUAN VIP-C.geojson"
       }
     },
     {
@@ -186,17 +196,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          15056.52,
-          7628.14
+          7947.25,
+          4083.875
         ]
       },
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "D",
-        "nombre": "TS - SJV - D",
+        "nombre": "SAN JUAN VIP - D",
         "id": "SAN JUAN VIP-D",
         "shape": "circle",
-        "radius": 197.9
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN JUAN VIP-D.geojson"
       }
     },
     {
@@ -204,17 +215,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          14374.64,
-          6973.32
+          7606.875,
+          3757.625
         ]
       },
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "E",
-        "nombre": "TS - SJV - E",
+        "nombre": "SAN JUAN VIP - E",
         "id": "SAN JUAN VIP-E",
         "shape": "circle",
-        "radius": 201.99
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN JUAN VIP-E.geojson"
       }
     },
     {
@@ -222,17 +234,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          14468.96,
-          7475.75
+          7652.75,
+          4008.375
         ]
       },
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "F",
-        "nombre": "TS - SJV - F",
+        "nombre": "SAN JUAN VIP - F",
         "id": "SAN JUAN VIP-F",
         "shape": "circle",
-        "radius": 198.23
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN JUAN VIP-F.geojson"
       }
     },
     {
@@ -240,17 +253,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          14512.5,
-          7933.74
+          7675.25,
+          4236.9375
         ]
       },
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "G",
-        "nombre": "TS - SJV - G",
+        "nombre": "SAN JUAN VIP - G",
         "id": "SAN JUAN VIP-G",
         "shape": "circle",
-        "radius": 199.87
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN JUAN VIP-G.geojson"
       }
     },
     {
@@ -258,17 +272,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          14598.66,
-          8440.7
+          7717.875,
+          4490.5
         ]
       },
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "H",
-        "nombre": "TS - SJV - H",
+        "nombre": "SAN JUAN VIP - H",
         "id": "SAN JUAN VIP-H",
         "shape": "circle",
-        "radius": 199.68
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN JUAN VIP-H.geojson"
       }
     },
     {
@@ -276,17 +291,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          14022.85,
-          7439.91
+          7429.5,
+          3990.75
         ]
       },
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "I",
-        "nombre": "TS - SJV - I",
+        "nombre": "SAN JUAN VIP - I",
         "id": "SAN JUAN VIP-I",
         "shape": "circle",
-        "radius": 199.38
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN JUAN VIP-I.geojson"
       }
     },
     {
@@ -294,17 +310,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          14074.56,
-          8086.98
+          7454.237271819492,
+          4313.2075805382065
         ]
       },
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "J",
-        "nombre": "TS - SJV - J",
+        "nombre": "SAN JUAN VIP - J",
         "id": "SAN JUAN VIP-J",
         "shape": "circle",
-        "radius": 199.72
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN JUAN VIP-J.geojson"
       }
     },
     {
@@ -312,17 +329,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          14160.72,
-          8609.36
+          7499,
+          4573.5
         ]
       },
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "K",
-        "nombre": "TS - SJV - K",
+        "nombre": "SAN JUAN VIP - K",
         "id": "SAN JUAN VIP-K",
         "shape": "circle",
-        "radius": 200.73
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN JUAN VIP-K.geojson"
       }
     },
     {
@@ -330,17 +348,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          13608.49,
-          7751.41
+          7222.75,
+          4147.125
         ]
       },
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "L",
-        "nombre": "TS - SJV - L",
+        "nombre": "SAN JUAN VIP - L",
         "id": "SAN JUAN VIP-L",
         "shape": "circle",
-        "radius": 198.63
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN JUAN VIP-L.geojson"
       }
     },
     {
@@ -348,17 +367,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          13733.65,
-          8437.94
+          7284.875,
+          4489.5
         ]
       },
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "M",
-        "nombre": "TS - SJV - M",
+        "nombre": "SAN JUAN VIP - M",
         "id": "SAN JUAN VIP-M",
         "shape": "circle",
-        "radius": 199.55
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN JUAN VIP-M.geojson"
       }
     },
     {
@@ -366,17 +386,18 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          13318.36,
-          8183.08
+          7078.375,
+          4362.625
         ]
       },
       "properties": {
         "seccion": "SAN JUAN VIP",
         "manzana": "N",
-        "nombre": "TS - SJV - N",
+        "nombre": "SAN JUAN VIP - N",
         "id": "SAN JUAN VIP-N",
         "shape": "circle",
-        "radius": 198.36
+        "radius": 99.75858588186408,
+        "lotesFile": "./data/lotes/lotes-SAN JUAN VIP-N.geojson"
       }
     },
     {
@@ -386,24 +407,24 @@
         "coordinates": [
           [
             [
-              12510.06,
-              6666.87
+              6676.16408063709,
+              3604.323605009295
             ],
             [
-              13051.18,
-              6571.47
+              6942.287304579123,
+              3557.3989004351943
             ],
             [
-              13125.51,
-              6993.03
+              6978.83591936291,
+              3764.6763949907045
             ],
             [
-              12584.39,
-              7088.43
+              6712.712695420879,
+              3811.601099564806
             ],
             [
-              12510.06,
-              6666.87
+              6676.16408063709,
+              3604.323605009295
             ]
           ]
         ]
@@ -412,7 +433,8 @@
         "id": "PLATINO-B",
         "seccion": "PLATINO",
         "manzana": "B",
-        "nombre": "PLATINO - B"
+        "nombre": "PLATINO - B",
+        "lotesFile": "./data/lotes/lotes-PLATINO-B.geojson"
       }
     },
     {
@@ -422,24 +444,24 @@
         "coordinates": [
           [
             [
-              12017.73,
-              7288.07
+              6431.309242477658,
+              3914.1058240629322
             ],
             [
-              12558.85,
-              7192.67
+              6699.814940457747,
+              3866.7610250350845
             ],
             [
-              12633.19,
-              7614.23
+              6736.690757522341,
+              4075.8941759370673
             ],
             [
-              12092.07,
-              7709.63
+              6468.185059542253,
+              4123.2389749649155
             ],
             [
-              12017.73,
-              7288.07
+              6431.309242477658,
+              3914.1058240629322
             ]
           ]
         ]
@@ -448,7 +470,8 @@
         "id": "PLATINO-C",
         "seccion": "PLATINO",
         "manzana": "C",
-        "nombre": "PLATINO - C"
+        "nombre": "PLATINO - C",
+        "lotesFile": "./data/lotes/lotes-PLATINO-C.geojson"
       }
     },
     {
@@ -458,24 +481,24 @@
         "coordinates": [
           [
             [
-              11099.16,
-              5477.71
+              5970.057686271709,
+              3010.7664325496976
             ],
             [
-              11640.28,
-              5382.31
+              6240.1048026042645,
+              2963.1498398777508
             ],
             [
-              11714.61,
-              5803.87
+              6277.19231372829,
+              3173.4835674503024
             ],
             [
-              11173.49,
-              5899.27
+              6007.145197395733,
+              3221.1001601222492
             ],
             [
-              11099.16,
-              5477.71
+              5970.057686271709,
+              3010.7664325496976
             ]
           ]
         ]
@@ -484,7 +507,8 @@
         "id": "PLATINO-D",
         "seccion": "PLATINO",
         "manzana": "D",
-        "nombre": "PLATINO - D"
+        "nombre": "PLATINO - D",
+        "lotesFile": "./data/lotes/lotes-PLATINO-D.geojson"
       }
     },
     {
@@ -494,24 +518,24 @@
         "coordinates": [
           [
             [
-              11684.93,
-              5374.44
+              6267.149046563323,
+              2960.610326464127
             ],
             [
-              12226.05,
-              5279.03
+              6530.660967640862,
+              2914.146065039837
             ],
             [
-              12300.38,
-              5700.59
+              6566.850953436678,
+              3119.3896735358735
             ],
             [
-              11759.26,
-              5796.0
+              6303.33903235914,
+              3165.853934960163
             ],
             [
-              11684.93,
-              5374.44
+              6267.149046563323,
+              2960.610326464127
             ]
           ]
         ]
@@ -520,7 +544,8 @@
         "id": "PLATINO-E",
         "seccion": "PLATINO",
         "manzana": "E",
-        "nombre": "PLATINO - E"
+        "nombre": "PLATINO - E",
+        "lotesFile": "./data/lotes/lotes-PLATINO-E.geojson"
       }
     },
     {
@@ -530,24 +555,24 @@
         "coordinates": [
           [
             [
-              11181.37,
-              5943.93
+              6010.771880389453,
+              3242.144661037999
             ],
             [
-              11722.49,
-              5848.53
+              6280.81899672201,
+              3194.5280683660517
             ],
             [
-              11796.82,
-              6270.08
+              6317.906507846034,
+              3404.8617959386042
             ],
             [
-              11255.7,
-              6365.49
+              6047.859391513479,
+              3452.4783886105506
             ],
             [
-              11181.37,
-              5943.93
+              6010.771880389453,
+              3242.144661037999
             ]
           ]
         ]
@@ -556,7 +581,8 @@
         "id": "PLATINO-F",
         "seccion": "PLATINO",
         "manzana": "F",
-        "nombre": "PLATINO - F"
+        "nombre": "PLATINO - F",
+        "lotesFile": "./data/lotes/lotes-PLATINO-F.geojson"
       }
     },
     {
@@ -566,24 +592,24 @@
         "coordinates": [
           [
             [
-              11767.14,
-              5840.65
+              6307.506192214907,
+              3192.7995389851926
             ],
             [
-              12308.26,
-              5745.25
+              6570.390075001097,
+              3146.4460176565863
             ],
             [
-              12382.59,
-              6166.81
+              6606.493807785094,
+              3351.200461014807
             ],
             [
-              11841.47,
-              6262.21
+              6343.609924998903,
+              3397.5539823434137
             ],
             [
-              11767.14,
-              5840.65
+              6307.506192214907,
+              3192.7995389851926
             ]
           ]
         ]
@@ -592,7 +618,8 @@
         "id": "PLATINO-G",
         "seccion": "PLATINO",
         "manzana": "G",
-        "nombre": "PLATINO - G"
+        "nombre": "PLATINO - G",
+        "lotesFile": "./data/lotes/lotes-PLATINO-G.geojson"
       }
     },
     {
@@ -602,24 +629,24 @@
         "coordinates": [
           [
             [
-              11437.53,
-              7387.74
+              6051.7881532850915,
+              3474.7595038195072
             ],
             [
-              11978.65,
-              7292.33
+              6321.835269617646,
+              3427.142911147561
             ],
             [
-              12052.99,
-              7713.89
+              6358.922780741671,
+              3637.4766387201125
             ],
             [
-              11511.86,
-              7809.3
+              6088.875664409115,
+              3685.0932313920603
             ],
             [
-              11437.53,
-              7387.74
+              6051.7881532850915,
+              3474.7595038195072
             ]
           ]
         ]
@@ -628,7 +655,8 @@
         "id": "PLATINO-H",
         "seccion": "PLATINO",
         "manzana": "H",
-        "nombre": "PLATINO - H"
+        "nombre": "PLATINO - H",
+        "lotesFile": "./data/lotes/lotes-PLATINO-H.geojson"
       }
     },
     {
@@ -638,24 +666,24 @@
         "coordinates": [
           [
             [
-              11849.35,
-              6306.87
+              6347.441836070423,
+              3424.5005482277716
             ],
             [
-              12390.47,
-              6211.46
+              6611.318135443855,
+              3377.972037078732
             ],
             [
-              12464.8,
-              6633.02
+              6647.558163929576,
+              3583.499451772229
             ],
             [
-              11923.68,
-              6728.43
+              6383.681864556144,
+              3630.027962921268
             ],
             [
-              11849.35,
-              6306.87
+              6347.441836070423,
+              3424.5005482277716
             ]
           ]
         ]
@@ -664,7 +692,8 @@
         "id": "PLATINO-I",
         "seccion": "PLATINO",
         "manzana": "I",
-        "nombre": "PLATINO - I"
+        "nombre": "PLATINO - I",
+        "lotesFile": "./data/lotes/lotes-PLATINO-I.geojson"
       }
     },
     {
@@ -674,24 +703,24 @@
         "coordinates": [
           [
             [
-              11601.95,
-              8320.17
+              6093.245186271709,
+              3706.078932549697
             ],
             [
-              12143.07,
-              8224.77
+              6363.292302604265,
+              3658.4623398777503
             ],
             [
-              12217.41,
-              8646.32
+              6400.379813728291,
+              3868.796067450302
             ],
             [
-              11676.28,
-              8741.73
+              6130.332697395734,
+              3916.4126601222492
             ],
             [
-              11601.95,
-              8320.17
+              6093.245186271709,
+              3706.078932549697
             ]
           ]
         ]
@@ -700,7 +729,8 @@
         "id": "PLATINO-J",
         "seccion": "PLATINO",
         "manzana": "J",
-        "nombre": "PLATINO - J"
+        "nombre": "PLATINO - J",
+        "lotesFile": "./data/lotes/lotes-PLATINO-J.geojson"
       }
     },
     {
@@ -710,24 +740,24 @@
         "coordinates": [
           [
             [
-              11931.55,
-              6773.08
+              6386.614010410169,
+              3654.2672873443553
             ],
             [
-              12472.68,
-              6677.68
+              6654.583775975169,
+              3607.016987661124
             ],
             [
-              12547.01,
-              7099.24
+              6691.385989589831,
+              3815.732712655645
             ],
             [
-              12005.89,
-              7194.64
+              6423.4162240248315,
+              3862.9830123388765
             ],
             [
-              11931.55,
-              6773.08
+              6386.614010410169,
+              3654.2672873443553
             ]
           ]
         ]
@@ -736,7 +766,8 @@
         "id": "PLATINO-K",
         "seccion": "PLATINO",
         "manzana": "K",
-        "nombre": "PLATINO - K"
+        "nombre": "PLATINO - K",
+        "lotesFile": "./data/lotes/lotes-PLATINO-K.geojson"
       }
     },
     {
@@ -746,24 +777,135 @@
         "coordinates": [
           [
             [
-              10213.38,
-              7602.09
+              6139.182686271709,
+              3965.078932549698
             ],
             [
-              10754.5,
-              7506.68
+              6409.2298026042645,
+              3917.4623398777508
             ],
             [
-              10828.84,
-              7928.24
+              6446.31731372829,
+              4127.796067450303
             ],
             [
-              10287.72,
-              8023.64
+              6176.270197395734,
+              4175.41266012225
             ],
             [
-              10213.38,
-              7602.09
+              6139.182686271709,
+              3965.078932549698
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATINO-H",
+        "seccion": "PLATINO",
+        "manzana": "H",
+        "nombre": "PLATINO - H",
+        "lotesFile": "./data/lotes/lotes-PLATINO-H.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6179.593492153967,
+              4195.138204061396
+            ],
+            [
+              6449.640608486524,
+              4147.521611389449
+            ],
+            [
+              6486.728119610548,
+              4357.855338962003
+            ],
+            [
+              6216.681003277992,
+              4405.471931633948
+            ],
+            [
+              6179.593492153967,
+              4195.138204061396
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATINO-I",
+        "seccion": "PLATINO",
+        "manzana": "I",
+        "nombre": "PLATINO - I",
+        "lotesFile": "./data/lotes/lotes-PLATINO-I.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6220.609765049604,
+              4427.753046842905
+            ],
+            [
+              6490.6568813821605,
+              4380.136454170957
+            ],
+            [
+              6527.744392506185,
+              4590.470181743509
+            ],
+            [
+              6257.697276173629,
+              4638.086774415457
+            ],
+            [
+              6220.609765049604,
+              4427.753046842905
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATINO-J",
+        "seccion": "PLATINO",
+        "manzana": "J",
+        "nombre": "PLATINO - J",
+        "lotesFile": "./data/lotes/lotes-PLATINO-J.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5527.422180645344,
+              4071.944642900097
+            ],
+            [
+              5797.707582735192,
+              4024.2860340200214
+            ],
+            [
+              5834.827819354656,
+              4234.805357099902
+            ],
+            [
+              5564.54241726481,
+              4282.463965979978
+            ],
+            [
+              5527.422180645344,
+              4071.944642900097
             ]
           ]
         ]
@@ -772,7 +914,8 @@
         "id": "PLATINO-O",
         "seccion": "PLATINO",
         "manzana": "O",
-        "nombre": "PLATINO - O"
+        "nombre": "PLATINO - O",
+        "lotesFile": "./data/lotes/lotes-PLATINO-O.geojson"
       }
     },
     {
@@ -782,24 +925,24 @@
         "coordinates": [
           [
             [
-              10799.15,
-              7498.81
+              5819.699365481896,
+              4021.466492907911
             ],
             [
-              11340.27,
-              7403.4
+              6089.49733985041,
+              3973.893830686251
             ],
             [
-              11414.61,
-              7824.96
+              6126.550634518105,
+              4184.03350709209
             ],
             [
-              10873.48,
-              7920.37
+              5856.752660149591,
+              4231.60616931375
             ],
             [
-              10799.15,
-              7498.81
+              5819.699365481896,
+              4021.466492907911
             ]
           ]
         ]
@@ -808,7 +951,8 @@
         "id": "PLATINO-P",
         "seccion": "PLATINO",
         "manzana": "P",
-        "nombre": "PLATINO - P"
+        "nombre": "PLATINO - P",
+        "lotesFile": "./data/lotes/lotes-PLATINO-P.geojson"
       }
     },
     {
@@ -818,24 +962,24 @@
         "coordinates": [
           [
             [
-              10295.59,
-              8068.3
+              5567.797180645344,
+              4304.069642900098
             ],
             [
-              10836.71,
-              7972.9
+              5838.08258273519,
+              4256.411034020022
             ],
             [
-              10911.05,
-              8394.45
+              5875.202819354655,
+              4466.930357099904
             ],
             [
-              10369.92,
-              8489.86
+              5604.917417264808,
+              4514.588965979979
             ],
             [
-              10295.59,
-              8068.3
+              5567.797180645344,
+              4304.069642900098
             ]
           ]
         ]
@@ -844,7 +988,8 @@
         "id": "PLATINO-Q",
         "seccion": "PLATINO",
         "manzana": "Q",
-        "nombre": "PLATINO - Q"
+        "nombre": "PLATINO - Q",
+        "lotesFile": "./data/lotes/lotes-PLATINO-Q.geojson"
       }
     },
     {
@@ -854,24 +999,24 @@
         "coordinates": [
           [
             [
-              10881.36,
-              7965.02
+              5860.824365481896,
+              4252.716492907911
             ],
             [
-              11422.48,
-              7869.62
+              6130.62233985041,
+              4205.143830686251
             ],
             [
-              11496.82,
-              8291.18
+              6167.675634518103,
+              4415.28350709209
             ],
             [
-              10955.69,
-              8386.58
+              5897.877660149591,
+              4462.856169313748
             ],
             [
-              10881.36,
-              7965.02
+              5860.824365481896,
+              4252.716492907911
             ]
           ]
         ]
@@ -880,7 +1025,8 @@
         "id": "PLATINO-R",
         "seccion": "PLATINO",
         "manzana": "R",
-        "nombre": "PLATINO - R"
+        "nombre": "PLATINO - R",
+        "lotesFile": "./data/lotes/lotes-PLATINO-R.geojson"
       }
     },
     {
@@ -890,24 +1036,24 @@
         "coordinates": [
           [
             [
-              9879.62,
-              5691.68
+              5608.747079303526,
+              4535.801465516801
             ],
             [
-              10420.74,
-              5596.27
+              5879.032481393374,
+              4488.142856636725
             ],
             [
-              10495.08,
-              6017.83
+              5916.152718012838,
+              4698.662179716605
             ],
             [
-              9953.96,
-              6113.24
+              5645.867315922991,
+              4746.320788596682
             ],
             [
-              9879.62,
-              5691.68
+              5608.747079303526,
+              4535.801465516801
             ]
           ]
         ]
@@ -916,7 +1062,8 @@
         "id": "PLATINO-S",
         "seccion": "PLATINO",
         "manzana": "S",
-        "nombre": "PLATINO - S"
+        "nombre": "PLATINO - S",
+        "lotesFile": "./data/lotes/lotes-PLATINO-S.geojson"
       }
     },
     {
@@ -926,24 +1073,24 @@
         "coordinates": [
           [
             [
-              10963.57,
-              8431.24
+              5901.199365481896,
+              4484.09149290791
             ],
             [
-              11504.69,
-              8335.83
+              6170.997339850407,
+              4436.518830686252
             ],
             [
-              11579.03,
-              8757.39
+              6208.050634518103,
+              4646.658507092089
             ],
             [
-              11037.9,
-              8852.8
+              5938.25266014959,
+              4694.231169313749
             ],
             [
-              10963.57,
-              8431.24
+              5901.199365481896,
+              4484.09149290791
             ]
           ]
         ]
@@ -952,7 +1099,8 @@
         "id": "PLATINO-T",
         "seccion": "PLATINO",
         "manzana": "T",
-        "nombre": "PLATINO - T"
+        "nombre": "PLATINO - T",
+        "lotesFile": "./data/lotes/lotes-PLATINO-T.geojson"
       }
     },
     {
@@ -962,24 +1110,24 @@
         "coordinates": [
           [
             [
-              9961.83,
-              6157.89
+              5648.984680645344,
+              4766.632142900098
             ],
             [
-              10502.95,
-              6062.49
+              5919.270082735191,
+              4718.973534020021
             ],
             [
-              10577.29,
-              6484.05
+              5956.390319354656,
+              4929.492857099903
             ],
             [
-              10036.17,
-              6579.45
+              5686.104917264809,
+              4977.151465979978
             ],
             [
-              9961.83,
-              6157.89
+              5648.984680645344,
+              4766.632142900098
             ]
           ]
         ]
@@ -988,7 +1136,8 @@
         "id": "PLATINO-U",
         "seccion": "PLATINO",
         "manzana": "U",
-        "nombre": "PLATINO - U"
+        "nombre": "PLATINO - U",
+        "lotesFile": "./data/lotes/lotes-PLATINO-U.geojson"
       }
     },
     {
@@ -998,24 +1147,24 @@
         "coordinates": [
           [
             [
-              11045.78,
-              8897.45
+              5942.074365481895,
+              4716.341492907911
             ],
             [
-              11586.9,
-              8802.05
+              6211.872339850408,
+              4668.768830686251
             ],
             [
-              11661.24,
-              9223.61
+              6248.925634518105,
+              4878.90850709209
             ],
             [
-              11120.11,
-              9319.01
+              5979.127660149591,
+              4926.481169313749
             ],
             [
-              11045.78,
-              8897.45
+              5942.074365481895,
+              4716.341492907911
             ]
           ]
         ]
@@ -1024,7 +1173,8 @@
         "id": "PLATINO-V",
         "seccion": "PLATINO",
         "manzana": "V",
-        "nombre": "PLATINO - V"
+        "nombre": "PLATINO - V",
+        "lotesFile": "./data/lotes/lotes-PLATINO-V.geojson"
       }
     },
     {
@@ -1034,24 +1184,172 @@
         "coordinates": [
           [
             [
-              10044.04,
-              6624.11
+              5360.422180645344,
+              3117.6946429000977
             ],
             [
-              10585.16,
-              6528.7
+              5630.707582735192,
+              3070.0360340200214
             ],
             [
-              10659.5,
-              6950.26
+              5667.827819354657,
+              3280.5553570999027
             ],
             [
-              10118.38,
-              7045.67
+              5397.542417264809,
+              3328.2139659799786
             ],
             [
-              10044.04,
-              6624.11
+              5360.422180645344,
+              3117.6946429000977
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATINO-S",
+        "seccion": "PLATINO",
+        "manzana": "S",
+        "nombre": "PLATINO - S",
+        "lotesFile": "./data/lotes/lotes-PLATINO-S.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5652.949365481896,
+              3066.5914929079113
+            ],
+            [
+              5922.747339850409,
+              3019.018830686251
+            ],
+            [
+              5959.800634518105,
+              3229.1585070920896
+            ],
+            [
+              5690.002660149592,
+              3276.7311693137494
+            ],
+            [
+              5652.949365481896,
+              3066.5914929079113
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATINO-T",
+        "seccion": "PLATINO",
+        "manzana": "T",
+        "nombre": "PLATINO - T",
+        "lotesFile": "./data/lotes/lotes-PLATINO-T.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5401.028877674571,
+              3348.9558937220368
+            ],
+            [
+              5671.314279764419,
+              3301.2972848419604
+            ],
+            [
+              5708.434516383883,
+              3511.8166079218413
+            ],
+            [
+              5438.149114294037,
+              3559.475216801917
+            ],
+            [
+              5401.028877674571,
+              3348.9558937220368
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATINO-U",
+        "seccion": "PLATINO",
+        "manzana": "U",
+        "nombre": "PLATINO - U",
+        "lotesFile": "./data/lotes/lotes-PLATINO-U.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5693.455776191304,
+              3297.7163178048327
+            ],
+            [
+              5963.253750559817,
+              3250.1436555831733
+            ],
+            [
+              6000.307045227511,
+              3460.2833319890115
+            ],
+            [
+              5730.509070858998,
+              3507.8559942106717
+            ],
+            [
+              5693.455776191304,
+              3297.7163178048327
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATINO-V",
+        "seccion": "PLATINO",
+        "manzana": "V",
+        "nombre": "PLATINO - V",
+        "lotesFile": "./data/lotes/lotes-PLATINO-V.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              5441.984680645343,
+              3581.2571429000973
+            ],
+            [
+              5712.27008273519,
+              3533.5985340200214
+            ],
+            [
+              5749.390319354656,
+              3744.117857099902
+            ],
+            [
+              5479.104917264808,
+              3791.776465979978
+            ],
+            [
+              5441.984680645343,
+              3581.2571429000973
             ]
           ]
         ]
@@ -1060,7 +1358,8 @@
         "id": "PLATINO-W",
         "seccion": "PLATINO",
         "manzana": "W",
-        "nombre": "PLATINO - W"
+        "nombre": "PLATINO - W",
+        "lotesFile": "./data/lotes/lotes-PLATINO-W.geojson"
       }
     },
     {
@@ -1070,24 +1369,24 @@
         "coordinates": [
           [
             [
-              10629.81,
-              6520.83
+              5734.434208006,
+              3530.1165531519678
             ],
             [
-              11170.93,
-              6425.43
+              6004.232182374513,
+              3482.543890930308
             ],
             [
-              11245.27,
-              6846.99
+              6041.285477042208,
+              3692.6835673361466
             ],
             [
-              10704.15,
-              6942.39
+              5771.487502673695,
+              3740.2562295578064
             ],
             [
-              10629.81,
-              6520.83
+              5734.434208006,
+              3530.1165531519678
             ]
           ]
         ]
@@ -1096,7 +1395,8 @@
         "id": "PLATINO-X",
         "seccion": "PLATINO",
         "manzana": "X",
-        "nombre": "PLATINO - X"
+        "nombre": "PLATINO - X",
+        "lotesFile": "./data/lotes/lotes-PLATINO-X.geojson"
       }
     },
     {
@@ -1106,24 +1406,24 @@
         "coordinates": [
           [
             [
-              10126.25,
-              7090.32
+              5482.672180645343,
+              3813.257142900098
             ],
             [
-              10667.37,
-              6994.92
+              5752.957582735191,
+              3765.598534020022
             ],
             [
-              10741.71,
-              7416.48
+              5790.077819354656,
+              3976.1178570999023
             ],
             [
-              10200.59,
-              7511.88
+              5519.792417264808,
+              4023.776465979978
             ],
             [
-              10126.25,
-              7090.32
+              5482.672180645343,
+              3813.257142900098
             ]
           ]
         ]
@@ -1132,7 +1432,8 @@
         "id": "PLATINO-Y",
         "seccion": "PLATINO",
         "manzana": "Y",
-        "nombre": "PLATINO - Y"
+        "nombre": "PLATINO - Y",
+        "lotesFile": "./data/lotes/lotes-PLATINO-Y.geojson"
       }
     },
     {
@@ -1142,24 +1443,24 @@
         "coordinates": [
           [
             [
-              10712.02,
-              6987.05
+              5775.324365481897,
+              3761.8414929079104
             ],
             [
-              11253.14,
-              6891.64
+              6045.122339850408,
+              3714.268830686251
             ],
             [
-              11327.48,
-              7313.2
+              6082.175634518104,
+              3924.4085070920896
             ],
             [
-              10786.36,
-              7408.61
+              5812.377660149591,
+              3971.981169313749
             ],
             [
-              10712.02,
-              6987.05
+              5775.324365481897,
+              3761.8414929079104
             ]
           ]
         ]
@@ -1168,7 +1469,8 @@
         "id": "PLATINO-Z",
         "seccion": "PLATINO",
         "manzana": "Z",
-        "nombre": "PLATINO - Z"
+        "nombre": "PLATINO - Z",
+        "lotesFile": "./data/lotes/lotes-PLATINO-Z.geojson"
       }
     },
     {
@@ -1178,24 +1480,24 @@
         "coordinates": [
           [
             [
-              9796.15,
-              5232.88
+              5320.172180645344,
+              2885.8196429000973
             ],
             [
-              10337.27,
-              5137.47
+              5590.457582735191,
+              2838.1610340200214
             ],
             [
-              10411.61,
-              5559.03
+              5627.577819354656,
+              3048.6803570999023
             ],
             [
-              9870.49,
-              5654.43
+              5357.292417264809,
+              3096.3389659799786
             ],
             [
-              9796.15,
-              5232.88
+              5320.172180645344,
+              2885.8196429000973
             ]
           ]
         ]
@@ -1204,7 +1506,8 @@
         "id": "PLATINO-AF",
         "seccion": "PLATINO",
         "manzana": "AF",
-        "nombre": "PLATINO - AF"
+        "nombre": "PLATINO - AF",
+        "lotesFile": "./data/lotes/lotes-PLATINO-AF.geojson"
       }
     },
     {
@@ -1214,24 +1517,24 @@
         "coordinates": [
           [
             [
-              9796.32,
-              8634.25
+              5613.074365481895,
+              2834.9664929079104
             ],
             [
-              10337.44,
-              8538.85
+              5882.872339850409,
+              2787.393830686251
             ],
             [
-              10411.78,
-              8960.41
+              5919.925634518104,
+              2997.533507092089
             ],
             [
-              9870.65,
-              9055.81
+              5650.127660149591,
+              3045.106169313749
             ],
             [
-              9796.32,
-              8634.25
+              5613.074365481895,
+              2834.9664929079104
             ]
           ]
         ]
@@ -1240,7 +1543,8 @@
         "id": "PLATINO-AG",
         "seccion": "PLATINO",
         "manzana": "AG",
-        "nombre": "PLATINO - AG"
+        "nombre": "PLATINO - AG",
+        "lotesFile": "./data/lotes/lotes-PLATINO-AG.geojson"
       }
     },
     {
@@ -1250,24 +1554,61 @@
         "coordinates": [
           [
             [
-              12609.66,
-              7185.41
+              5322.2846230761315,
+              4589.594392310811
             ],
             [
-              12716.82,
-              7166.52
+              5583.360016922334,
+              4543.559756376637
             ],
             [
-              12790.21,
-              7582.72
+              5619.2153769238685,
+              4746.90560768919
             ],
             [
-              12683.05,
-              7601.61
+              5358.139983077666,
+              4792.940243623363
             ],
             [
-              12609.66,
-              7185.41
+              5322.2846230761315,
+              4589.594392310811
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATINO-AG",
+        "seccion": "PLATINO",
+        "manzana": "AG",
+        "nombre": "PLATINO - AG",
+        "lotesFile": "./data/lotes/lotes-PLATINO-AG.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6723.581180539215,
+              3863.362881319496
+            ],
+            [
+              6777.20240976108,
+              3853.908011868928
+            ],
+            [
+              6813.918819460786,
+              4062.1371186805036
+            ],
+            [
+              6760.29759023892,
+              4071.591988131072
+            ],
+            [
+              6723.581180539215,
+              3863.362881319496
             ]
           ]
         ]
@@ -1276,7 +1617,2805 @@
         "id": "PLATINO-A",
         "seccion": "PLATINO",
         "manzana": "A",
-        "nombre": "PLATINO - A"
+        "nombre": "PLATINO - A",
+        "lotesFile": "./data/lotes/lotes-PLATINO-A.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6832,
+          5397
+        ]
+      },
+      "properties": {
+        "seccion": "SAN MATEO VIP",
+        "manzana": "D",
+        "nombre": "SAN MATEO VIP - D",
+        "lotesFile": "./data/lotes/lotes-SAN MATEO VIP-D.geojson",
+        "id": "SAN MATEO VIP-D",
+        "shape": "circle",
+        "radius": 100.43816669103141
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7101.5,
+          5390.5
+        ]
+      },
+      "properties": {
+        "seccion": "SAN MATEO VIP",
+        "manzana": "C",
+        "nombre": "SAN MATEO VIP - C",
+        "lotesFile": "./data/lotes/lotes-SAN MATEO VIP-C.geojson",
+        "id": "SAN MATEO VIP-C",
+        "shape": "circle",
+        "radius": 100.43816669103141
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7388,
+          5379.3125
+        ]
+      },
+      "properties": {
+        "seccion": "SAN MATEO VIP",
+        "manzana": "B",
+        "nombre": "SAN MATEO VIP - B",
+        "lotesFile": "./data/lotes/lotes-SAN MATEO VIP-B.geojson",
+        "id": "SAN MATEO VIP-B",
+        "shape": "circle",
+        "radius": 100.43816669103141
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7650,
+          5463.5
+        ]
+      },
+      "properties": {
+        "seccion": "SAN MATEO VIP",
+        "manzana": "A",
+        "nombre": "SAN MATEO VIP - A",
+        "lotesFile": "./data/lotes/lotes-SAN MATEO VIP-A.geojson",
+        "id": "SAN MATEO VIP-A",
+        "shape": "circle",
+        "radius": 100.43816669103141
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7407.5,
+          5634.5
+        ]
+      },
+      "properties": {
+        "seccion": "SAN MATEO VIP",
+        "manzana": "G",
+        "nombre": "SAN MATEO VIP - G",
+        "lotesFile": "./data/lotes/lotes-SAN MATEO VIP-G.geojson",
+        "id": "SAN MATEO VIP-G",
+        "shape": "circle",
+        "radius": 100.43816669103141
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          7650,
+          5744.5
+        ]
+      },
+      "properties": {
+        "seccion": "SAN MATEO VIP",
+        "manzana": "F",
+        "nombre": "SAN MATEO VIP - F",
+        "lotesFile": "./data/lotes/lotes-SAN MATEO VIP-F.geojson",
+        "id": "SAN MATEO VIP-F",
+        "shape": "circle",
+        "radius": 100.43816669103141
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4630.041032504899,
+              4234.6049763644805
+            ],
+            [
+              4895.939125818195,
+              4187.719968394409
+            ],
+            [
+              4932.057946772917,
+              4392.559981020949
+            ],
+            [
+              4666.1598534596205,
+              4439.44498899102
+            ],
+            [
+              4630.041032504899,
+              4234.6049763644805
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-A",
+        "seccion": "ORO",
+        "manzana": "A",
+        "nombre": "ORO - A",
+        "lotesFile": "./data/lotes/lotes-ORO-A.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4670.67470607896,
+              4465.049990569337
+            ],
+            [
+              4936.5727993922565,
+              4418.164982599266
+            ],
+            [
+              4972.691620346978,
+              4623.004995225805
+            ],
+            [
+              4706.793527033682,
+              4669.8900031958765
+            ],
+            [
+              4670.67470607896,
+              4465.049990569337
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-B",
+        "seccion": "ORO",
+        "manzana": "B",
+        "nombre": "ORO - B",
+        "lotesFile": "./data/lotes/lotes-ORO-B.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4711.308379653022,
+              4695.495004774194
+            ],
+            [
+              4977.206472966318,
+              4648.609996804123
+            ],
+            [
+              5013.32529392104,
+              4853.450009430662
+            ],
+            [
+              4747.4272006077435,
+              4900.335017400733
+            ],
+            [
+              4711.308379653022,
+              4695.495004774194
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-C",
+        "seccion": "ORO",
+        "manzana": "C",
+        "nombre": "ORO - C",
+        "lotesFile": "./data/lotes/lotes-ORO-C.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4751.942053227084,
+              4925.94001897905
+            ],
+            [
+              5017.84014654038,
+              4879.055011008979
+            ],
+            [
+              5053.958967495101,
+              5083.895023635519
+            ],
+            [
+              4788.060874181805,
+              5130.78003160559
+            ],
+            [
+              4751.942053227084,
+              4925.94001897905
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-D",
+        "seccion": "ORO",
+        "manzana": "D",
+        "nombre": "ORO - D",
+        "lotesFile": "./data/lotes/lotes-ORO-D.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4422.099195717868,
+              3049.757469262053
+            ],
+            [
+              4687.997289031164,
+              3002.872461291982
+            ],
+            [
+              4724.1161099858855,
+              3207.712473918521
+            ],
+            [
+              4458.218016672589,
+              3254.597481888592
+            ],
+            [
+              4422.099195717868,
+              3049.757469262053
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-E",
+        "seccion": "ORO",
+        "manzana": "E",
+        "nombre": "ORO - E",
+        "lotesFile": "./data/lotes/lotes-ORO-E.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4462.732869291929,
+              3280.2024834669096
+            ],
+            [
+              4728.630962605225,
+              3233.317475496838
+            ],
+            [
+              4764.749783559947,
+              3438.157488123378
+            ],
+            [
+              4498.851690246651,
+              3485.042496093449
+            ],
+            [
+              4462.732869291929,
+              3280.2024834669096
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-F",
+        "seccion": "ORO",
+        "manzana": "F",
+        "nombre": "ORO - F",
+        "lotesFile": "./data/lotes/lotes-ORO-F.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4503.366542865991,
+              3510.6474976717664
+            ],
+            [
+              4769.264636179287,
+              3463.762489701695
+            ],
+            [
+              4805.3834571340085,
+              3668.6025023282346
+            ],
+            [
+              4539.485363820712,
+              3715.487510298305
+            ],
+            [
+              4503.366542865991,
+              3510.6474976717664
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-G",
+        "seccion": "ORO",
+        "manzana": "G",
+        "nombre": "ORO - G",
+        "lotesFile": "./data/lotes/lotes-ORO-G.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4544.000216440053,
+              3741.0925118766227
+            ],
+            [
+              4809.898309753349,
+              3694.207503906551
+            ],
+            [
+              4846.01713070807,
+              3899.047516533091
+            ],
+            [
+              4580.119037394774,
+              3945.9325245031623
+            ],
+            [
+              4544.000216440053,
+              3741.0925118766227
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-H",
+        "seccion": "ORO",
+        "manzana": "H",
+        "nombre": "ORO - H",
+        "lotesFile": "./data/lotes/lotes-ORO-H.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4584.6338900141145,
+              3971.53752608148
+            ],
+            [
+              4850.531983327411,
+              3924.6525181114084
+            ],
+            [
+              4886.650804282132,
+              4129.492530737947
+            ],
+            [
+              4620.752710968836,
+              4176.377538708019
+            ],
+            [
+              4584.6338900141145,
+              3971.53752608148
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-I",
+        "seccion": "ORO",
+        "manzana": "I",
+        "nombre": "ORO - I",
+        "lotesFile": "./data/lotes/lotes-ORO-I.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4103.286695717868,
+              3104.819969262053
+            ],
+            [
+              4369.184789031164,
+              3057.9349612919814
+            ],
+            [
+              4405.3036099858855,
+              3262.774973918521
+            ],
+            [
+              4139.405516672589,
+              3309.6599818885925
+            ],
+            [
+              4103.286695717868,
+              3104.819969262053
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-J",
+        "seccion": "ORO",
+        "manzana": "J",
+        "nombre": "ORO - J",
+        "lotesFile": "./data/lotes/lotes-ORO-J.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4143.920369291929,
+              3335.264983466909
+            ],
+            [
+              4409.818462605225,
+              3288.3799754968386
+            ],
+            [
+              4445.937283559947,
+              3493.2199881233773
+            ],
+            [
+              4180.039190246651,
+              3540.104996093449
+            ],
+            [
+              4143.920369291929,
+              3335.264983466909
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-K",
+        "seccion": "ORO",
+        "manzana": "K",
+        "nombre": "ORO - K",
+        "lotesFile": "./data/lotes/lotes-ORO-K.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4184.554042865991,
+              3565.7099976717664
+            ],
+            [
+              4450.452136179287,
+              3518.824989701695
+            ],
+            [
+              4486.5709571340085,
+              3723.6650023282346
+            ],
+            [
+              4220.672863820712,
+              3770.550010298305
+            ],
+            [
+              4184.554042865991,
+              3565.7099976717664
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-L",
+        "seccion": "ORO",
+        "manzana": "L",
+        "nombre": "ORO - L",
+        "lotesFile": "./data/lotes/lotes-ORO-L.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4225.187716440053,
+              3796.1550118766227
+            ],
+            [
+              4491.085809753349,
+              3749.270003906551
+            ],
+            [
+              4527.20463070807,
+              3954.110016533091
+            ],
+            [
+              4261.306537394774,
+              4000.9950245031623
+            ],
+            [
+              4225.187716440053,
+              3796.1550118766227
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-M",
+        "seccion": "ORO",
+        "manzana": "M",
+        "nombre": "ORO - M",
+        "lotesFile": "./data/lotes/lotes-ORO-M.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4265.8213900141145,
+              4026.60002608148
+            ],
+            [
+              4531.719483327411,
+              3979.7150181114084
+            ],
+            [
+              4567.838304282132,
+              4184.555030737947
+            ],
+            [
+              4301.940210968836,
+              4231.440038708019
+            ],
+            [
+              4265.8213900141145,
+              4026.60002608148
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-N",
+        "seccion": "ORO",
+        "manzana": "N",
+        "nombre": "ORO - N",
+        "lotesFile": "./data/lotes/lotes-ORO-N.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4311.416032504899,
+              4289.6049763644805
+            ],
+            [
+              4577.314125818195,
+              4242.719968394409
+            ],
+            [
+              4613.432946772917,
+              4447.559981020949
+            ],
+            [
+              4347.5348534596205,
+              4494.44498899102
+            ],
+            [
+              4311.416032504899,
+              4289.6049763644805
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-O",
+        "seccion": "ORO",
+        "manzana": "O",
+        "nombre": "ORO - O",
+        "lotesFile": "./data/lotes/lotes-ORO-O.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4352.04970607896,
+              4520.049990569337
+            ],
+            [
+              4617.9477993922565,
+              4473.164982599266
+            ],
+            [
+              4654.066620346978,
+              4678.004995225805
+            ],
+            [
+              4388.168527033682,
+              4724.8900031958765
+            ],
+            [
+              4352.04970607896,
+              4520.049990569337
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-P",
+        "seccion": "ORO",
+        "manzana": "P",
+        "nombre": "ORO - P",
+        "lotesFile": "./data/lotes/lotes-ORO-P.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4392.683379653022,
+              4750.495004774194
+            ],
+            [
+              4658.581472966318,
+              4703.609996804123
+            ],
+            [
+              4694.70029392104,
+              4908.450009430662
+            ],
+            [
+              4428.8022006077435,
+              4955.335017400733
+            ],
+            [
+              4392.683379653022,
+              4750.495004774194
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-Q",
+        "seccion": "ORO",
+        "manzana": "Q",
+        "nombre": "ORO - Q",
+        "lotesFile": "./data/lotes/lotes-ORO-Q.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4433.317053227084,
+              4980.94001897905
+            ],
+            [
+              4699.21514654038,
+              4934.055011008979
+            ],
+            [
+              4735.333967495101,
+              5138.895023635519
+            ],
+            [
+              4469.435874181805,
+              5185.78003160559
+            ],
+            [
+              4433.317053227084,
+              4980.94001897905
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-R",
+        "seccion": "ORO",
+        "manzana": "R",
+        "nombre": "ORO - R",
+        "lotesFile": "./data/lotes/lotes-ORO-R.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4020.041032504899,
+              4341.1049763644805
+            ],
+            [
+              4285.939125818195,
+              4294.219968394409
+            ],
+            [
+              4322.057946772917,
+              4499.059981020949
+            ],
+            [
+              4056.1598534596205,
+              4545.94498899102
+            ],
+            [
+              4020.041032504899,
+              4341.1049763644805
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-S",
+        "seccion": "ORO",
+        "manzana": "S",
+        "nombre": "ORO - S",
+        "lotesFile": "./data/lotes/lotes-ORO-S.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4060.6747060789603,
+              4571.549990569337
+            ],
+            [
+              4326.5727993922565,
+              4524.664982599266
+            ],
+            [
+              4362.691620346978,
+              4729.504995225805
+            ],
+            [
+              4096.793527033682,
+              4776.3900031958765
+            ],
+            [
+              4060.6747060789603,
+              4571.549990569337
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-T",
+        "seccion": "ORO",
+        "manzana": "T",
+        "nombre": "ORO - T",
+        "lotesFile": "./data/lotes/lotes-ORO-T.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4101.308379653022,
+              4801.995004774194
+            ],
+            [
+              4367.206472966318,
+              4755.109996804123
+            ],
+            [
+              4403.32529392104,
+              4959.950009430662
+            ],
+            [
+              4137.4272006077435,
+              5006.835017400733
+            ],
+            [
+              4101.308379653022,
+              4801.995004774194
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-U",
+        "seccion": "ORO",
+        "manzana": "U",
+        "nombre": "ORO - U",
+        "lotesFile": "./data/lotes/lotes-ORO-U.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4141.942053227084,
+              5032.44001897905
+            ],
+            [
+              4407.84014654038,
+              4985.555011008979
+            ],
+            [
+              4443.958967495101,
+              5190.395023635519
+            ],
+            [
+              4178.060874181805,
+              5237.28003160559
+            ],
+            [
+              4141.942053227084,
+              5032.44001897905
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-V",
+        "seccion": "ORO",
+        "manzana": "V",
+        "nombre": "ORO - V",
+        "lotesFile": "./data/lotes/lotes-ORO-V.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              3728.291032504899,
+              4391.6049763644805
+            ],
+            [
+              3994.189125818195,
+              4344.719968394409
+            ],
+            [
+              4030.3079467729167,
+              4549.559981020949
+            ],
+            [
+              3764.40985345962,
+              4596.44498899102
+            ],
+            [
+              3728.291032504899,
+              4391.6049763644805
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-W",
+        "seccion": "ORO",
+        "manzana": "W",
+        "nombre": "ORO - W",
+        "lotesFile": "./data/lotes/lotes-ORO-W.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              3768.9247060789603,
+              4622.049990569337
+            ],
+            [
+              4034.8227993922565,
+              4575.164982599266
+            ],
+            [
+              4070.941620346978,
+              4780.004995225805
+            ],
+            [
+              3805.043527033682,
+              4826.8900031958765
+            ],
+            [
+              3768.9247060789603,
+              4622.049990569337
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-X",
+        "seccion": "ORO",
+        "manzana": "X",
+        "nombre": "ORO - X",
+        "lotesFile": "./data/lotes/lotes-ORO-X.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              3809.5583796530223,
+              4852.495004774194
+            ],
+            [
+              4075.456472966318,
+              4805.609996804123
+            ],
+            [
+              4111.57529392104,
+              5010.450009430662
+            ],
+            [
+              3845.6772006077435,
+              5057.335017400733
+            ],
+            [
+              3809.5583796530223,
+              4852.495004774194
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-Y",
+        "seccion": "ORO",
+        "manzana": "Y",
+        "nombre": "ORO - Y",
+        "lotesFile": "./data/lotes/lotes-ORO-Y.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              3850.1920532270838,
+              5082.94001897905
+            ],
+            [
+              4116.09014654038,
+              5036.055011008979
+            ],
+            [
+              4152.208967495101,
+              5240.895023635519
+            ],
+            [
+              3886.3108741818055,
+              5287.78003160559
+            ],
+            [
+              3850.1920532270838,
+              5082.94001897905
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-Z",
+        "seccion": "ORO",
+        "manzana": "Z",
+        "nombre": "ORO - Z",
+        "lotesFile": "./data/lotes/lotes-ORO-Z.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              3852.166032504899,
+              3386.1049763644805
+            ],
+            [
+              4118.064125818195,
+              3339.2199683944095
+            ],
+            [
+              4154.182946772917,
+              3544.0599810209487
+            ],
+            [
+              3888.2848534596205,
+              3590.9449889910197
+            ],
+            [
+              3852.166032504899,
+              3386.1049763644805
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-W",
+        "seccion": "ORO",
+        "manzana": "W",
+        "nombre": "ORO - W",
+        "lotesFile": "./data/lotes/lotes-ORO-W.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              3892.7997060789603,
+              3616.5499905693373
+            ],
+            [
+              4158.6977993922565,
+              3569.664982599266
+            ],
+            [
+              4194.816620346978,
+              3774.504995225805
+            ],
+            [
+              3928.918527033682,
+              3821.3900031958765
+            ],
+            [
+              3892.7997060789603,
+              3616.5499905693373
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-X",
+        "seccion": "ORO",
+        "manzana": "X",
+        "nombre": "ORO - X",
+        "lotesFile": "./data/lotes/lotes-ORO-X.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              3933.433379653022,
+              3846.995004774194
+            ],
+            [
+              4199.331472966318,
+              3800.1099968041226
+            ],
+            [
+              4235.45029392104,
+              4004.9500094306622
+            ],
+            [
+              3969.5522006077435,
+              4051.835017400733
+            ],
+            [
+              3933.433379653022,
+              3846.995004774194
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-Y",
+        "seccion": "ORO",
+        "manzana": "Y",
+        "nombre": "ORO - Y",
+        "lotesFile": "./data/lotes/lotes-ORO-Y.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              3974.067053227084,
+              4077.4400189790504
+            ],
+            [
+              4239.96514654038,
+              4030.555011008979
+            ],
+            [
+              4276.083967495101,
+              4235.395023635519
+            ],
+            [
+              4010.185874181805,
+              4282.28003160559
+            ],
+            [
+              3974.067053227084,
+              4077.4400189790504
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-Z",
+        "seccion": "ORO",
+        "manzana": "Z",
+        "nombre": "ORO - Z",
+        "lotesFile": "./data/lotes/lotes-ORO-Z.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              3602.3578692919295,
+              3669.077483466909
+            ],
+            [
+              3868.2559626052257,
+              3622.192475496838
+            ],
+            [
+              3904.3747835599474,
+              3827.0324881233773
+            ],
+            [
+              3638.476690246651,
+              3873.917496093449
+            ],
+            [
+              3602.3578692919295,
+              3669.077483466909
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-W",
+        "seccion": "ORO",
+        "manzana": "W",
+        "nombre": "ORO - W",
+        "lotesFile": "./data/lotes/lotes-ORO-W.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              3642.991542865991,
+              3899.5224976717654
+            ],
+            [
+              3908.889636179287,
+              3852.637489701695
+            ],
+            [
+              3945.008457134009,
+              4057.4775023282336
+            ],
+            [
+              3679.110363820713,
+              4104.362510298305
+            ],
+            [
+              3642.991542865991,
+              3899.5224976717654
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-X",
+        "seccion": "ORO",
+        "manzana": "X",
+        "nombre": "ORO - X",
+        "lotesFile": "./data/lotes/lotes-ORO-X.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              3683.625216440053,
+              4129.967511876623
+            ],
+            [
+              3949.5233097533487,
+              4083.082503906551
+            ],
+            [
+              3985.6421307080705,
+              4287.922516533091
+            ],
+            [
+              3719.7440373947743,
+              4334.807524503161
+            ],
+            [
+              3683.625216440053,
+              4129.967511876623
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-Y",
+        "seccion": "ORO",
+        "manzana": "Y",
+        "nombre": "ORO - Y",
+        "lotesFile": "./data/lotes/lotes-ORO-Y.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              3478.2997060789603,
+              4673.174990569338
+            ],
+            [
+              3744.1977993922565,
+              4626.289982599266
+            ],
+            [
+              3780.316620346978,
+              4831.129995225806
+            ],
+            [
+              3514.4185270336816,
+              4878.015003195877
+            ],
+            [
+              3478.2997060789603,
+              4673.174990569338
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-W",
+        "seccion": "ORO",
+        "manzana": "W",
+        "nombre": "ORO - W",
+        "lotesFile": "./data/lotes/lotes-ORO-W.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              3518.933379653022,
+              4903.620004774194
+            ],
+            [
+              3784.831472966318,
+              4856.7349968041235
+            ],
+            [
+              3820.9502939210397,
+              5061.575009430662
+            ],
+            [
+              3555.0522006077435,
+              5108.460017400734
+            ],
+            [
+              3518.933379653022,
+              4903.620004774194
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-X",
+        "seccion": "ORO",
+        "manzana": "X",
+        "nombre": "ORO - X",
+        "lotesFile": "./data/lotes/lotes-ORO-X.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4835.0540428659915,
+              3691.272497671766
+            ],
+            [
+              5100.952136179288,
+              3644.387489701695
+            ],
+            [
+              5137.070957134009,
+              3849.227502328234
+            ],
+            [
+              4871.172863820713,
+              3896.112510298305
+            ],
+            [
+              4835.0540428659915,
+              3691.272497671766
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "ORO-W",
+        "seccion": "ORO",
+        "manzana": "W",
+        "nombre": "ORO - W",
+        "lotesFile": "./data/lotes/lotes-ORO-W.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2797.041032504899,
+              4554.8549763644805
+            ],
+            [
+              3062.939125818195,
+              4507.969968394409
+            ],
+            [
+              3099.0579467729167,
+              4712.809981020949
+            ],
+            [
+              2833.15985345962,
+              4759.69498899102
+            ],
+            [
+              2797.041032504899,
+              4554.8549763644805
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "lotesFile": "./data/lotes/lotes-PLATA-A.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2837.6747060789603,
+              4785.299990569337
+            ],
+            [
+              3103.5727993922565,
+              4738.414982599266
+            ],
+            [
+              3139.691620346978,
+              4943.254995225805
+            ],
+            [
+              2873.793527033682,
+              4990.1400031958765
+            ],
+            [
+              2837.6747060789603,
+              4785.299990569337
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-B",
+        "seccion": "PLATA",
+        "manzana": "B",
+        "nombre": "PLATA - B",
+        "lotesFile": "./data/lotes/lotes-PLATA-B.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2878.3083796530223,
+              5015.745004774194
+            ],
+            [
+              3144.2064729663184,
+              4968.859996804123
+            ],
+            [
+              3180.3252939210397,
+              5173.700009430662
+            ],
+            [
+              2914.4272006077435,
+              5220.585017400733
+            ],
+            [
+              2878.3083796530223,
+              5015.745004774194
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-C",
+        "seccion": "PLATA",
+        "manzana": "C",
+        "nombre": "PLATA - C",
+        "lotesFile": "./data/lotes/lotes-PLATA-C.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2918.9420532270838,
+              5246.19001897905
+            ],
+            [
+              3184.84014654038,
+              5199.305011008979
+            ],
+            [
+              3220.9589674951017,
+              5404.145023635519
+            ],
+            [
+              2955.0608741818055,
+              5451.03003160559
+            ],
+            [
+              2918.9420532270838,
+              5246.19001897905
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-D",
+        "seccion": "PLATA",
+        "manzana": "D",
+        "nombre": "PLATA - D",
+        "lotesFile": "./data/lotes/lotes-PLATA-D.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2629.541032504899,
+              3601.6049763644805
+            ],
+            [
+              2895.439125818195,
+              3554.7199683944095
+            ],
+            [
+              2931.5579467729167,
+              3759.5599810209487
+            ],
+            [
+              2665.65985345962,
+              3806.44498899102
+            ],
+            [
+              2629.541032504899,
+              3601.6049763644805
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "lotesFile": "./data/lotes/lotes-PLATA-A.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2670.1747060789603,
+              3832.049990569337
+            ],
+            [
+              2936.0727993922565,
+              3785.1649825992663
+            ],
+            [
+              2972.191620346978,
+              3990.004995225805
+            ],
+            [
+              2706.293527033682,
+              4036.8900031958765
+            ],
+            [
+              2670.1747060789603,
+              3832.049990569337
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-B",
+        "seccion": "PLATA",
+        "manzana": "B",
+        "nombre": "PLATA - B",
+        "lotesFile": "./data/lotes/lotes-PLATA-B.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2710.8083796530223,
+              4062.495004774194
+            ],
+            [
+              2976.7064729663184,
+              4015.6099968041226
+            ],
+            [
+              3012.8252939210397,
+              4220.450009430662
+            ],
+            [
+              2746.9272006077435,
+              4267.335017400733
+            ],
+            [
+              2710.8083796530223,
+              4062.495004774194
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-C",
+        "seccion": "PLATA",
+        "manzana": "C",
+        "nombre": "PLATA - C",
+        "lotesFile": "./data/lotes/lotes-PLATA-C.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2751.4420532270838,
+              4292.94001897905
+            ],
+            [
+              3017.34014654038,
+              4246.055011008979
+            ],
+            [
+              3053.4589674951017,
+              4450.895023635519
+            ],
+            [
+              2787.5608741818055,
+              4497.78003160559
+            ],
+            [
+              2751.4420532270838,
+              4292.94001897905
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-D",
+        "seccion": "PLATA",
+        "manzana": "D",
+        "nombre": "PLATA - D",
+        "lotesFile": "./data/lotes/lotes-PLATA-D.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2299.2241957178676,
+              3420.569969262053
+            ],
+            [
+              2565.1222890311637,
+              3373.684961291982
+            ],
+            [
+              2601.2411099858855,
+              3578.524973918521
+            ],
+            [
+              2335.343016672589,
+              3625.4099818885925
+            ],
+            [
+              2299.2241957178676,
+              3420.569969262053
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "lotesFile": "./data/lotes/lotes-PLATA-A.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2339.857869291929,
+              3651.014983466909
+            ],
+            [
+              2605.7559626052252,
+              3604.1299754968386
+            ],
+            [
+              2641.874783559947,
+              3808.9699881233773
+            ],
+            [
+              2375.976690246651,
+              3855.854996093449
+            ],
+            [
+              2339.857869291929,
+              3651.014983466909
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-B",
+        "seccion": "PLATA",
+        "manzana": "B",
+        "nombre": "PLATA - B",
+        "lotesFile": "./data/lotes/lotes-PLATA-B.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2380.491542865991,
+              3881.4599976717664
+            ],
+            [
+              2646.389636179287,
+              3834.574989701695
+            ],
+            [
+              2682.5084571340085,
+              4039.4150023282346
+            ],
+            [
+              2416.6103638207123,
+              4086.300010298305
+            ],
+            [
+              2380.491542865991,
+              3881.4599976717664
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-C",
+        "seccion": "PLATA",
+        "manzana": "C",
+        "nombre": "PLATA - C",
+        "lotesFile": "./data/lotes/lotes-PLATA-C.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2421.1252164400526,
+              4111.905011876623
+            ],
+            [
+              2687.0233097533487,
+              4065.020003906551
+            ],
+            [
+              2723.1421307080705,
+              4269.860016533091
+            ],
+            [
+              2457.2440373947743,
+              4316.745024503162
+            ],
+            [
+              2421.1252164400526,
+              4111.905011876623
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-D",
+        "seccion": "PLATA",
+        "manzana": "D",
+        "nombre": "PLATA - D",
+        "lotesFile": "./data/lotes/lotes-PLATA-D.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2461.7588900141145,
+              4342.35002608148
+            ],
+            [
+              2727.6569833274107,
+              4295.465018111408
+            ],
+            [
+              2763.775804282132,
+              4500.305030737947
+            ],
+            [
+              2497.877710968836,
+              4547.190038708019
+            ],
+            [
+              2461.7588900141145,
+              4342.35002608148
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-E",
+        "seccion": "PLATA",
+        "manzana": "E",
+        "nombre": "PLATA - E",
+        "lotesFile": "./data/lotes/lotes-PLATA-E.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1947.2016192919295,
+              4704.13998346691
+            ],
+            [
+              2213.0997126052257,
+              4657.254975496839
+            ],
+            [
+              2249.2185335599474,
+              4862.094988123378
+            ],
+            [
+              1983.3204402466508,
+              4908.97999609345
+            ],
+            [
+              1947.2016192919295,
+              4704.13998346691
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "lotesFile": "./data/lotes/lotes-PLATA-A.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1987.835292865991,
+              4934.584997671766
+            ],
+            [
+              2253.733386179287,
+              4887.699989701696
+            ],
+            [
+              2289.852207134009,
+              5092.540002328235
+            ],
+            [
+              2023.9541138207128,
+              5139.425010298306
+            ],
+            [
+              1987.835292865991,
+              4934.584997671766
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-B",
+        "seccion": "PLATA",
+        "manzana": "B",
+        "nombre": "PLATA - B",
+        "lotesFile": "./data/lotes/lotes-PLATA-B.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2028.468966440053,
+              5165.030011876624
+            ],
+            [
+              2294.367059753349,
+              5118.145003906552
+            ],
+            [
+              2330.4858807080705,
+              5322.985016533092
+            ],
+            [
+              2064.5877873947743,
+              5369.870024503162
+            ],
+            [
+              2028.468966440053,
+              5165.030011876624
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-C",
+        "seccion": "PLATA",
+        "manzana": "C",
+        "nombre": "PLATA - C",
+        "lotesFile": "./data/lotes/lotes-PLATA-C.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1655.9828692919295,
+              4754.63998346691
+            ],
+            [
+              1921.8809626052257,
+              4707.754975496839
+            ],
+            [
+              1957.9997835599474,
+              4912.594988123378
+            ],
+            [
+              1692.101690246651,
+              4959.47999609345
+            ],
+            [
+              1655.9828692919295,
+              4754.63998346691
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "lotesFile": "./data/lotes/lotes-PLATA-A.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1696.6165428659913,
+              4985.084997671766
+            ],
+            [
+              1962.5146361792872,
+              4938.199989701696
+            ],
+            [
+              1998.633457134009,
+              5143.040002328235
+            ],
+            [
+              1732.7353638207128,
+              5189.925010298306
+            ],
+            [
+              1696.6165428659913,
+              4985.084997671766
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-B",
+        "seccion": "PLATA",
+        "manzana": "B",
+        "nombre": "PLATA - B",
+        "lotesFile": "./data/lotes/lotes-PLATA-B.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1737.250216440053,
+              5215.530011876624
+            ],
+            [
+              2003.1483097533492,
+              5168.645003906552
+            ],
+            [
+              2039.2671307080705,
+              5373.485016533092
+            ],
+            [
+              1773.3690373947745,
+              5420.370024503162
+            ],
+            [
+              1737.250216440053,
+              5215.530011876624
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-C",
+        "seccion": "PLATA",
+        "manzana": "C",
+        "nombre": "PLATA - C",
+        "lotesFile": "./data/lotes/lotes-PLATA-C.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1821.8578692919295,
+              3980.57748346691
+            ],
+            [
+              2087.7559626052257,
+              3933.6924754968386
+            ],
+            [
+              2123.8747835599474,
+              4138.532488123378
+            ],
+            [
+              1857.9766902466508,
+              4185.41749609345
+            ],
+            [
+              1821.8578692919295,
+              3980.57748346691
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "lotesFile": "./data/lotes/lotes-PLATA-A.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1862.491542865991,
+              4211.022497671766
+            ],
+            [
+              2128.389636179287,
+              4164.137489701696
+            ],
+            [
+              2164.508457134009,
+              4368.977502328235
+            ],
+            [
+              1898.6103638207128,
+              4415.862510298306
+            ],
+            [
+              1862.491542865991,
+              4211.022497671766
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-B",
+        "seccion": "PLATA",
+        "manzana": "B",
+        "nombre": "PLATA - B",
+        "lotesFile": "./data/lotes/lotes-PLATA-B.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1903.125216440053,
+              4441.467511876624
+            ],
+            [
+              2169.023309753349,
+              4394.582503906552
+            ],
+            [
+              2205.1421307080705,
+              4599.422516533092
+            ],
+            [
+              1939.2440373947743,
+              4646.307524503162
+            ],
+            [
+              1903.125216440053,
+              4441.467511876624
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-C",
+        "seccion": "PLATA",
+        "manzana": "C",
+        "nombre": "PLATA - C",
+        "lotesFile": "./data/lotes/lotes-PLATA-C.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1487.9160325048986,
+              3800.4174763644805
+            ],
+            [
+              1753.8141258181947,
+              3753.532468394409
+            ],
+            [
+              1789.9329467729162,
+              3958.3724810209487
+            ],
+            [
+              1524.03485345962,
+              4005.25748899102
+            ],
+            [
+              1487.9160325048986,
+              3800.4174763644805
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "lotesFile": "./data/lotes/lotes-PLATA-A.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1528.5497060789603,
+              4030.862490569337
+            ],
+            [
+              1794.4477993922565,
+              3983.9774825992663
+            ],
+            [
+              1830.566620346978,
+              4188.817495225805
+            ],
+            [
+              1564.6685270336818,
+              4235.7025031958765
+            ],
+            [
+              1528.5497060789603,
+              4030.862490569337
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-B",
+        "seccion": "PLATA",
+        "manzana": "B",
+        "nombre": "PLATA - B",
+        "lotesFile": "./data/lotes/lotes-PLATA-B.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1569.183379653022,
+              4261.307504774194
+            ],
+            [
+              1835.0814729663182,
+              4214.422496804123
+            ],
+            [
+              1871.2002939210395,
+              4419.262509430662
+            ],
+            [
+              1605.3022006077435,
+              4466.147517400733
+            ],
+            [
+              1569.183379653022,
+              4261.307504774194
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-C",
+        "seccion": "PLATA",
+        "manzana": "C",
+        "nombre": "PLATA - C",
+        "lotesFile": "./data/lotes/lotes-PLATA-C.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1609.8170532270838,
+              4491.75251897905
+            ],
+            [
+              1875.7151465403797,
+              4444.867511008979
+            ],
+            [
+              1911.8339674951014,
+              4649.707523635519
+            ],
+            [
+              1645.9358741818053,
+              4696.59253160559
+            ],
+            [
+              1609.8170532270838,
+              4491.75251897905
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-D",
+        "seccion": "PLATA",
+        "manzana": "D",
+        "nombre": "PLATA - D",
+        "lotesFile": "./data/lotes/lotes-PLATA-D.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1198.3535325048986,
+              3851.0424763644805
+            ],
+            [
+              1464.2516258181947,
+              3804.1574683944095
+            ],
+            [
+              1500.3704467729162,
+              4008.9974810209487
+            ],
+            [
+              1234.47235345962,
+              4055.8824889910197
+            ],
+            [
+              1198.3535325048986,
+              3851.0424763644805
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "lotesFile": "./data/lotes/lotes-PLATA-A.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1238.9872060789603,
+              4081.4874905693373
+            ],
+            [
+              1504.8852993922565,
+              4034.602482599266
+            ],
+            [
+              1541.004120346978,
+              4239.442495225805
+            ],
+            [
+              1275.1060270336818,
+              4286.3275031958765
+            ],
+            [
+              1238.9872060789603,
+              4081.4874905693373
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-B",
+        "seccion": "PLATA",
+        "manzana": "B",
+        "nombre": "PLATA - B",
+        "lotesFile": "./data/lotes/lotes-PLATA-B.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1279.620879653022,
+              4311.932504774194
+            ],
+            [
+              1545.5189729663182,
+              4265.047496804123
+            ],
+            [
+              1581.6377939210397,
+              4469.887509430662
+            ],
+            [
+              1315.7397006077435,
+              4516.772517400733
+            ],
+            [
+              1279.620879653022,
+              4311.932504774194
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-C",
+        "seccion": "PLATA",
+        "manzana": "C",
+        "nombre": "PLATA - C",
+        "lotesFile": "./data/lotes/lotes-PLATA-C.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1320.2545532270838,
+              4542.37751897905
+            ],
+            [
+              1586.1526465403797,
+              4495.492511008979
+            ],
+            [
+              1622.2714674951014,
+              4700.332523635519
+            ],
+            [
+              1356.3733741818053,
+              4747.21753160559
+            ],
+            [
+              1320.2545532270838,
+              4542.37751897905
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-D",
+        "seccion": "PLATA",
+        "manzana": "D",
+        "nombre": "PLATA - D",
+        "lotesFile": "./data/lotes/lotes-PLATA-D.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              905.9785325048986,
+              3903.5424763644805
+            ],
+            [
+              1171.8766258181947,
+              3856.657468394409
+            ],
+            [
+              1207.9954467729162,
+              4061.4974810209487
+            ],
+            [
+              942.0973534596201,
+              4108.38248899102
+            ],
+            [
+              905.9785325048986,
+              3903.5424763644805
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "lotesFile": "./data/lotes/lotes-PLATA-A.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              946.6122060789603,
+              4133.987490569337
+            ],
+            [
+              1212.5102993922565,
+              4087.1024825992663
+            ],
+            [
+              1248.629120346978,
+              4291.942495225805
+            ],
+            [
+              982.7310270336818,
+              4338.8275031958765
+            ],
+            [
+              946.6122060789603,
+              4133.987490569337
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-B",
+        "seccion": "PLATA",
+        "manzana": "B",
+        "nombre": "PLATA - B",
+        "lotesFile": "./data/lotes/lotes-PLATA-B.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              987.245879653022,
+              4364.432504774194
+            ],
+            [
+              1253.1439729663182,
+              4317.547496804123
+            ],
+            [
+              1289.2627939210397,
+              4522.387509430662
+            ],
+            [
+              1023.3647006077435,
+              4569.272517400733
+            ],
+            [
+              987.245879653022,
+              4364.432504774194
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-C",
+        "seccion": "PLATA",
+        "manzana": "C",
+        "nombre": "PLATA - C",
+        "lotesFile": "./data/lotes/lotes-PLATA-C.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1027.8795532270838,
+              4594.87751897905
+            ],
+            [
+              1293.7776465403797,
+              4547.992511008979
+            ],
+            [
+              1329.8964674951014,
+              4752.832523635519
+            ],
+            [
+              1063.9983741818053,
+              4799.71753160559
+            ],
+            [
+              1027.8795532270838,
+              4594.87751897905
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-D",
+        "seccion": "PLATA",
+        "manzana": "D",
+        "nombre": "PLATA - D",
+        "lotesFile": "./data/lotes/lotes-PLATA-D.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1364.522792865991,
+              4804.616247671765
+            ],
+            [
+              1630.4208861792872,
+              4757.731239701694
+            ],
+            [
+              1666.5397071340087,
+              4962.571252328234
+            ],
+            [
+              1400.6416138207126,
+              5009.456260298305
+            ],
+            [
+              1364.522792865991,
+              4804.616247671765
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "lotesFile": "./data/lotes/lotes-PLATA-A.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2347.991542865991,
+              5110.147497671765
+            ],
+            [
+              2613.889636179287,
+              5063.262489701694
+            ],
+            [
+              2650.008457134009,
+              5268.102502328234
+            ],
+            [
+              2384.1103638207123,
+              5314.987510298305
+            ],
+            [
+              2347.991542865991,
+              5110.147497671765
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "PLATA-A",
+        "seccion": "PLATA",
+        "manzana": "A",
+        "nombre": "PLATA - A",
+        "lotesFile": "./data/lotes/lotes-PLATA-A.geojson"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          6570,
+          5398
+        ]
+      },
+      "properties": {
+        "seccion": "SAN MATEO VIP",
+        "manzana": "D",
+        "nombre": "SAN MATEO VIP - D",
+        "lotesFile": "./data/lotes/lotes-SAN MATEO VIP-D.geojson",
+        "id": "SAN MATEO VIP-D",
+        "shape": "circle",
+        "radius": 100.43816669103141
       }
     }
   ]
