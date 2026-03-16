@@ -34,7 +34,7 @@
         "id": "007",
         "lote": "007",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "A",
         "manzanaId": "A"
@@ -73,7 +73,7 @@
         "id": "006",
         "lote": "006",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "A",
         "manzanaId": "A"
@@ -112,7 +112,7 @@
         "id": "005",
         "lote": "005",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "A",
         "manzanaId": "A"
@@ -151,7 +151,7 @@
         "id": "004",
         "lote": "004",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "A",
         "manzanaId": "A"
@@ -190,7 +190,7 @@
         "id": "003",
         "lote": "003",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "A",
         "manzanaId": "A"
@@ -229,7 +229,7 @@
         "id": "002",
         "lote": "002",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "A",
         "manzanaId": "A"
@@ -268,7 +268,7 @@
         "id": "001",
         "lote": "001",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "A",
         "manzanaId": "A"
@@ -307,7 +307,7 @@
         "id": "008",
         "lote": "008",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "A",
         "manzanaId": "A"
@@ -346,7 +346,7 @@
         "id": "009",
         "lote": "009",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "B",
         "manzanaId": "B"
@@ -385,7 +385,7 @@
         "id": "015",
         "lote": "015",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "B",
         "manzanaId": "B"
@@ -424,7 +424,7 @@
         "id": "014",
         "lote": "014",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "B",
         "manzanaId": "B"
@@ -463,7 +463,7 @@
         "id": "013",
         "lote": "013",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "B",
         "manzanaId": "B"
@@ -502,7 +502,7 @@
         "id": "012",
         "lote": "012",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "B",
         "manzanaId": "B"
@@ -541,7 +541,7 @@
         "id": "011",
         "lote": "011",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "B",
         "manzanaId": "B"
@@ -580,7 +580,7 @@
         "id": "010",
         "lote": "010",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "B",
         "manzanaId": "B"
@@ -619,7 +619,7 @@
         "id": "009",
         "lote": "009",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "B",
         "manzanaId": "B"
@@ -658,7 +658,7 @@
         "id": "016",
         "lote": "016",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "B",
         "manzanaId": "B"
@@ -697,7 +697,7 @@
         "id": "023",
         "lote": "023",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "C",
         "manzanaId": "C"
@@ -736,7 +736,7 @@
         "id": "022",
         "lote": "022",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "C",
         "manzanaId": "C"
@@ -775,7 +775,7 @@
         "id": "021",
         "lote": "021",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "C",
         "manzanaId": "C"
@@ -814,7 +814,7 @@
         "id": "020",
         "lote": "020",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "C",
         "manzanaId": "C"
@@ -853,7 +853,7 @@
         "id": "019",
         "lote": "019",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "C",
         "manzanaId": "C"
@@ -892,7 +892,7 @@
         "id": "018",
         "lote": "018",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "C",
         "manzanaId": "C"
@@ -931,7 +931,7 @@
         "id": "017",
         "lote": "017",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "C",
         "manzanaId": "C"
@@ -970,7 +970,7 @@
         "id": "024",
         "lote": "024",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "C",
         "manzanaId": "C"
@@ -1009,7 +1009,7 @@
         "id": "031",
         "lote": "031",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "D",
         "manzanaId": "D"
@@ -1048,7 +1048,7 @@
         "id": "030",
         "lote": "030",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "D",
         "manzanaId": "D"
@@ -1087,7 +1087,7 @@
         "id": "029",
         "lote": "029",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "D",
         "manzanaId": "D"
@@ -1126,7 +1126,7 @@
         "id": "028",
         "lote": "028",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "D",
         "manzanaId": "D"
@@ -1165,7 +1165,7 @@
         "id": "027",
         "lote": "027",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "D",
         "manzanaId": "D"
@@ -1204,7 +1204,7 @@
         "id": "026",
         "lote": "026",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "D",
         "manzanaId": "D"
@@ -1243,7 +1243,7 @@
         "id": "025",
         "lote": "025",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "D",
         "manzanaId": "D"
@@ -1282,7 +1282,7 @@
         "id": "032",
         "lote": "032",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "D",
         "manzanaId": "D"
@@ -1321,7 +1321,7 @@
         "id": "047",
         "lote": "047",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "F",
         "manzanaId": "F"
@@ -1360,7 +1360,7 @@
         "id": "046",
         "lote": "046",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "F",
         "manzanaId": "F"
@@ -1399,7 +1399,7 @@
         "id": "045",
         "lote": "045",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "F",
         "manzanaId": "F"
@@ -1438,7 +1438,7 @@
         "id": "044",
         "lote": "044",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "F",
         "manzanaId": "F"
@@ -1477,7 +1477,7 @@
         "id": "043",
         "lote": "043",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "F",
         "manzanaId": "F"
@@ -1516,7 +1516,7 @@
         "id": "042",
         "lote": "042",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "F",
         "manzanaId": "F"
@@ -1555,7 +1555,7 @@
         "id": "041",
         "lote": "041",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "F",
         "manzanaId": "F"
@@ -1594,7 +1594,7 @@
         "id": "048",
         "lote": "048",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "F",
         "manzanaId": "F"
@@ -1633,7 +1633,7 @@
         "id": "055",
         "lote": "055",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "G",
         "manzanaId": "G"
@@ -1672,7 +1672,7 @@
         "id": "054",
         "lote": "054",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "G",
         "manzanaId": "G"
@@ -1711,7 +1711,7 @@
         "id": "053",
         "lote": "053",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "G",
         "manzanaId": "G"
@@ -1750,7 +1750,7 @@
         "id": "052",
         "lote": "052",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "G",
         "manzanaId": "G"
@@ -1789,7 +1789,7 @@
         "id": "051",
         "lote": "051",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "G",
         "manzanaId": "G"
@@ -1828,7 +1828,7 @@
         "id": "050",
         "lote": "050",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "G",
         "manzanaId": "G"
@@ -1867,7 +1867,7 @@
         "id": "049",
         "lote": "049",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "G",
         "manzanaId": "G"
@@ -1906,7 +1906,7 @@
         "id": "056",
         "lote": "056",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "G",
         "manzanaId": "G"
@@ -1945,7 +1945,7 @@
         "id": "039",
         "lote": "039",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "E",
         "manzanaId": "E"
@@ -1984,7 +1984,7 @@
         "id": "038",
         "lote": "038",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "E",
         "manzanaId": "E"
@@ -2023,7 +2023,7 @@
         "id": "037",
         "lote": "037",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "E",
         "manzanaId": "E"
@@ -2062,7 +2062,7 @@
         "id": "036",
         "lote": "036",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "E",
         "manzanaId": "E"
@@ -2101,7 +2101,7 @@
         "id": "035",
         "lote": "035",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "E",
         "manzanaId": "E"
@@ -2140,7 +2140,7 @@
         "id": "034",
         "lote": "034",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "E",
         "manzanaId": "E"
@@ -2179,7 +2179,7 @@
         "id": "033",
         "lote": "033",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "E",
         "manzanaId": "E"
@@ -2218,7 +2218,7 @@
         "id": "040",
         "lote": "040",
         "estatus": "disponible",
-        "paquete": null,
+        "paquete": "VIP",
         "seccion": "SAN MATEO VIP",
         "manzana": "E",
         "manzanaId": "E"

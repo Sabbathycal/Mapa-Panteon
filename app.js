@@ -861,7 +861,10 @@ async function loadLotesForCurrentManzana(){
 
   const sec = currentSeccion || getPropSeccion(currentManzanaFeature);
   const man = getPropManzana(currentManzanaFeature);
+  const manzanaPkg = currentManzanaFeature?.properties?.paquete || null;
+
   setPanel(`SECCIÓN ${safe(sec)} — MANZANA ${safe(man)}`, `
+    <p><b>Paquete (manzana):</b> ${manzanaPkg ? safe(manzanaPkg) : "<i>Sin paquete asignado</i>"}</p>
     <p>Selecciona un lote o usa <b>Mostrar lotes</b>.</p>
   `);
 }
@@ -870,7 +873,7 @@ function showLoteInfo(feature){
   const props = feature?.properties || {};
   const loteVal = (props.lote || props.id || "").toString();
   const status = (props.estatus || "").toString() || (lotesInfo[loteVal]?.estatus) || "desconocido";
-  const paqueteKey = (props.paquete || null);
+  const paqueteKey = (props.paquete || currentManzanaFeature?.properties?.paquete || null);
 
   let html = `
     <p><b>SECCIÓN:</b> ${safe(currentSeccion || getPropSeccion(currentManzanaFeature))}</p>
@@ -1937,6 +1940,32 @@ function renderEditSelectedPanel(){
     `;
   }
 
+  let paqueteOptionsHtml = "";
+  if (isEditManzanas && editor.selectedFeature){
+    const curPkg = (editor.selectedFeature?.properties?.paquete || "").toString().trim();
+
+    const pkgKeys = Object.keys(paquetesInfo || {}).sort((a,b) =>
+      a.localeCompare(b, "es", { sensitivity:"base" })
+    );
+
+    const opts = [
+      `<option value="">(sin paquete)</option>`,
+      ...pkgKeys.map(k => {
+        const sel = (curPkg && k === curPkg) ? "selected" : "";
+        const label = (paquetesInfo?.[k]?.nombre) ? `${k} — ${paquetesInfo[k].nombre}` : k;
+        return `<option value="${safe(k)}" ${sel}>${safe(label)}</option>`;
+      })
+    ].join("");
+
+    paqueteOptionsHtml = `
+      <hr/>
+      <label><b>Paquete de la manzana</b></label><br/>
+      <select id="editManzanaPaquete" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;">${opts}</select>
+      <p style="font-size:12px;color:#6b7280;margin-top:-2px;">
+        Este paquete se usará como default para los lotes de esta manzana que no tengan paquete propio.
+      </p>
+    `;
+  }
 
   const modeLabel = (editor.editSubmode === "vertices") ? "Edición de puntos" : "Mover/Escalar";
 
@@ -1954,6 +1983,7 @@ function renderEditSelectedPanel(){
       style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
 
     ${manzanaOptionsHtml}
+    ${paqueteOptionsHtml}
 
     ${showColor ? `
       <hr/>
@@ -2034,6 +2064,18 @@ function renderEditSelectedPanel(){
       ensureLoteContextProps(editor.selectedFeature, getSelectedSeccion(), man);
       rerenderLotes_Edit();
       notify('Manzana actualizada (en memoria).', 1200);
+    };
+  }
+  const $pkgSel = document.getElementById("editManzanaPaquete");
+  if ($pkgSel){
+    $pkgSel.onchange = () => {
+      const pkg = ($pkgSel.value || "").toString().trim();
+      if (!editor.selectedFeature.properties) editor.selectedFeature.properties = {};
+      if (!pkg) delete editor.selectedFeature.properties.paquete;
+      else editor.selectedFeature.properties.paquete = pkg;
+
+      rerenderManzanas_Edit();
+      notify("Paquete de manzana actualizado (en memoria).", 1400);
     };
   }
   if (showColor){
