@@ -4410,10 +4410,10 @@
       },
       "properties": {
         "seccion": "SAN MATEO VIP",
-        "manzana": "D",
-        "nombre": "SAN MATEO VIP - D",
+        "manzana": "E",
+        "nombre": "SAN MATEO VIP - E",
         "lotesFile": "./data/lotes/sanmateovip/lotes.geojson",
-        "id": "SAN MATEO VIP-D",
+        "id": "SAN MATEO VIP-E",
         "shape": "circle",
         "radius": 100.43816669103141
       }
