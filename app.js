@@ -1023,22 +1023,73 @@ function openNichoModal(zonaFeature){
     sub.textContent = `Zona: ${zonaId} (${prefix}) — Cara: ${cara} — Selecciona nicho`;
 
     const src = `./assets/nichos/${prefix}-${cara}.png`;
+    
+        // ===== Zoom Nichos (slider) =====
+    const zoomEl = document.getElementById("nichoZoom"); // <-- usa el ID real de tu input range
+    const wrap = document.getElementById("nichoImg")?.parentElement;
+
+    function setNichoZoom(z){
+      const stage = document.getElementById("nichoStage");
+      if (!stage) return;
+      const zoom = Math.max(0.5, Math.min(5, Number(z) || 1));
+      stage.style.transform = `scale(${zoom})`;
+      if (zoomEl) zoomEl.value = String(zoom);
+    }
+
+    // Slider -> aplica zoom real (transform al stage)
+    if (zoomEl) {
+      zoomEl.oninput = () => setNichoZoom(zoomEl.value);
+    }
 
     img.src = src;
     img.onload = () => {
       img.style.display = "block";
       layer.style.display = "block";
 
-      layer.style.width = img.naturalWidth + "px";
-      layer.style.height = img.naturalHeight + "px";
-      img.style.width = img.naturalWidth + "px";
-      img.style.height = img.naturalHeight + "px";
+      // ✅ En vez de forzar tamaños en px, hacemos "fit" al contenedor
+      const wrap = img.parentElement; // contenedor donde vive la imagen en el modal
+
+      // Asegura un viewport con scroll (si tu HTML ya lo tiene, esto solo refuerza)
+      wrap.style.position = "relative";
+      wrap.style.overflow = "auto";
+
+      // Creamos (una sola vez) un "stage" para escalar TODO (img + overlay)
+      let stage = document.getElementById("nichoStage");
+      if (!stage) {
+        stage = document.createElement("div");
+        stage.id = "nichoStage";
+        stage.style.position = "relative";
+        stage.style.transformOrigin = "top left";
+        stage.style.width = "fit-content";
+        stage.style.height = "fit-content";
+
+        // mueve img + layer dentro del stage
+        wrap.appendChild(stage);
+        stage.appendChild(img);
+        stage.appendChild(layer);
+      }
+
+      // Imagen responsiva dentro del modal (se ve completa)
+      img.style.width = "100%";
+      img.style.height = "auto";
+      img.style.maxWidth = "100%";
+      img.style.display = "block";
+
+      // Overlay encima de la imagen, usando porcentajes (tu highlight ya trabaja así)
+      layer.style.position = "absolute";
+      layer.style.left = "0";
+      layer.style.top = "0";
+      layer.style.width = "100%";
+      layer.style.height = "100%";
 
       hint.textContent = `Da click sobre el nicho. Ejemplo: ${prefix}-68-${cara === "convexo" ? "AX" : "A"}`;
       debug.textContent = "";
 
       const oldHL = document.getElementById("nichoHighlight");
       if (oldHL) oldHL.remove();
+
+      // ✅ Inicializa zoom a 1 cada vez que cargas imagen
+      setNichoZoom(1);
     };
     img.onerror = () => {
       img.style.display = "none";
@@ -1074,6 +1125,23 @@ function openNichoModal(zonaFeature){
 
     drawNichoHighlight(layer, rx, ry);
     debug.textContent = `Seleccionado: ${code}`;
+
+    // ===== Zoom Nichos (slider) =====
+    const zoomEl = document.getElementById("nichoZoom"); // <-- usa el ID real de tu input range
+    const wrap = document.getElementById("nichoImg")?.parentElement;
+
+    function setNichoZoom(z){
+      const stage = document.getElementById("nichoStage");
+      if (!stage) return;
+      const zoom = Math.max(0.5, Math.min(5, Number(z) || 1));
+      stage.style.transform = `scale(${zoom})`;
+      if (zoomEl) zoomEl.value = String(zoom);
+    }
+
+    // Slider -> aplica zoom real (transform al stage)
+    if (zoomEl) {
+      zoomEl.oninput = () => setNichoZoom(zoomEl.value);
+    }
 
     setPanel("Nicho seleccionado", `
       <p><b>Código:</b> ${safe(code)}</p>
