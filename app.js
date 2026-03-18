@@ -11,7 +11,6 @@ const DATA_COORD_HEIGHT = 9250;
 // Archivos de datos
 const SECCIONES_TOP_URL = "./data/secciones-top.geojson"; // editor ?edit=secciones + PUBLICO secciones
 const MANZANAS_URL      = "./data/secciones.geojson";     // MANZANAS
-const NICHOS_ZONAS_URL  = "./data/nichos-zonas.geojson";  // zonas clickeables nichos
 
 // Catálogos
 const LOTES_INFO_URL    = "./data/lotes.json";
@@ -21,15 +20,13 @@ const PAQUETES_URL      = "./data/paquetes.json";
 // ?edit=secciones  => EDITOR SECCIONES
 // ?edit=manzanas   => EDITOR MANZANAS
 // ?edit=lotes      => EDITOR LOTES
-// ?edit=nichos     => EDITOR NICHOS
-const editMode = new URLSearchParams(location.search).get("edit"); // null | "secciones" | "manzanas" | "lotes" | "nichos"
+const editMode = new URLSearchParams(location.search).get("edit"); // null | "secciones" | "manzanas" | "lotes"
 const isEditSecciones = editMode === "secciones";
 const isEditManzanas  = editMode === "manzanas";
 const isEditLotes     = editMode === "lotes";
-const isEditNichos    = editMode === "nichos";
 const IS_EDIT = !!editMode;
 
-const BASE_IMAGE_URL = (isEditSecciones || isEditManzanas || isEditLotes || isEditNichos)
+const BASE_IMAGE_URL = (isEditSecciones || isEditManzanas || isEditLotes)
   ? BASE_IMAGE_EDIT_URL
   : BASE_IMAGE_PUBLIC_URL;
 
@@ -60,23 +57,17 @@ let paquetesInfo = {};
 // RAW (coords base.png)
 let seccionesTopRaw = null;   // SECCIONES
 let manzanasRaw = null;       // MANZANAS
-let nichosZonasRaw = null;    // NICHOS ZONAS
 
 // Scaled a base actual (público)
 let seccionesTopScaled = null; // SECCIONES escaladas
 let manzanasScaled = null;     // MANZANAS escaladas
 let lotesScaled = null;        // LOTES escalados
-let nichosZonasScaled = null;  // NICHOS escaladas
 
 let seccionesLayer = null;         // editor secciones
 let seccionesLayerPublic = null;   // PUBLICO secciones
 let manzanasLayer = null;          // público + editor manzanas
 let lotesLayer = null;             // público + editor lotes
-let nichosLayer = null;            // público nichos
-let nichosLayerEdit = null;        // editor nichos
 
-// Selección de nicho (modal)
-let nichoSelection = { zonaId: null, cara: null, numero: null };
 
 let currentSeccion = null;
 let currentSeccionFeature = null;
@@ -472,7 +463,7 @@ function lotPinnedStyle(status){ const s = styleByStatus(status); return { ...s,
 
 function updateToggleLotsButton(){
   if (!$toggleLotsBtn) return;
-  const enabled = !!currentManzanaFeature && !(isEditSecciones || isEditManzanas || isEditLotes || isEditNichos);
+  const enabled = !!currentManzanaFeature && !(isEditSecciones || isEditManzanas || isEditLotes);
   $toggleLotsBtn.disabled = !enabled;
   $toggleLotsBtn.textContent = showAllLots ? "Ocultar lotes" : "Mostrar lotes";
 }
@@ -910,277 +901,6 @@ function showLoteInfo(feature){
 }
 
 /* =========================================================
-   NICHOS: selección dentro de la imagen (modal)
-   ========================================================= */
-const NICHOS_ROWS = ["A","B","C","D","E","F"]; // 6 filas
-const NICHOS_COLS = 79;                        // 79 nichos por fila
-const NICHOS_GRID_BOX = { left: 0.03, right: 0.97, top: 0.10, bottom: 0.95 };
-
-function getGridBoxForZona(zonaFeature){
-  const b = zonaFeature?.properties?.gridBox;
-  if (b && ["left","right","top","bottom"].every(k => typeof b[k] === "number")) return b;
-  return NICHOS_GRID_BOX; // default
-}
-
-function clamp01(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
-
-function getNichoPrefixFromZona(zonaFeature){
-  const p = zonaFeature?.properties || {};
-  const direct = (p.prefix || p.codigo || p.tipo || "").toString().trim().toUpperCase();
-  if (direct === "PLN" || direct === "SPN") return direct;
-
-  const id = (p.id || "").toString().trim().toUpperCase();
-  if (id.startsWith("PLN")) return "PLN";
-  if (id.startsWith("SPN")) return "SPN";
-  return "PLN";
-}
-
-function nichoClickToGrid(rx, ry, gridBox){
-  rx = clamp01(rx);
-  ry = clamp01(ry);
-
-  const box = gridBox || NICHOS_GRID_BOX;
-
-  const gx = (rx - box.left) / (box.right - box.left);
-  const gy = (ry - box.top) / (box.bottom - box.top);
-  if (gx < 0 || gx > 1 || gy < 0 || gy > 1) return null;
-
-  const col = Math.floor(gx * NICHOS_COLS) + 1;              // 1..79
-  const rowIndex = Math.floor(gy * NICHOS_ROWS.length);      // 0..5
-
-  const numero = Math.min(Math.max(col, 1), NICHOS_COLS);
-  const filaIndex = Math.min(Math.max(rowIndex, 0), NICHOS_ROWS.length - 1);
-
-  return { numero, filaIndex };
-}
-
-function buildNichoCode(prefix, numero, fila, cara){
-  const suf = (cara === "convexo") ? "X" : "";
-  return `${prefix}-${numero}-${fila}${suf}`;
-}
-
-function drawNichoHighlight(clickLayerEl, rx, ry){
-  let hl = document.getElementById("nichoHighlight");
-  if (!hl){
-    hl = document.createElement("div");
-    hl.id = "nichoHighlight";
-    hl.style.position = "absolute";
-    hl.style.border = "2px solid #ef4444";
-    hl.style.borderRadius = "6px";
-    hl.style.pointerEvents = "none";
-    clickLayerEl.appendChild(hl);
-  }
-
-  const box = (window.__nichoGridBox || NICHOS_GRID_BOX);
-  const gx = (rx - box.left) / (box.right - box.left);
-  const gy = (ry - box.top) / (box.bottom - box.top);
-  if (gx < 0 || gx > 1 || gy < 0 || gy > 1){
-    hl.style.display = "none";
-    return;
-  }
-
-  const cellW = (box.right - box.left) / NICHOS_COLS;
-  const cellH = (box.bottom - box.top) / NICHOS_ROWS.length;
-
-  const rectLeft = box.left + (Math.floor(gx * NICHOS_COLS) * cellW);
-  const rectTop  = box.top  + (Math.floor(gy * NICHOS_ROWS.length) * cellH);
-
-  hl.style.display = "block";
-  hl.style.left = `${rectLeft * 100}%`;
-  hl.style.top  = `${rectTop * 100}%`;
-  hl.style.width  = `${cellW * 100}%`;
-  hl.style.height = `${cellH * 100}%`;
-}
-
-function openNichoModal(zonaFeature){
-  const modal = document.getElementById("nichoModal");
-  const sub   = document.getElementById("nichoModalSub");
-  const img   = document.getElementById("nichoImg");
-  const layer = document.getElementById("nichoClickLayer");
-  const hint  = document.getElementById("nichoHint");
-  const debug = document.getElementById("nichoDebug");
-
-  if (!modal || !sub || !img || !layer || !hint || !debug){
-    notify("Falta el modal de nichos en index.html (IDs nichoModal, nichoImg, etc.).", 2600);
-    return;
-  }
-
-  const zonaId = zonaFeature?.properties?.id || "SIN-ID";
-  const prefix = getNichoPrefixFromZona(zonaFeature);
-  const wrap = document.getElementById("nichoImageWrap");
-  const scaleEl = document.getElementById("nichoScale");
-  const zoomRange = document.getElementById("nichoZoomRange");
-  const zoomPct = document.getElementById("nichoZoomPct");
-  const editBoxBtn = document.getElementById("nichoEditBoxBtn");
-
-  // gridBox activo de esta zona
-  let gridBox = JSON.parse(JSON.stringify(getGridBoxForZona(zonaFeature)));
-  window.__nichoGridBox = gridBox;
-
-  // mostrar botón “Editar posición” solo en ?edit=nichos
-  if (editBoxBtn) editBoxBtn.style.display = isEditNichos ? "inline-block" : "none";
-
-  if (editBoxBtn){
-    editBoxBtn.onclick = () => {
-      if (!nichoSelection.cara){
-        notify("Primero elige cóncavo o convexo (para cargar la imagen).", 2200);
-        return;
-      }
-      // TODO: aquí activas UI de mover/redimensionar el gridBox
-      // Al finalizar:
-      zonaFeature.properties = zonaFeature.properties || {};
-      zonaFeature.properties.gridBox = gridBox;
-      window.__nichoGridBox = gridBox;
-      notify("✅ gridBox actualizado (en memoria). Ahora copia GeoJSON en ?edit=nichos y pégalo en data/nichos-zonas.geojson.", 2600);
-    };
-  }
-
-
-
-  nichoSelection = { zonaId, cara: null, numero: null };
-
-  sub.textContent = `Zona: ${zonaId} (${prefix}) — Elige cara`;
-  hint.textContent = "1) Elige cóncavo o convexo. 2) Luego da click en el nicho.";
-  debug.textContent = "";
-
-  img.style.display = "none";
-  layer.style.display = "none";
-  img.src = "";
-
-  modal.style.display = "flex";
-
-  const close = () => { modal.style.display = "none"; };
-  const closeBtn = document.getElementById("nichoCloseBtn");
-  if (closeBtn) closeBtn.onclick = close;
-  modal.onclick = (e) => { if (e.target === modal) close(); };
-
-  const setCara = (cara) => {
-    nichoSelection.cara = cara;
-    sub.textContent = `Zona: ${zonaId} (${prefix}) — Cara: ${cara} — Selecciona nicho`;
-
-    const src = `./assets/nichos/${prefix}-${cara}.png`;
-    
-    function applyZoom(z){
-      const zoom = Math.max(0.1, Math.min(3, Number(z) || 1));
-      if (scaleEl) {
-        scaleEl.style.transform = `scale(${zoom})`;
-        scaleEl.dataset.scale = String(zoom);
-      }
-      if (zoomRange) zoomRange.value = String(zoom);
-      if (zoomPct) zoomPct.textContent = `${Math.round(zoom * 100)}%`;
-      return zoom;
-    }
-
-    function fitToView(){
-      if (!wrap || !img?.naturalWidth || !img?.naturalHeight) return applyZoom(1);
-
-      // “Fit” inicial para ver la imagen completa (como pediste)
-      const sx = wrap.clientWidth  / img.naturalWidth;
-      const sy = wrap.clientHeight / img.naturalHeight;
-      const fit = Math.max(0.1, Math.min(1, Math.min(sx, sy))); // <= 1 para que “quepa”
-      return applyZoom(fit);
-    }
-
-    function scrollToNormCenter(nx, ny){
-      if (!wrap || !img?.naturalWidth || !img?.naturalHeight) return;
-
-      const zoom = Number(scaleEl?.dataset?.scale || "1");
-      const contentW = img.naturalWidth  * zoom;
-      const contentH = img.naturalHeight * zoom;
-
-      const targetX = (nx * contentW) - (wrap.clientWidth  / 2);
-      const targetY = (ny * contentH) - (wrap.clientHeight / 2);
-
-      wrap.scrollLeft = Math.max(0, Math.min(targetX, contentW - wrap.clientWidth));
-      wrap.scrollTop  = Math.max(0, Math.min(targetY, contentH - wrap.clientHeight));
-    }
-
-    // slider -> zoom real
-    if (zoomRange){
-      zoomRange.oninput = () => applyZoom(zoomRange.value);
-    }
-
-    img.src = src;
-    img.onload = () => {
-      img.style.display = "block";
-      layer.style.display = "block";
-
-      // IMPORTANTÍSIMO: usa tamaño natural para que el overlay % sea consistente
-      img.style.width = img.naturalWidth + "px";
-      img.style.height = img.naturalHeight + "px";
-
-      // overlay exactamente del tamaño de la imagen
-      layer.style.position = "absolute";
-      layer.style.left = "0";
-      layer.style.top = "0";
-      layer.style.width = img.naturalWidth + "px";
-      layer.style.height = img.naturalHeight + "px";
-
-      hint.textContent = `Da click sobre el nicho. Ejemplo: ${prefix}-68-${cara === "convexo" ? "AX" : "A"}`;
-      debug.textContent = "";
-
-      const oldHL = document.getElementById("nichoHighlight");
-      if (oldHL) oldHL.remove();
-
-      // fit inicial para ver todo
-      fitToView();
-    };
-
-    img.onerror = () => {
-      img.style.display = "none";
-      layer.style.display = "none";
-      hint.textContent = `No encontré la imagen: ${src}`;
-      debug.textContent = "";
-    };
-  };
-
-  const concBtn = document.getElementById("caraConcavoBtn");
-  const convBtn = document.getElementById("caraConvexoBtn");
-  if (concBtn) concBtn.onclick = () => setCara("concavo");
-  if (convBtn) convBtn.onclick = () => setCara("convexo");
-
-  layer.onclick = (ev) => {
-    if (!nichoSelection.cara) return;
-
-    const rect = layer.getBoundingClientRect();
-    const rx = (ev.clientX - rect.left) / rect.width;
-    const ry = (ev.clientY - rect.top) / rect.height;
-
-    const cell = nichoClickToGrid(rx, ry, gridBox);
-    if (!cell){
-      hint.textContent = "Click fuera del área de nichos. Intenta dentro del cuadro de nichos.";
-      return;
-    }
-
-    const numero = cell.numero;
-    const fila = NICHOS_ROWS[cell.filaIndex];
-    const code = buildNichoCode(prefix, numero, fila, nichoSelection.cara);
-
-    nichoSelection.numero = numero;
-
-    drawNichoHighlight(layer, rx, ry);
-    debug.textContent = `Seleccionado: ${code}`;
-
-
-    // auto-zoom y centrado al nicho seleccionado
-    const cellW = (gridBox.right - gridBox.left) / NICHOS_COLS;
-    const cellH = (gridBox.bottom - gridBox.top) / NICHOS_ROWS.length;
-    const cx = gridBox.left + (Math.floor(((rx - gridBox.left) / (gridBox.right - gridBox.left)) * NICHOS_COLS) + 0.5) * cellW;
-    const cy = gridBox.top  + (Math.floor(((ry - gridBox.top)  / (gridBox.bottom - gridBox.top)) * NICHOS_ROWS.length) + 0.5) * cellH;
-
-    // zoom “de lectura”
-    applyZoom(2.0);
-    scrollToNormCenter(cx, cy);
-
-    setPanel("Nicho seleccionado", `
-      <p><b>Código:</b> ${safe(code)}</p>
-      <p><b>Zona:</b> ${safe(zonaId)}</p>
-      <p><b>Cara:</b> ${safe(nichoSelection.cara)}</p>
-    `);
-  };
-}
-
-/* =========================================================
    BÚSQUEDA (SECCIÓN → MANZANA → LOTE)
    ========================================================= */
 function findLotLayerByInput(loteInput){
@@ -1514,7 +1234,6 @@ function getActiveEditDatasetArr(){
   if (isEditSecciones) return seccionesTopRaw?.features || null;
   if (isEditManzanas)  return manzanasRaw?.features || null;
   if (isEditLotes)     return currentLotesRaw?.features || null;
-  if (isEditNichos)    return nichosZonasRaw?.features || null;
   return null;
 }
 
@@ -1522,7 +1241,6 @@ function rerenderActiveEditor(){
   if (isEditSecciones) return rerenderSecciones_Edit();
   if (isEditManzanas)  return rerenderManzanas_Edit();
   if (isEditLotes)     return rerenderLotes_Edit();
-  if (isEditNichos)    return rerenderNichos_Edit();
 }
 
 /* ---------- FEATURE ID helpers ---------- */
@@ -1997,7 +1715,6 @@ function getEditDataset(){
   if (isEditSecciones) return { label:"SECCIONES", data: seccionesTopRaw, dest: SECCIONES_TOP_URL };
   if (isEditManzanas)  return { label:"MANZANAS",  data: manzanasRaw,     dest: MANZANAS_URL };
   if (isEditLotes)     return { label:"LOTES",     data: currentLotesRaw, dest: currentLotesSourceUrl || (getSelectedSeccion() ? getSharedLotesUrlForSeccion(getSelectedSeccion()) : "(elige SECCIÓN)") };
-  if (isEditNichos)    return { label:"NICHOS",    data: nichosZonasRaw,  dest: NICHOS_ZONAS_URL };
   return null;
 }
 
@@ -2278,7 +1995,6 @@ function renderEditSelectedPanel(){
     if (isEditSecciones) renderEditSeccionesPanel();
     else if (isEditManzanas) renderEditManzanasPanel();
     else if (isEditLotes) renderEditLotesPanel();
-    else renderEditNichosPanel();
   };
 }
 
@@ -2714,122 +2430,7 @@ function renderEditManzanasPanel(){
   document.getElementById("btnEdit").click();
 }
 
-function renderEditNichosPanel(){
-  editor.mode = "edit";
-  editor.drawShape = "polygon";
-  editor.gridArmed = false;
-  editor.gridConfig = null;
-  editor.pasteArmed = false;
 
-  editorClearPoly(); editorClearCircle(); editorStopEditing();
-  clearMultiSelection();
-
-  setPanel("Edición: NICHOS", `
-    <p>Editor de <b>Zonas de Nichos</b>.</p>
-    <p style="font-size:12px;color:#6b7280;">
-      Click normal: selecciona y permite <b>mover/escalar</b>. “Editar puntos” para vértices.<br/>
-      Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click.
-    </p>
-
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <button id="btnEdit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Editar existente</button>
-      <button id="btnCreate" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Crear nueva</button>
-      <button id="btnCopy" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar GeoJSON</button>
-      <button id="btnExit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Salir</button>
-    </div>
-
-    <hr/>
-    <div id="editBody"></div>
-
-    <p style="font-size:12px;color:#666;margin-top:10px;">
-      Destino: <b>${safe(NICHOS_ZONAS_URL)}</b>
-    </p>
-  `);
-
-  const $editBody = document.getElementById("editBody");
-
-  document.getElementById("btnEdit").onclick = () => {
-    editor.mode = "edit";
-    editorClearPoly(); editorClearCircle();
-    editorStopEditing();
-    clearMultiSelection();
-    $editBody.innerHTML = `<p><b>Editar:</b> clic en una zona de nichos para seleccionar.</p>`;
-    rerenderNichos_Edit();
-  };
-
-  document.getElementById("btnCreate").onclick = () => {
-    editor.mode = "create";
-    editorStopEditing();
-    clearMultiSelection();
-    clearGroupTransformUI();
-    editorClearPoly(); editorClearCircle();
-
-    $editBody.innerHTML = `
-      <p><b>Crear zona de nichos:</b></p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-        <button id="btnPoly" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Polígono</button>
-        <button id="btnCircle" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Círculo</button>
-        <button id="btnClear" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Limpiar</button>
-      </div>
-
-      <p><b>Puntos (polígono):</b> <span id="ptCount">0</span></p>
-
-      <label><b>ID zona</b></label><br/>
-      <input id="newZonaId" placeholder="Ej. PLN" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
-
-      <label><b>Prefijo</b> (PLN o SPN)</label><br/>
-      <select id="newPrefix" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;">
-        <option>PLN</option>
-        <option>SPN</option>
-      </select>
-
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-        <button id="btnSaveNew" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Guardar zona</button>
-      </div>
-    `;
-
-    document.getElementById("btnPoly").onclick = () => { editor.drawShape = "polygon"; };
-    document.getElementById("btnCircle").onclick = () => { editor.drawShape = "circle"; };
-    document.getElementById("btnClear").onclick = () => { editorClearPoly(); editorClearCircle(); };
-
-    document.getElementById("btnSaveNew").onclick = () => {
-      const id = (document.getElementById("newZonaId").value || "").trim();
-      const prefix = (document.getElementById("newPrefix").value || "PLN").trim();
-      if (!id) return notify("Falta ID zona.", 2000);
-
-      const props = { id, prefix };
-
-      let feature = null;
-      if (editor.drawShape === "polygon"){
-        if (editor.polyPoints.length < 3) return notify("Polígono: mínimo 3 puntos.", 2200);
-        feature = { type:"Feature", geometry:{ type:"Polygon", coordinates:ringToGeoJsonCoords(editor.polyPoints) }, properties: props };
-      } else {
-        if (!editor.circleCenter || typeof editor.circleRadius !== "number") return notify("Círculo: clic centro y luego borde.", 2200);
-        feature = { type:"Feature", geometry:{ type:"Point", coordinates: latLngToXY(editor.circleCenter) }, properties:{ ...props, shape:"circle", radius: editor.circleRadius } };
-      }
-
-      nichosZonasRaw.features.push(feature);
-      editorClearPoly(); editorClearCircle();
-      rerenderNichos_Edit();
-      notify("✅ Zona creada (en memoria). Usa 'Copiar GeoJSON' para pegar en el archivo.", 2400);
-    };
-
-    rerenderNichos_Edit();
-  };
-
-  document.getElementById("btnCopy").onclick = async () => {
-    const txt = JSON.stringify(nichosZonasRaw || { type:"FeatureCollection", features:[] }, null, 2);
-    try {
-      await navigator.clipboard.writeText(txt);
-      notify("GeoJSON copiado. Pégalo en data/nichos-zonas.geojson.", 2400);
-    } catch {
-      setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
-    }
-  };
-
-  document.getElementById("btnExit").onclick = () => location.href = "./";
-  document.getElementById("btnEdit").click();
-}
 
 function renderEditLotesPanel(){
   // NOTA: en editor LOTES, el dataset es por SECCIÓN (archivo compartido).
@@ -3399,33 +3000,7 @@ function rerenderLotes_Edit(){
 }
 
 
-function rerenderNichos_Edit(){
-  if (nichosLayerEdit){ nichosLayerEdit.remove(); nichosLayerEdit = null; }
-  editorStopVertexEditing();
-  clearGroupTransformUI();
 
-  nichosLayerEdit = L.geoJSON(nichosZonasRaw || { type:"FeatureCollection", features:[] }, {
-    style: { weight: 2, opacity: 1, fillOpacity: 0.06 },
-    interactive: (editor.mode === "edit"),
-    pointToLayer: (feature, latlng) => {
-      const layer = featureToLayerCircleAware(feature, latlng);
-      try { layer.setStyle({ weight:2, opacity:1, fillOpacity:0.06 }); } catch {}
-      return layer;
-    },
-    onEachFeature: (feature, layer) => {
-      layer.on("click", (ev) => handleEditorFeatureClick(feature, layer, ev));
-    }
-  }).addTo(map);
-
-  rebuildSelectedLayersFromLayerGroup(nichosLayerEdit);
-  applyMultiSelectionStyle();
-  if (editor.selectedSet.size > 0){
-    showGroupTransformHandles();
-    if (editor.selectedSet.size === 1 && editor.editSubmode === "transform"){
-      renderEditSelectedPanel();
-    }
-  }
-}
 
 /* =========================================================
    MAP CLICK HANDLER (CREATE + PASTE + GRID)
@@ -3436,7 +3011,7 @@ function attachEditorMapClick(){
   mapClickAttached = true;
 
   map.on("click", (e) => {
-    if (!(isEditSecciones || isEditManzanas || isEditLotes || isEditNichos)) return;
+    if (!(isEditSecciones || isEditManzanas || isEditLotes)) return;
 
     // PEGAR
     if (editor.pasteArmed && editor.clipboardFeature){
@@ -3658,7 +3233,7 @@ async function main(){
   map = L.map("map", {
     crs: L.CRS.Simple,
     minZoom: -3,
-    maxZoom: (isEditSecciones || isEditManzanas || isEditLotes || isEditNichos) ? 6 : 4,
+    maxZoom: (isEditSecciones || isEditManzanas || isEditLotes) ? 6 : 4,
     zoomAnimation: !IS_MOBILE,
     fadeAnimation: false,
     markerZoomAnimation: !IS_MOBILE,
@@ -3689,8 +3264,6 @@ async function main(){
       try { seccionesTopRaw = await loadJson(SECCIONES_TOP_URL); }
       catch { seccionesTopRaw = { type:"FeatureCollection", features: [] }; }
 
-      try { nichosZonasRaw = await loadJson(NICHOS_ZONAS_URL); }
-      catch { nichosZonasRaw = { type:"FeatureCollection", features: [] }; }
 
       // ====== EDIT SECCIONES ======
       if (isEditSecciones){
@@ -3715,19 +3288,6 @@ async function main(){
 
         rerenderManzanas_Edit();
         renderEditManzanasPanel();
-        return;
-      }
-
-      // ====== EDIT NICHOS ======
-      if (isEditNichos){
-        if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
-        if ($searchBtn) $searchBtn.disabled = true;
-
-        $seccionSelect.innerHTML = `<option value="">(Edición NICHOS)</option>`;
-        $manzanaSelect.innerHTML = `<option value="">(Edición NICHOS)</option>`;
-
-        rerenderNichos_Edit();
-        renderEditNichosPanel();
         return;
       }
 
@@ -3830,24 +3390,6 @@ async function main(){
       manzanasScaled = deepCopy(manzanasRaw);
       applyCoordScaleToGeoJSON(manzanasScaled, COORD_SCALE_X, COORD_SCALE_Y);
 
-      // Nichos capa pública (independiente)
-      try {
-        nichosZonasScaled = deepCopy(nichosZonasRaw);
-        applyCoordScaleToGeoJSON(nichosZonasScaled, COORD_SCALE_X, COORD_SCALE_Y);
-
-        if (nichosLayer) { nichosLayer.remove(); nichosLayer = null; }
-
-        nichosLayer = L.geoJSON(nichosZonasScaled, {
-          style: { weight: 2, opacity: 0, fillOpacity: 0 },
-          onEachFeature: (feature, layer) => {
-            layer.on("mouseover", () => layer.setStyle({ weight: 2, opacity: 1, fillOpacity: 0.05 }));
-            layer.on("mouseout",  () => layer.setStyle({ weight: 2, opacity: 0, fillOpacity: 0 }));
-            layer.on("click", () => openNichoModal(feature));
-          }
-        }).addTo(map);
-      } catch (e) {
-        console.warn("Nichos no cargados:", e);
-      }
 
       const secciones = buildSeccionesList(
         seccionesTopScaled.features.length
