@@ -916,6 +916,12 @@ const NICHOS_ROWS = ["A","B","C","D","E","F"]; // 6 filas
 const NICHOS_COLS = 79;                        // 79 nichos por fila
 const NICHOS_GRID_BOX = { left: 0.03, right: 0.97, top: 0.10, bottom: 0.95 };
 
+function getGridBoxForZona(zonaFeature){
+  const b = zonaFeature?.properties?.gridBox;
+  if (b && ["left","right","top","bottom"].every(k => typeof b[k] === "number")) return b;
+  return NICHOS_GRID_BOX; // default
+}
+
 function clamp01(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
 
 function getNichoPrefixFromZona(zonaFeature){
@@ -929,11 +935,12 @@ function getNichoPrefixFromZona(zonaFeature){
   return "PLN";
 }
 
-function nichoClickToGrid(rx, ry){
+function nichoClickToGrid(rx, ry, gridBox){
   rx = clamp01(rx);
   ry = clamp01(ry);
 
-  const box = NICHOS_GRID_BOX;
+  const box = gridBox || NICHOS_GRID_BOX;
+
   const gx = (rx - box.left) / (box.right - box.left);
   const gy = (ry - box.top) / (box.bottom - box.top);
   if (gx < 0 || gx > 1 || gy < 0 || gy > 1) return null;
@@ -964,7 +971,7 @@ function drawNichoHighlight(clickLayerEl, rx, ry){
     clickLayerEl.appendChild(hl);
   }
 
-  const box = NICHOS_GRID_BOX;
+  const box = (window.__nichoGridBox || NICHOS_GRID_BOX);
   const gx = (rx - box.left) / (box.right - box.left);
   const gy = (ry - box.top) / (box.bottom - box.top);
   if (gx < 0 || gx > 1 || gy < 0 || gy > 1){
@@ -1000,6 +1007,35 @@ function openNichoModal(zonaFeature){
 
   const zonaId = zonaFeature?.properties?.id || "SIN-ID";
   const prefix = getNichoPrefixFromZona(zonaFeature);
+  const wrap = document.getElementById("nichoImageWrap");
+  const scaleEl = document.getElementById("nichoScale");
+  const zoomRange = document.getElementById("nichoZoomRange");
+  const zoomPct = document.getElementById("nichoZoomPct");
+  const editBoxBtn = document.getElementById("nichoEditBoxBtn");
+
+  // gridBox activo de esta zona
+  let gridBox = JSON.parse(JSON.stringify(getGridBoxForZona(zonaFeature)));
+  window.__nichoGridBox = gridBox;
+
+  // mostrar botón “Editar posición” solo en ?edit=nichos
+  if (editBoxBtn) editBoxBtn.style.display = isEditNichos ? "inline-block" : "none";
+
+  if (editBoxBtn){
+    editBoxBtn.onclick = () => {
+      if (!nichoSelection.cara){
+        notify("Primero elige cóncavo o convexo (para cargar la imagen).", 2200);
+        return;
+      }
+      // TODO: aquí activas UI de mover/redimensionar el gridBox
+      // Al finalizar:
+      zonaFeature.properties = zonaFeature.properties || {};
+      zonaFeature.properties.gridBox = gridBox;
+      window.__nichoGridBox = gridBox;
+      notify("✅ gridBox actualizado (en memoria). Ahora copia GeoJSON en ?edit=nichos y pégalo en data/nichos-zonas.geojson.", 2600);
+    };
+  }
+
+
 
   nichoSelection = { zonaId, cara: null, numero: null };
 
@@ -1024,21 +1060,44 @@ function openNichoModal(zonaFeature){
 
     const src = `./assets/nichos/${prefix}-${cara}.png`;
     
-        // ===== Zoom Nichos (slider) =====
-    const zoomEl = document.getElementById("nichoZoom"); // <-- usa el ID real de tu input range
-    const wrap = document.getElementById("nichoImg")?.parentElement;
-
-    function setNichoZoom(z){
-      const stage = document.getElementById("nichoStage");
-      if (!stage) return;
-      const zoom = Math.max(0.5, Math.min(5, Number(z) || 1));
-      stage.style.transform = `scale(${zoom})`;
-      if (zoomEl) zoomEl.value = String(zoom);
+    function applyZoom(z){
+      const zoom = Math.max(0.1, Math.min(3, Number(z) || 1));
+      if (scaleEl) {
+        scaleEl.style.transform = `scale(${zoom})`;
+        scaleEl.dataset.scale = String(zoom);
+      }
+      if (zoomRange) zoomRange.value = String(zoom);
+      if (zoomPct) zoomPct.textContent = `${Math.round(zoom * 100)}%`;
+      return zoom;
     }
 
-    // Slider -> aplica zoom real (transform al stage)
-    if (zoomEl) {
-      zoomEl.oninput = () => setNichoZoom(zoomEl.value);
+    function fitToView(){
+      if (!wrap || !img?.naturalWidth || !img?.naturalHeight) return applyZoom(1);
+
+      // “Fit” inicial para ver la imagen completa (como pediste)
+      const sx = wrap.clientWidth  / img.naturalWidth;
+      const sy = wrap.clientHeight / img.naturalHeight;
+      const fit = Math.max(0.1, Math.min(1, Math.min(sx, sy))); // <= 1 para que “quepa”
+      return applyZoom(fit);
+    }
+
+    function scrollToNormCenter(nx, ny){
+      if (!wrap || !img?.naturalWidth || !img?.naturalHeight) return;
+
+      const zoom = Number(scaleEl?.dataset?.scale || "1");
+      const contentW = img.naturalWidth  * zoom;
+      const contentH = img.naturalHeight * zoom;
+
+      const targetX = (nx * contentW) - (wrap.clientWidth  / 2);
+      const targetY = (ny * contentH) - (wrap.clientHeight / 2);
+
+      wrap.scrollLeft = Math.max(0, Math.min(targetX, contentW - wrap.clientWidth));
+      wrap.scrollTop  = Math.max(0, Math.min(targetY, contentH - wrap.clientHeight));
+    }
+
+    // slider -> zoom real
+    if (zoomRange){
+      zoomRange.oninput = () => applyZoom(zoomRange.value);
     }
 
     img.src = src;
@@ -1046,41 +1105,16 @@ function openNichoModal(zonaFeature){
       img.style.display = "block";
       layer.style.display = "block";
 
-      // ✅ En vez de forzar tamaños en px, hacemos "fit" al contenedor
-      const wrap = img.parentElement; // contenedor donde vive la imagen en el modal
+      // IMPORTANTÍSIMO: usa tamaño natural para que el overlay % sea consistente
+      img.style.width = img.naturalWidth + "px";
+      img.style.height = img.naturalHeight + "px";
 
-      // Asegura un viewport con scroll (si tu HTML ya lo tiene, esto solo refuerza)
-      wrap.style.position = "relative";
-      wrap.style.overflow = "auto";
-
-      // Creamos (una sola vez) un "stage" para escalar TODO (img + overlay)
-      let stage = document.getElementById("nichoStage");
-      if (!stage) {
-        stage = document.createElement("div");
-        stage.id = "nichoStage";
-        stage.style.position = "relative";
-        stage.style.transformOrigin = "top left";
-        stage.style.width = "fit-content";
-        stage.style.height = "fit-content";
-
-        // mueve img + layer dentro del stage
-        wrap.appendChild(stage);
-        stage.appendChild(img);
-        stage.appendChild(layer);
-      }
-
-      // Imagen responsiva dentro del modal (se ve completa)
-      img.style.width = "100%";
-      img.style.height = "auto";
-      img.style.maxWidth = "100%";
-      img.style.display = "block";
-
-      // Overlay encima de la imagen, usando porcentajes (tu highlight ya trabaja así)
+      // overlay exactamente del tamaño de la imagen
       layer.style.position = "absolute";
       layer.style.left = "0";
       layer.style.top = "0";
-      layer.style.width = "100%";
-      layer.style.height = "100%";
+      layer.style.width = img.naturalWidth + "px";
+      layer.style.height = img.naturalHeight + "px";
 
       hint.textContent = `Da click sobre el nicho. Ejemplo: ${prefix}-68-${cara === "convexo" ? "AX" : "A"}`;
       debug.textContent = "";
@@ -1088,9 +1122,10 @@ function openNichoModal(zonaFeature){
       const oldHL = document.getElementById("nichoHighlight");
       if (oldHL) oldHL.remove();
 
-      // ✅ Inicializa zoom a 1 cada vez que cargas imagen
-      setNichoZoom(1);
+      // fit inicial para ver todo
+      fitToView();
     };
+
     img.onerror = () => {
       img.style.display = "none";
       layer.style.display = "none";
@@ -1111,7 +1146,7 @@ function openNichoModal(zonaFeature){
     const rx = (ev.clientX - rect.left) / rect.width;
     const ry = (ev.clientY - rect.top) / rect.height;
 
-    const cell = nichoClickToGrid(rx, ry);
+    const cell = nichoClickToGrid(rx, ry, gridBox);
     if (!cell){
       hint.textContent = "Click fuera del área de nichos. Intenta dentro del cuadro de nichos.";
       return;
@@ -1126,22 +1161,16 @@ function openNichoModal(zonaFeature){
     drawNichoHighlight(layer, rx, ry);
     debug.textContent = `Seleccionado: ${code}`;
 
-    // ===== Zoom Nichos (slider) =====
-    const zoomEl = document.getElementById("nichoZoom"); // <-- usa el ID real de tu input range
-    const wrap = document.getElementById("nichoImg")?.parentElement;
 
-    function setNichoZoom(z){
-      const stage = document.getElementById("nichoStage");
-      if (!stage) return;
-      const zoom = Math.max(0.5, Math.min(5, Number(z) || 1));
-      stage.style.transform = `scale(${zoom})`;
-      if (zoomEl) zoomEl.value = String(zoom);
-    }
+    // auto-zoom y centrado al nicho seleccionado
+    const cellW = (gridBox.right - gridBox.left) / NICHOS_COLS;
+    const cellH = (gridBox.bottom - gridBox.top) / NICHOS_ROWS.length;
+    const cx = gridBox.left + (Math.floor(((rx - gridBox.left) / (gridBox.right - gridBox.left)) * NICHOS_COLS) + 0.5) * cellW;
+    const cy = gridBox.top  + (Math.floor(((ry - gridBox.top)  / (gridBox.bottom - gridBox.top)) * NICHOS_ROWS.length) + 0.5) * cellH;
 
-    // Slider -> aplica zoom real (transform al stage)
-    if (zoomEl) {
-      zoomEl.oninput = () => setNichoZoom(zoomEl.value);
-    }
+    // zoom “de lectura”
+    applyZoom(2.0);
+    scrollToNormCenter(cx, cy);
 
     setPanel("Nicho seleccionado", `
       <p><b>Código:</b> ${safe(code)}</p>

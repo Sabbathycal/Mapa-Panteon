@@ -322,16 +322,21 @@
           <button id="caraConcavoBtn">Cóncavo</button>
           <button id="caraConvexoBtn">Convexo</button>
           <button id="nichoCloseBtn">Cerrar</button>
+          <button id="nichoEditBoxBtn" style="display:none;">Editar posición</button>
+          <button id="nichoCloseBtn">Cerrar</button>
         </div>
       </div>
 
       <div class="nichoMain">
-        <div id="nichoImageWrap">
-          <div id="nichoScale" data-scale="1">
-            <img id="nichoImg" alt="Nichos" />
+        <div id="nichoImageWrap" style="position:relative; overflow:auto;">
+          <div id="nichoScale" style="position:relative; transform-origin: top left;">
+            <img id="nichoImg" />
             <div id="nichoClickLayer"></div>
           </div>
         </div>
+
+        <input id="nichoZoomRange" type="range" min="0.1" max="3" step="0.01" value="1" />
+        <span id="nichoZoomPct">100%</span>
       </div>
 
       <div class="nichoSide">
