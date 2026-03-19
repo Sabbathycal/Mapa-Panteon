@@ -3937,55 +3937,63 @@ async function main(){
    - Guarda FeatureCollection en data/nichos-overlay.geojson
    ========================================================= */
 function initNichosOverlayEditor(){
-  try { document.body.classList.add('fullMap'); } catch {}
+  // Overlay editor sin mapa (solo panel a pantalla completa)
+  try { document.body.classList.add('overlayOnly'); } catch {}
 
+  // oculta el mapa completamente
   const mapEl = document.getElementById('map');
-  if (!mapEl) return;
+  if (mapEl) mapEl.style.display = 'none';
+  const layout = document.querySelector('.layout');
+  if (layout) layout.style.gridTemplateColumns = '1fr';
 
+  // si quedó un root viejo, elimínalo
   let root = document.getElementById('nichosOverlayEditor');
   if (root) root.remove();
 
-  root = document.createElement('div');
-  root.id = 'nichosOverlayEditor';
-  root.innerHTML = `
-    <div class="noe-toolbar">
-      <div class="noe-row">
-        <label>Columbario</label>
-        <select id="noeZona"></select>
+  // render dentro del panel (no dentro del mapa)
+  setPanel('Edición: NICHOS overlay', `
+    <div id="nichosOverlayEditor" style="height: calc(100vh - 52px); display:flex; flex-direction:column;">
+      <div class="noe-toolbar">
+        <div class="noe-row">
+          <label>Columbario</label>
+          <select id="noeZona"></select>
 
-        <label>Cara</label>
-        <select id="noeCara">
-          <option value="convexo">CONVEXO</option>
-          <option value="concavo">CONCAVO</option>
-        </select>
+          <label>Cara</label>
+          <select id="noeCara">
+            <option value="convexo">CONVEXO</option>
+            <option value="concavo">CONCAVO</option>
+          </select>
 
-        <label>Código</label>
-        <input id="noeCodigo" placeholder="PLN-1-AX" />
+          <label>Código</label>
+          <input id="noeCodigo" placeholder="PLN-1-AX" />
 
-        <button id="noeCopy">Copiar GeoJSON</button>
-        <button id="noeExit">Salir</button>
-      </div>
-      <div id="noeMsg" class="noe-msg"></div>
-    </div>
-
-    <div class="noe-stage">
-      <div class="noe-canvas">
-        <img id="noeImg" alt="nichos" />
-        <svg id="noeSvg"></svg>
+          <button id="noeCopy">Copiar GeoJSON</button>
+          <button id="noeExit">Salir</button>
+        </div>
+        <div id="noeMsg" class="noe-msg"></div>
       </div>
 
-      <div class="noe-side">
-        <h3 style="margin:0 0 6px 0;">Instrucciones</h3>
-        <div style="font-size:12px;color:#6b7280;">
-          1) Elige <b>Columbario</b> y <b>Cara</b>.<br/>
-          2) Escribe el <b>Código</b> del nicho.<br/>
-          3) Arrastra sobre la imagen para crear el rectángulo.<br/>
-          4) Repite y luego usa <b>Copiar GeoJSON</b> para pegar en <code>data/nichos-overlay.geojson</code>.
+      <div class="noe-stage" style="flex:1; min-height:0;">
+        <div class="noe-canvas" style="transform-origin: top left;">
+          <img id="noeImg" alt="nichos" />
+          <svg id="noeSvg"></svg>
+        </div>
+
+        <div class="noe-side">
+          <h3 style="margin:0 0 6px 0;">Instrucciones</h3>
+          <div style="font-size:12px;color:#6b7280;">
+            1) Elige <b>Columbario</b> y <b>Cara</b>.<br/>
+            2) Escribe el <b>Código</b> del nicho.<br/>
+            3) Arrastra sobre la imagen para crear el rectángulo.<br/>
+            4) Repite y luego usa <b>Copiar GeoJSON</b> para pegar en <code>data/nichos-overlay.geojson</code>.
+          </div>
         </div>
       </div>
     </div>
-  `;
-  mapEl.appendChild(root);
+  `);
+
+  root = document.getElementById('nichosOverlayEditor');
+  if (!root) return;
 
   const $zona = root.querySelector('#noeZona');
   const $cara = root.querySelector('#noeCara');
@@ -3993,6 +4001,20 @@ function initNichosOverlayEditor(){
   const $msg = root.querySelector('#noeMsg');
   const $img = root.querySelector('#noeImg');
   const $svg = root.querySelector('#noeSvg');
+  const $canvas = root.querySelector('.noe-canvas');
+
+  // zoom-out por default: ajusta para que se vea la imagen completa (fit)
+  function applyFitScale(){
+    if (!$canvas) return;
+    const iw = $img.naturalWidth || 1;
+    const ih = $img.naturalHeight || 1;
+    const aw = $canvas.parentElement?.clientWidth || 1;
+    const ah = $canvas.parentElement?.clientHeight || 1;
+    const s = Math.min(aw/iw, ah/ih);
+    const scale = (isFinite(s) && s > 0) ? Math.min(1, s) : 1;
+    $canvas.style.transformOrigin = 'top left';
+    $canvas.style.transform = `scale(${scale})`;
+  }
 
   const zonas = (nichosZonasRaw?.features || []).filter(f => ((f?.properties?.tipo || 'zona').toString().trim().toLowerCase() === 'zona'));
   $zona.innerHTML = zonas.map(z => {
@@ -4059,6 +4081,7 @@ function initNichosOverlayEditor(){
       $svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
       $svg.setAttribute('width', String(w));
       $svg.setAttribute('height', String(h));
+      applyFitScale();
       renderRects();
     };
 
@@ -4069,6 +4092,10 @@ function initNichosOverlayEditor(){
 
     $img.src = url;
   }
+
+  window.addEventListener('resize', () => {
+    try { applyFitScale(); } catch {}
+  });
 
   function svgPoint(ev){
     const pt = $svg.createSVGPoint();
