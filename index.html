@@ -141,25 +141,136 @@
       max-width: min(680px, 92vw);
       box-shadow: 0 10px 30px rgba(0,0,0,.18);
     }
+
     /* =========================
-      FULLSCREEN MAP (para editores como ?edit=nichos-overlay)
-      - El mapa usa todo el ancho
-      - El panel (aside) flota encima (no reduce el mapa)
-      ========================= */
-    body.fullMap main{
-      grid-template-columns: 1fr !important;
+       MODAL NICHOS
+       ========================= */
+    #nichoModal{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      display: none;           /* flex when open */
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 18px;
     }
 
-    body.fullMap aside{
-      position: fixed;
-      top: 61px; /* altura del header (ajusta si cambia) */
-      right: 0;
-      width: var(--panel-w);
-      height: calc(100vh - 61px);
-      z-index: 9998;
-      box-shadow: 0 12px 30px rgba(0,0,0,.18);
+    .nichoCard{
+      width: min(1180px, 96vw);
+      height: min(780px, 92vh);
+      background: #fff;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 18px 60px rgba(0,0,0,.25);
+      display: grid;
+      grid-template-columns: 1fr 320px;
     }
-        
+
+    .nichoTop{
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-bottom: 1px solid #e5e7eb;
+      background: #ffffff;
+    }
+
+    .nichoTitle{
+      font-weight: 800;
+      font-size: 18px;
+    }
+    .nichoSub{
+      color: #6b7280;
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .nichoBtns{
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .nichoMain{
+      position: relative;
+      padding: 0;
+      background: #f8fafc;
+      border-right: 1px solid #e5e7eb;
+      overflow: hidden;
+    }
+
+    /* viewport con scroll */
+    #nichoImageWrap{
+      position: absolute;
+      inset: 0;
+      overflow: auto;
+      background: #f8fafc;
+    }
+
+    /* elemento escalable */
+    #nichoScale{
+      position: relative;
+      transform-origin: top left;
+      will-change: transform;
+    }
+
+    #nichoImg{
+      display: block;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    /* overlay clicks (misma caja que la imagen) */
+    #nichoClickLayer{
+      position: absolute;
+      inset: 0;
+      cursor: crosshair;
+    }
+
+    .nichoSide{
+      padding: 12px 14px;
+      background: #ffffff;
+      overflow: auto;
+    }
+
+    .nichoSide h4{
+      margin: 0 0 8px 0;
+    }
+
+    .nichoHint{
+      font-size: 12px;
+      color: #374151;
+      margin-bottom: 10px;
+    }
+
+    .nichoBox{
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 10px;
+      min-height: 90px;
+      background: #f9fafb;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+    }
+
+    .zoomRow{
+      margin-top: 12px;
+    }
+
+    .zoomRow label{
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 6px;
+    }
+
+    .zoomRow input[type="range"]{
+      width: 100%;
+    }
   </style>
 </head>
 
@@ -187,6 +298,30 @@
   <main>
     <div id="map"></div>
 
+    <!-- Toolbar flotante (solo para ?edit=nichos-overlay) -->
+    <div id="nichosOverlayToolbar" class="overlayToolbar" style="display:none">
+      <div class="otTitle">Edición: NICHOS overlay</div>
+      <div class="otRow">
+        <label>Zona</label>
+        <input id="noZonaId" placeholder="Ej. PLN" />
+      </div>
+      <div class="otRow">
+        <label>Cara</label>
+        <select id="noCara">
+          <option value="convexo">convexo</option>
+          <option value="concavo">concavo</option>
+        </select>
+      </div>
+      <div class="otBtns">
+        <button id="noCopyJson">Copiar JSON</button>
+        <button id="noReset">Reset caja</button>
+      </div>
+      <div id="noImgInfo" class="otHint">—</div>
+      <div class="otHint">
+        Ajusta la caja (área del grid) con los puntos rojos/verdes.
+      </div>
+    </div>
+
     <aside>
       <h2 id="panelTitle">Cargando...</h2>
       <div id="panelBody">
@@ -197,6 +332,54 @@
 
   <!-- TOAST -->
   <div id="toast"></div>
+
+  <!-- MODAL NICHOS -->
+  <div id="nichoModal">
+    <div class="nichoCard">
+      <div class="nichoTop">
+        <div>
+          <div class="nichoTitle">Nichos</div>
+          <div id="nichoModalSub" class="nichoSub">—</div>
+        </div>
+
+        <div class="nichoBtns">
+          <button id="caraConcavoBtn">Cóncavo</button>
+          <button id="caraConvexoBtn">Convexo</button>
+          <button id="nichoCloseBtn">Cerrar</button>
+        </div>
+      </div>
+
+      <div class="nichoMain">
+        <div id="nichoImageWrap">
+          <div id="nichoScale" data-scale="1">
+            <img id="nichoImg" alt="Nichos" />
+            <div id="nichoClickLayer"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nichoSide">
+        <div id="nichoHint" class="nichoHint">
+          1) Elige cóncavo/convexo. 2) Da click en el nicho.
+        </div>
+
+        <h4>Selección</h4>
+        <div id="nichoDebug" class="nichoBox"></div>
+
+        <div class="zoomRow">
+          <label>
+            <span>Zoom</span>
+            <span id="nichoZoomPct">100%</span>
+          </label>
+          <input id="nichoZoomRange" type="range" min="0.1" max="3" step="0.01" value="1" />
+        </div>
+
+        <p style="font-size:12px;color:#6b7280;margin-top:10px;">
+          Tip: al seleccionar un nicho hacemos zoom automático al nicho.
+        </p>
+      </div>
+    </div>
+  </div>
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -232,53 +415,5 @@
       document.body.appendChild(s);
     })();
   </script>
-
-  <!-- =========================
-      MODAL: NICHOS
-      ========================= -->
-  <div id="nichosModal" class="nm-backdrop" style="display:none;">
-    <div class="nm-card">
-      <div class="nm-header">
-        <div>
-          <div id="nmTitle" class="nm-title">Nichos</div>
-          <div id="nmSubtitle" class="nm-subtitle"></div>
-        </div>
-
-        <div class="nm-actions">
-          <button id="nmBtnConcavo" class="nm-btn">Cóncavo</button>
-          <button id="nmBtnConvexo" class="nm-btn">Convexo</button>
-          <button id="nmBtnClose" class="nm-btn nm-btn-primary">Cerrar</button>
-        </div>
-      </div>
-
-      <div class="nm-body">
-        <div class="nm-left">
-          <div id="nmStage" class="nm-stage">
-            <img id="nmImg" alt="" draggable="false" />
-            <!-- overlay svg -->
-            <svg id="nmSvg" class="nm-svg" xmlns="http://www.w3.org/2000/svg"></svg>
-          </div>
-
-          <div class="nm-zoom">
-            <label class="nm-zoom-label">Zoom</label>
-            <input id="nmZoom" type="range" min="10" max="250" value="100" />
-            <div id="nmZoomPct" class="nm-zoom-pct">100%</div>
-          </div>
-        </div>
-
-        <div class="nm-right">
-          <div class="nm-box">
-            <div class="nm-box-title">Selección</div>
-            <div id="nmSelection" class="nm-selection">(ninguno)</div>
-          </div>
-
-          <div class="nm-hint">
-            Tip: clic en un nicho para centrar/zoom. Arrastra para mover la vista.
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
 </body>
 </html>
