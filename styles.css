@@ -24,54 +24,6 @@ body { margin: 0; font-family: system-ui, Arial, sans-serif; }
 }
 .map{ width:100%; height:100%; }
 
-/* =====================
-   NICHOS OVERLAY EDITOR (full screen)
-   ?edit=nichos-overlay
-   ===================== */
-body.mode-nichos-overlay .layout{
-  grid-template-columns: 1fr;
-}
-body.mode-nichos-overlay .panel{
-  display:none;
-}
-
-.overlayToolbar{
-  position:absolute;
-  top:62px; /* debajo de la topbar */
-  right:14px;
-  z-index:1000;
-  width:260px;
-  background:rgba(255,255,255,.95);
-  border:1px solid #e5e7eb;
-  border-radius:12px;
-  padding:10px;
-  box-shadow:0 8px 24px rgba(0,0,0,.12);
-}
-.overlayToolbar .otTitle{ font-weight:800; margin-bottom:8px; }
-.overlayToolbar .otRow{
-  display:grid;
-  grid-template-columns:60px 1fr;
-  gap:8px;
-  align-items:center;
-  margin:6px 0;
-}
-.overlayToolbar input,
-.overlayToolbar select{
-  width:100%;
-  padding:8px;
-  border:1px solid #d1d5db;
-  border-radius:10px;
-}
-.overlayToolbar .otBtns{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
-.overlayToolbar button{
-  padding:8px 10px;
-  border-radius:10px;
-  border:1px solid #111827;
-  background:#fff;
-  cursor:pointer;
-}
-.overlayToolbar .otHint{ margin-top:8px; color:#6b7280; font-size:12px; line-height:1.25; }
-
 .panel{
   border-left:1px solid #ddd;
   padding:12px;
@@ -198,3 +150,70 @@ body.mode-nichos-overlay .panel{
 .nm-box-title{ font-weight:800; margin-bottom:6px; }
 .nm-selection{ font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px; }
 .nm-hint{ margin-top:12px; font-size:12px; color:#6b7280; }
+/* =========================================================
+   FULLSCREEN helpers (edit=nichos-overlay)
+   ========================================================= */
+body.fullMap, body.fullMap html { height: 100%; }
+
+/* Fullscreen overlay editor (injected by app.js) */
+#nichosOverlayEditor{
+  position: fixed;
+  inset: 0;
+  background: #f3f4f6;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+}
+#nichosOverlayEditor .noTop{
+  padding: 10px;
+  background: rgba(255,255,255,0.95);
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+}
+#nichosOverlayEditor .noRow{ display:flex; flex-direction:column; gap:4px; }
+#nichosOverlayEditor label{ font-size:12px; color:#374151; }
+#nichosOverlayEditor select,
+#nichosOverlayEditor input[type="range"]{
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+}
+#nichosOverlayEditor .noBtns{ display:flex; gap:8px; flex-wrap:wrap; }
+#nichosOverlayEditor button{
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  cursor: pointer;
+}
+#nichosOverlayEditor .noMsg{
+  flex-basis: 100%;
+  font-size: 12px;
+  color:#6b7280;
+}
+#nichosOverlayEditor .noStage{
+  flex: 1;
+  overflow: auto;
+  padding: 10px;
+}
+#nichosOverlayEditor .noCanvas{
+  position: relative;
+  width: max-content;
+  height: max-content;
+}
+#nichosOverlayEditor #noImg{ display:block; max-width:none; }
+#nichosOverlayEditor .noBox{
+  position: absolute;
+  border: 2px solid #ef4444;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+#nichosOverlayEditor .noH{ position:absolute; width:14px; height:14px; background:#22c55e; border:2px solid #fff; box-shadow:0 0 0 1px #111; border-radius:4px; }
+#nichosOverlayEditor .noH[data-h="tl"]{ left:-8px; top:-8px; cursor:nwse-resize; }
+#nichosOverlayEditor .noH[data-h="tr"]{ right:-8px; top:-8px; cursor:nesw-resize; }
+#nichosOverlayEditor .noH[data-h="bl"]{ left:-8px; bottom:-8px; cursor:nesw-resize; }
+#nichosOverlayEditor .noH[data-h="br"]{ right:-8px; bottom:-8px; cursor:nwse-resize; }
