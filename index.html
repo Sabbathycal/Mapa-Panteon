@@ -391,5 +391,34 @@
       document.body.appendChild(s);
     })();
   </script>
+  <!-- Nichos Modal (fullscreen sobre el mapa) -->
+  <div id="nichosModal" class="nm-backdrop" style="display:none;">
+    <div class="nm-card">
+      <div class="nm-header">
+        <div>
+          <div id="nmTitle" class="nm-title">Nichos</div>
+          <div id="nmZona" class="nm-subtitle"></div>
+        </div>
+        <button id="nmBtnClose" class="nm-btn">Cerrar</button>
+      </div>
+
+      <div class="nm-body">
+        <div class="nm-side">
+          <label class="nm-label">Cara</label>
+          <select id="nmCara" class="nm-select"></select>
+
+          <div class="nm-info" id="nmNichoInfo"></div>
+        </div>
+
+        <div class="nm-stage">
+          <div class="nm-canvas">
+            <img id="nmImg" alt="nichos" />
+            <svg id="nmSvg"></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
