@@ -11,6 +11,8 @@ const DATA_COORD_HEIGHT = 9250;
 // Archivos de datos
 const SECCIONES_TOP_URL = "./data/secciones-top.geojson"; // editor ?edit=secciones + PUBLICO secciones
 const MANZANAS_URL      = "./data/secciones.geojson";     // MANZANAS
+const NICHOS_ZONAS_URL  = "./data/nichos-zonas.geojson";  // COLUMBARIOS (ZONAS)
+const NICHOS_OVERLAY_URL = "./data/nichos-overlay.geojson"; // NICHOS por columbario/cara (rectángulos)
 
 // Catálogos
 const LOTES_INFO_URL    = "./data/lotes.json";
@@ -20,13 +22,20 @@ const PAQUETES_URL      = "./data/paquetes.json";
 // ?edit=secciones  => EDITOR SECCIONES
 // ?edit=manzanas   => EDITOR MANZANAS
 // ?edit=lotes      => EDITOR LOTES
-const editMode = new URLSearchParams(location.search).get("edit"); // null | "secciones" | "manzanas" | "lotes"
+const editMode = new URLSearchParams(location.search).get("edit"); // null | "secciones" | "manzanas" | "lotes" | "nichos" | "nichos-overlay"
 const isEditSecciones = editMode === "secciones";
 const isEditManzanas  = editMode === "manzanas";
 const isEditLotes     = editMode === "lotes";
+const isEditNichos    = editMode === "nichos";
+const isEditNichosOverlay = editMode === "nichos-overlay";
 const IS_EDIT = !!editMode;
 
-const BASE_IMAGE_URL = (isEditSecciones || isEditManzanas || isEditLotes)
+// UI layout: pantalla completa en nichos-overlay
+if (isEditNichosOverlay) {
+  try { document.body.classList.add('fullMap'); } catch {}
+}
+
+const BASE_IMAGE_URL = (isEditSecciones || isEditManzanas || isEditLotes || isEditNichos || isEditNichosOverlay)
   ? BASE_IMAGE_EDIT_URL
   : BASE_IMAGE_PUBLIC_URL;
 
@@ -67,6 +76,13 @@ let seccionesLayer = null;         // editor secciones
 let seccionesLayerPublic = null;   // PUBLICO secciones
 let manzanasLayer = null;          // público + editor manzanas
 let lotesLayer = null;             // público + editor lotes
+
+// NICHOS (público + editor)
+let nichosZonasRaw = null;
+let nichosZonasScaled = null;
+let nichosOverlayRaw = null; // FeatureCollection rects
+let nichosZonasLayerPublic = null;
+let pinnedNichoZonaLayer = null;
 
 
 let currentSeccion = null;
@@ -109,6 +125,206 @@ async function loadJson(url){
   return await r.json();
 }
 function deepCopy(obj){ return JSON.parse(JSON.stringify(obj)); }
+
+/* =========================================================
+   NICHOS (PÚBLICO)
+   - COLUMBARIOS (zonas) como capa hover/click
+   - Click abre modal full-screen sobre el mapa
+   - Orden: Columbario -> Cara -> Nicho
+   - Rectángulos por cara vienen de data/nichos-overlay.geojson
+   ========================================================= */
+
+const NICHOS_CARAS = [
+  { value: "convexo", label: "CONVEXO" },
+  { value: "concavo", label: "CONCAVO" },
+];
+
+const nichosUI = {
+  open: false,
+  zona: null,
+  cara: "convexo",
+  selectedNicho: null,
+
+  $modal: null,
+  $title: null,
+  $zona: null,
+  $cara: null,
+  $btnClose: null,
+  $img: null,
+  $svg: null,
+  $info: null,
+};
+
+function nichosInitDom(){
+  nichosUI.$modal = document.getElementById('nichosModal');
+  nichosUI.$title = document.getElementById('nmTitle');
+  nichosUI.$zona = document.getElementById('nmZona');
+  nichosUI.$cara = document.getElementById('nmCara');
+  nichosUI.$btnClose = document.getElementById('nmBtnClose');
+  nichosUI.$img = document.getElementById('nmImg');
+  nichosUI.$svg = document.getElementById('nmSvg');
+  nichosUI.$info = document.getElementById('nmNichoInfo');
+
+  if (nichosUI.$btnClose) nichosUI.$btnClose.onclick = () => nichosClose();
+
+  if (nichosUI.$cara){
+    // poblar opciones una vez
+    if (nichosUI.$cara.options.length === 0){
+      for (const c of NICHOS_CARAS){
+        const opt = document.createElement('option');
+        opt.value = c.value;
+        opt.textContent = c.label;
+        nichosUI.$cara.appendChild(opt);
+      }
+    }
+
+    nichosUI.$cara.onchange = () => {
+      nichosUI.cara = (nichosUI.$cara.value || 'convexo');
+      nichosUI.selectedNicho = null;
+      nichosRender();
+    };
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && nichosUI.open) nichosClose();
+  });
+}
+
+function nichosGetProp(f, key){
+  return (f?.properties?.[key] ?? '').toString().trim();
+}
+
+function nichosZonaId(zona){
+  return nichosGetProp(zona, 'id') || nichosGetProp(zona, 'zonaId') || '(sin id)';
+}
+
+function nichosResolveImageUrl(zona, cara){
+  const p = zona?.properties || {};
+  const k = (cara === 'concavo') ? 'imagenConcavo' : 'imagenConvexo';
+  const url = (p[k] || '').toString().trim();
+  return url || null;
+}
+
+function nichosFilterOverlayFeatures(zid, cara){
+  const feats = (nichosOverlayRaw?.features || []);
+  const z = (zid || '').toString().trim();
+  const c = (cara || '').toString().trim().toLowerCase();
+  return feats.filter(f => {
+    const p = f?.properties || {};
+    const tipo = (p.tipo || '').toString().trim().toLowerCase();
+    const fz = (p.zonaId || p.columbarioId || '').toString().trim();
+    const fc = (p.cara || '').toString().trim().toLowerCase();
+    return tipo === 'nicho' && fz === z && (!fc || fc === c);
+  });
+}
+
+function nichosOpen(zonaFeature){
+  if (!nichosUI.$modal) nichosInitDom();
+
+  nichosUI.open = true;
+  nichosUI.zona = zonaFeature;
+  nichosUI.cara = 'convexo';
+  nichosUI.selectedNicho = null;
+
+  if (nichosUI.$cara) nichosUI.$cara.value = nichosUI.cara;
+
+  if (nichosUI.$title) nichosUI.$title.textContent = 'Nichos';
+  if (nichosUI.$zona) nichosUI.$zona.textContent = `Columbario: ${nichosGetProp(zonaFeature,'nombre') || nichosZonaId(zonaFeature)}`;
+  if (nichosUI.$info) nichosUI.$info.innerHTML = '<p style="color:#6b7280">Paso 1: elige CARA. Paso 2: haz click en un NICHO.</p>';
+
+  if (nichosUI.$modal) nichosUI.$modal.style.display = 'flex';
+
+  nichosRender();
+}
+
+function nichosClose(){
+  if (!nichosUI.$modal) return;
+  nichosUI.open = false;
+  nichosUI.zona = null;
+  nichosUI.selectedNicho = null;
+  nichosUI.$modal.style.display = 'none';
+  if (nichosUI.$svg) nichosUI.$svg.innerHTML = '';
+}
+
+function nichosRender(){
+  const zona = nichosUI.zona;
+  if (!zona || !nichosUI.$img || !nichosUI.$svg) return;
+
+  const zid = nichosZonaId(zona);
+  const cara = nichosUI.cara;
+  const imgUrl = nichosResolveImageUrl(zona, cara);
+
+  if (!imgUrl){
+    if (nichosUI.$info) nichosUI.$info.innerHTML = `<p style="color:#b91c1c">Falta imagenConvexo/imagenConcavo para ${cara} en nichos-zonas.geojson</p>`;
+    nichosUI.$img.removeAttribute('src');
+    nichosUI.$svg.innerHTML = '';
+    return;
+  }
+
+  nichosUI.$img.onload = () => {
+    const w = nichosUI.$img.naturalWidth || 1;
+    const h = nichosUI.$img.naturalHeight || 1;
+
+    nichosUI.$svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    nichosUI.$svg.setAttribute('width', String(w));
+    nichosUI.$svg.setAttribute('height', String(h));
+    nichosUI.$svg.innerHTML = '';
+
+    const rects = nichosFilterOverlayFeatures(zid, cara);
+    if (rects.length === 0){
+      if (nichosUI.$info) nichosUI.$info.innerHTML = `<p style="color:#6b7280">No hay nichos definidos en ${NICHOS_OVERLAY_URL} para ${zid}-${cara}.</p>`;
+      return;
+    }
+
+    for (const f of rects){
+      if (f?.geometry?.type !== 'Polygon') continue;
+      const ring = f.geometry.coordinates?.[0] || [];
+      if (ring.length < 4) continue;
+
+      const d = ring.map(([x,y], i) => `${i===0?'M':'L'} ${x} ${y}`).join(' ') + ' Z';
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('fill', 'rgba(59,130,246,.16)');
+      path.setAttribute('stroke', 'rgba(59,130,246,.85)');
+      path.setAttribute('stroke-width', '2');
+      path.style.cursor = 'pointer';
+
+      path.addEventListener('click', () => {
+        nichosUI.selectedNicho = f;
+        nichosRenderNichoInfo(f);
+        // resaltar
+        try {
+          for (const el of nichosUI.$svg.querySelectorAll('path')){
+            el.setAttribute('fill', 'rgba(59,130,246,.16)');
+            el.setAttribute('stroke', 'rgba(59,130,246,.85)');
+          }
+          path.setAttribute('fill', 'rgba(16,185,129,.18)');
+          path.setAttribute('stroke', 'rgba(16,185,129,.95)');
+        } catch {}
+      });
+
+      nichosUI.$svg.appendChild(path);
+    }
+  };
+
+  nichosUI.$img.onerror = () => {
+    if (nichosUI.$info) nichosUI.$info.innerHTML = `<p style="color:#b91c1c">No se pudo cargar: ${imgUrl}</p>`;
+    nichosUI.$svg.innerHTML = '';
+  };
+
+  nichosUI.$img.src = imgUrl;
+}
+
+function nichosRenderNichoInfo(feature){
+  const p = feature?.properties || {};
+  const codigo = (p.codigo || p.id || '(sin código)').toString();
+
+  let html = `<h3 style="margin:0 0 6px 0;">Nicho: ${safe(codigo)}</h3>`;
+  html += `<div style="font-size:12px;color:#6b7280;margin-bottom:8px;">Columbario → Cara → Nicho</div>`;
+  html += `<pre style="white-space:pre-wrap;font-size:12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px;">${safe(JSON.stringify(p, null, 2))}</pre>`;
+
+  if (nichosUI.$info) nichosUI.$info.innerHTML = html;
+}
 
 // Normaliza las manzanas para que no queden inconsistencias tipo:
 // id="PLATA-H" pero seccion="PLATA", manzana="A", nombre="PLATA - A".
@@ -594,6 +810,80 @@ let pinnedSeccionLayer = null;
 let pinnedManzanaLayer = null;
 let pinnedLotLayer = null;
 
+// NICHOS: capa de zonas (columbarios)
+function bringNichosZonasToFront(){
+  try { if (nichosZonasLayerPublic) nichosZonasLayerPublic.bringToFront(); } catch {}
+}
+
+function clearNichosZonasLayerPublic(){
+  if (nichosZonasLayerPublic){
+    try { nichosZonasLayerPublic.remove(); } catch {}
+    nichosZonasLayerPublic = null;
+  }
+  pinnedNichoZonaLayer = null;
+}
+
+function renderNichosZonasLayerPublic(){
+  if (IS_EDIT) return;
+  if (!nichosZonasScaled?.features?.length) return;
+
+  const zonas = nichosZonasScaled.features.filter(f => {
+    const t = (f?.properties?.tipo || 'zona').toString().trim().toLowerCase();
+    return t === 'zona' || t === 'columbario';
+  });
+  if (!zonas.length) return;
+
+  clearNichosZonasLayerPublic();
+
+  const fc = { type:'FeatureCollection', features: zonas };
+
+  nichosZonasLayerPublic = L.geoJSON(fc, {
+    style: () => {
+      const col = '#2563eb';
+      return { ...hiddenStyle(), color: col, fillColor: col };
+    },
+    pointToLayer: (feature, latlng) => {
+      const layer = featureToLayerCircleAware(feature, latlng);
+      try { layer.setStyle({ ...hiddenStyle(), color:'#2563eb', fillColor:'#2563eb' }); } catch {}
+      return layer;
+    },
+    onEachFeature: (feature, layer) => {
+      const col = '#2563eb';
+
+      layer.on('mouseover', () => {
+        if (pinnedNichoZonaLayer !== layer) layer.setStyle(hoverStyle(col));
+      });
+      layer.on('mouseout', () => {
+        if (pinnedNichoZonaLayer !== layer) layer.setStyle({ ...hiddenStyle(), color: col, fillColor: col });
+      });
+
+      layer.on('click', (ev) => {
+        // Evitar click-through a secciones
+        try {
+          if (ev?.originalEvent){
+            ev.originalEvent.preventDefault();
+            ev.originalEvent.stopPropagation();
+          }
+          L.DomEvent.stop(ev);
+        } catch {}
+
+        if (pinnedNichoZonaLayer && pinnedNichoZonaLayer !== layer){
+          pinnedNichoZonaLayer.setStyle({ ...hiddenStyle(), color: col, fillColor: col });
+        }
+        pinnedNichoZonaLayer = layer;
+
+        const base = pinnedStyle(col);
+        layer.setStyle(base);
+        pulseLayer(layer, base, { ms: 220 });
+
+        nichosOpen(feature);
+      });
+    }
+  }).addTo(map);
+
+  bringNichosZonasToFront();
+}
+
 function clearLotesLayer(){
   if (lotesLayer){ lotesLayer.remove(); lotesLayer = null; }
 }
@@ -992,6 +1282,8 @@ function setupDropdowns(){
 
     if (!sec){
       showPublicLevelSecciones();
+      renderNichosZonasLayerPublic();
+      bringNichosZonasToFront();
       return;
     }
 
@@ -1025,6 +1317,8 @@ function setupButtons(){
 
     if (manzanasLayer){
       showPublicLevelSecciones();
+      renderNichosZonasLayerPublic();
+      bringNichosZonasToFront();
       return;
     }
 
@@ -1234,6 +1528,7 @@ function getActiveEditDatasetArr(){
   if (isEditSecciones) return seccionesTopRaw?.features || null;
   if (isEditManzanas)  return manzanasRaw?.features || null;
   if (isEditLotes)     return currentLotesRaw?.features || null;
+  if (isEditNichos)    return nichosZonasRaw?.features || null;
   return null;
 }
 
@@ -1241,6 +1536,7 @@ function rerenderActiveEditor(){
   if (isEditSecciones) return rerenderSecciones_Edit();
   if (isEditManzanas)  return rerenderManzanas_Edit();
   if (isEditLotes)     return rerenderLotes_Edit();
+  if (isEditNichos)    return rerenderNichos_Edit();
 }
 
 /* ---------- FEATURE ID helpers ---------- */
@@ -1715,6 +2011,7 @@ function getEditDataset(){
   if (isEditSecciones) return { label:"SECCIONES", data: seccionesTopRaw, dest: SECCIONES_TOP_URL };
   if (isEditManzanas)  return { label:"MANZANAS",  data: manzanasRaw,     dest: MANZANAS_URL };
   if (isEditLotes)     return { label:"LOTES",     data: currentLotesRaw, dest: currentLotesSourceUrl || (getSelectedSeccion() ? getSharedLotesUrlForSeccion(getSelectedSeccion()) : "(elige SECCIÓN)") };
+  if (isEditNichos)    return { label:"NICHOS",    data: nichosZonasRaw,  dest: NICHOS_ZONAS_URL };
   return null;
 }
 
@@ -3002,6 +3299,163 @@ function rerenderLotes_Edit(){
 
 
 
+
+function renderEditNichosPanel(){
+  editor.mode = 'edit';
+  editor.drawShape = 'polygon';
+  editor.gridArmed = false;
+  editor.gridConfig = null;
+  editor.pasteArmed = false;
+
+  editorClearPoly(); editorClearCircle(); editorStopEditing();
+  clearMultiSelection();
+
+  setPanel('Edición: NICHOS (COLUMBARIOS)', `
+    <p>Editor de <b>Columbarios</b> (zonas) en <code>${safe(NICHOS_ZONAS_URL)}</code>.</p>
+    <p style="font-size:12px;color:#6b7280;">
+      Click normal: selecciona y permite <b>mover/escalar</b>. Usa “Editar puntos” para vértices.<br/>
+      Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click.
+    </p>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button id="btnEdit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Editar existente</button>
+      <button id="btnCreate" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Crear columbario</button>
+      <button id="btnCopy" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar GeoJSON</button>
+      <button id="btnExit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Salir</button>
+    </div>
+
+    <hr/>
+    <div id="editBody"></div>
+
+    <p style="font-size:12px;color:#666;margin-top:10px;">Destino: <b>${safe(NICHOS_ZONAS_URL)}</b></p>
+  `);
+
+  const $editBody = document.getElementById('editBody');
+
+  document.getElementById('btnEdit').onclick = () => {
+    editor.mode = 'edit';
+    editorClearPoly(); editorClearCircle();
+    editorStopEditing();
+    clearMultiSelection();
+    $editBody.innerHTML = '<p><b>Editar:</b> clic en un columbario para seleccionar.</p>';
+    rerenderNichos_Edit();
+  };
+
+  document.getElementById('btnCreate').onclick = () => {
+    editor.mode = 'create';
+    editorStopEditing();
+    clearMultiSelection();
+    clearGroupTransformUI();
+    editorClearPoly(); editorClearCircle();
+
+    $editBody.innerHTML = `
+      <p><b>Crear columbario:</b> polígono o círculo</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+        <button id="btnPoly" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Polígono</button>
+        <button id="btnCircle" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Círculo</button>
+        <button id="btnClear" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Limpiar</button>
+      </div>
+
+      <p><b>Puntos (polígono):</b> <span id="ptCount">0</span></p>
+
+      <label><b>ID</b> (ej. PLN)</label><br/>
+      <input id="newZonaId" placeholder="PLN" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+      <label><b>Nombre</b></label><br/>
+      <input id="newZonaNombre" placeholder="BUEN PASTOR NICHOS" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+      <label><b>Imagen CONVEXO</b></label><br/>
+      <input id="newImgConvexo" placeholder="./assets/nichos/PLN-convexo.png" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+      <label><b>Imagen CONCAVO</b></label><br/>
+      <input id="newImgConcavo" placeholder="./assets/nichos/PLN-concavo.png" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+        <button id="btnSaveNew" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Guardar</button>
+      </div>
+    `;
+
+    document.getElementById('btnPoly').onclick = () => { editor.drawShape = 'polygon'; };
+    document.getElementById('btnCircle').onclick = () => { editor.drawShape = 'circle'; };
+    document.getElementById('btnClear').onclick = () => { editorClearPoly(); editorClearCircle(); };
+
+    document.getElementById('btnSaveNew').onclick = () => {
+      if (!nichosZonasRaw) nichosZonasRaw = { type:'FeatureCollection', features:[] };
+
+      const id = (document.getElementById('newZonaId').value || '').trim();
+      const nombre = (document.getElementById('newZonaNombre').value || '').trim();
+      const imgConv = (document.getElementById('newImgConvexo').value || '').trim();
+      const imgConc = (document.getElementById('newImgConcavo').value || '').trim();
+
+      if (!id) return notify('Falta ID.', 2000);
+
+      const props = { tipo:'zona', id, nombre: nombre || id, imagenConvexo: imgConv, imagenConcavo: imgConc };
+      let feature = null;
+
+      if (editor.drawShape === 'polygon'){
+        if (editor.polyPoints.length < 3) return notify('Polígono: mínimo 3 puntos.', 2200);
+        feature = { type:'Feature', geometry:{ type:'Polygon', coordinates:ringToGeoJsonCoords(editor.polyPoints) }, properties: props };
+      } else {
+        if (!editor.circleCenter || typeof editor.circleRadius !== 'number') return notify('Círculo: clic centro y luego borde.', 2200);
+        feature = { type:'Feature', geometry:{ type:'Point', coordinates: latLngToXY(editor.circleCenter) }, properties:{ ...props, shape:'circle', radius: editor.circleRadius } };
+      }
+
+      nichosZonasRaw.features.push(feature);
+      editorClearPoly(); editorClearCircle();
+      rerenderNichos_Edit();
+      notify('✅ Columbário creado (en memoria). Copia GeoJSON para guardar.', 2400);
+    };
+
+    rerenderNichos_Edit();
+  };
+
+  document.getElementById('btnCopy').onclick = async () => {
+    const txt = JSON.stringify(nichosZonasRaw || { type:'FeatureCollection', features:[] }, null, 2);
+    try {
+      await navigator.clipboard.writeText(txt);
+      notify('GeoJSON copiado. Pégalo en data/nichos-zonas.geojson.', 2400);
+    } catch {
+      setPanel('Copia manual', `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
+    }
+  };
+
+  document.getElementById('btnExit').onclick = () => location.href = './';
+  document.getElementById('btnEdit').click();
+}
+
+function rerenderNichos_Edit(){
+  if (manzanasLayer){ manzanasLayer.remove(); manzanasLayer = null; }
+  editorStopVertexEditing();
+  clearGroupTransformUI();
+
+  const all = (nichosZonasRaw?.features || []);
+  const zonas = all.filter(f => ((f?.properties?.tipo || 'zona').toString().trim().toLowerCase() === 'zona'));
+
+  const fc = { type:'FeatureCollection', features: zonas };
+
+  manzanasLayer = L.geoJSON(fc, {
+    style: { weight:2, opacity:1, fillOpacity:0.06 },
+    interactive: (editor.mode === 'edit'),
+    pointToLayer: (feature, latlng) => {
+      const layer = featureToLayerCircleAware(feature, latlng);
+      try { layer.setStyle({ weight:2, opacity:1, fillOpacity:0.06 }); } catch {}
+      return layer;
+    },
+    onEachFeature: (feature, layer) => {
+      layer.on('click', (ev) => handleEditorFeatureClick(feature, layer, ev));
+    }
+  }).addTo(map);
+
+  rebuildSelectedLayersFromLayerGroup(manzanasLayer);
+  applyMultiSelectionStyle();
+  if (editor.selectedSet.size > 0){
+    showGroupTransformHandles();
+    if (editor.selectedSet.size === 1 && editor.editSubmode === 'transform'){
+      renderEditSelectedPanel();
+    }
+  }
+}
+
 /* =========================================================
    MAP CLICK HANDLER (CREATE + PASTE + GRID)
    ========================================================= */
@@ -3011,7 +3465,7 @@ function attachEditorMapClick(){
   mapClickAttached = true;
 
   map.on("click", (e) => {
-    if (!(isEditSecciones || isEditManzanas || isEditLotes)) return;
+    if (!(isEditSecciones || isEditManzanas || isEditLotes || isEditNichos)) return;
 
     // PEGAR
     if (editor.pasteArmed && editor.clipboardFeature){
@@ -3233,7 +3687,7 @@ async function main(){
   map = L.map("map", {
     crs: L.CRS.Simple,
     minZoom: -3,
-    maxZoom: (isEditSecciones || isEditManzanas || isEditLotes) ? 6 : 4,
+    maxZoom: (isEditSecciones || isEditManzanas || isEditLotes || isEditNichos || isEditNichosOverlay) ? 6 : 4,
     zoomAnimation: !IS_MOBILE,
     fadeAnimation: false,
     markerZoomAnimation: !IS_MOBILE,
@@ -3263,6 +3717,14 @@ async function main(){
       manzanasRaw = await loadJson(MANZANAS_URL);
       try { seccionesTopRaw = await loadJson(SECCIONES_TOP_URL); }
       catch { seccionesTopRaw = { type:"FeatureCollection", features: [] }; }
+
+      // Nichos (columbarios)
+      try { nichosZonasRaw = await loadJson(NICHOS_ZONAS_URL); }
+      catch { nichosZonasRaw = { type:'FeatureCollection', features: [] }; }
+
+      // Nichos overlay (rectángulos por cara)
+      try { nichosOverlayRaw = await loadJson(NICHOS_OVERLAY_URL); }
+      catch { nichosOverlayRaw = { type:'FeatureCollection', features: [] }; }
 
 
       // ====== EDIT SECCIONES ======
@@ -3383,12 +3845,40 @@ async function main(){
         return;
       }
 
+
+      // ====== EDIT NICHOS (COLUMBARIOS) ======
+      if (isEditNichos){
+        if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
+        if ($searchBtn) $searchBtn.disabled = true;
+
+        $seccionSelect.innerHTML = `<option value="">(Edición NICHOS)</option>`;
+        $manzanaSelect.innerHTML = `<option value="">(Edición NICHOS)</option>`;
+
+        rerenderNichos_Edit();
+        renderEditNichosPanel();
+        return;
+      }
+
+      // ====== EDIT NICHOS OVERLAY ======
+      if (isEditNichosOverlay){
+        if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
+        if ($searchBtn) $searchBtn.disabled = true;
+
+        $seccionSelect.innerHTML = `<option value="">(Edición NICHOS overlay)</option>`;
+        $manzanaSelect.innerHTML = `<option value="">(Edición NICHOS overlay)</option>`;
+
+        initNichosOverlayEditor();
+        return;
+      }
 // ====== NORMAL (público) ======
       seccionesTopScaled = deepCopy(seccionesTopRaw);
       applyCoordScaleToGeoJSON(seccionesTopScaled, COORD_SCALE_X, COORD_SCALE_Y);
 
       manzanasScaled = deepCopy(manzanasRaw);
       applyCoordScaleToGeoJSON(manzanasScaled, COORD_SCALE_X, COORD_SCALE_Y);
+
+      nichosZonasScaled = deepCopy(nichosZonasRaw);
+      applyCoordScaleToGeoJSON(nichosZonasScaled, COORD_SCALE_X, COORD_SCALE_Y);
 
 
       const secciones = buildSeccionesList(
@@ -3400,6 +3890,8 @@ async function main(){
       $manzanaSelect.innerHTML = `<option value="">MANZANA...</option>`;
 
       showPublicLevelSecciones();
+      renderNichosZonasLayerPublic();
+      bringNichosZonasToFront();
       setupDropdowns();
       setupSearch();
       setupButtons();
@@ -3418,6 +3910,264 @@ async function main(){
   };
 
   img.src = BASE_IMAGE_URL;
+}
+
+
+
+/* =========================================================
+   EDITOR: NICHOS OVERLAY (rectángulos sobre imagen)
+   - Ejecutar: ?edit=nichos-overlay
+   - Guarda FeatureCollection en data/nichos-overlay.geojson
+   ========================================================= */
+function initNichosOverlayEditor(){
+  try { document.body.classList.add('fullMap'); } catch {}
+
+  const mapEl = document.getElementById('map');
+  if (!mapEl) return;
+
+  let root = document.getElementById('nichosOverlayEditor');
+  if (root) root.remove();
+
+  root = document.createElement('div');
+  root.id = 'nichosOverlayEditor';
+  root.innerHTML = `
+    <div class="noe-toolbar">
+      <div class="noe-row">
+        <label>Columbario</label>
+        <select id="noeZona"></select>
+
+        <label>Cara</label>
+        <select id="noeCara">
+          <option value="convexo">CONVEXO</option>
+          <option value="concavo">CONCAVO</option>
+        </select>
+
+        <label>Código</label>
+        <input id="noeCodigo" placeholder="PLN-1-AX" />
+
+        <button id="noeCopy">Copiar GeoJSON</button>
+        <button id="noeExit">Salir</button>
+      </div>
+      <div id="noeMsg" class="noe-msg"></div>
+    </div>
+
+    <div class="noe-stage">
+      <div class="noe-canvas">
+        <img id="noeImg" alt="nichos" />
+        <svg id="noeSvg"></svg>
+      </div>
+
+      <div class="noe-side">
+        <h3 style="margin:0 0 6px 0;">Instrucciones</h3>
+        <div style="font-size:12px;color:#6b7280;">
+          1) Elige <b>Columbario</b> y <b>Cara</b>.<br/>
+          2) Escribe el <b>Código</b> del nicho.<br/>
+          3) Arrastra sobre la imagen para crear el rectángulo.<br/>
+          4) Repite y luego usa <b>Copiar GeoJSON</b> para pegar en <code>data/nichos-overlay.geojson</code>.
+        </div>
+      </div>
+    </div>
+  `;
+  mapEl.appendChild(root);
+
+  const $zona = root.querySelector('#noeZona');
+  const $cara = root.querySelector('#noeCara');
+  const $codigo = root.querySelector('#noeCodigo');
+  const $msg = root.querySelector('#noeMsg');
+  const $img = root.querySelector('#noeImg');
+  const $svg = root.querySelector('#noeSvg');
+
+  const zonas = (nichosZonasRaw?.features || []).filter(f => ((f?.properties?.tipo || 'zona').toString().trim().toLowerCase() === 'zona'));
+  $zona.innerHTML = zonas.map(z => {
+    const id = nichosZonaId(z);
+    const name = nichosGetProp(z, 'nombre') || id;
+    return `<option value="${safe(id)}">${safe(id)} — ${safe(name)}</option>`;
+  }).join('');
+
+  function setMsg(t){ $msg.textContent = t || ''; }
+  function currentZonaId(){ return ($zona.value || '').toString().trim(); }
+  function currentCara(){ return ($cara.value || 'convexo').toString().trim().toLowerCase(); }
+  function _min(a,b){ return a < b ? a : b; }
+  function _max(a,b){ return a > b ? a : b; }
+
+  function listCurrentRects(zid, cara){
+    return (nichosOverlayRaw?.features || []).filter(f => {
+      const p = f?.properties || {};
+      const tipo = (p.tipo || '').toString().trim().toLowerCase();
+      const z = (p.zonaId || p.columbarioId || '').toString().trim();
+      const c = (p.cara || '').toString().trim().toLowerCase();
+      return tipo === 'nicho' && z === zid && c === cara;
+    });
+  }
+
+  function renderRects(){
+    const zid = currentZonaId();
+    const cara = currentCara();
+    const rects = listCurrentRects(zid, cara);
+
+    $svg.innerHTML = '';
+
+    for (const f of rects){
+      if (f?.geometry?.type !== 'Polygon') continue;
+      const ring = f.geometry.coordinates?.[0] || [];
+      if (ring.length < 4) continue;
+      const d = ring.map(([x,y], i) => `${i===0?'M':'L'} ${x} ${y}`).join(' ') + ' Z';
+      const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+      p.setAttribute('d', d);
+      p.setAttribute('fill', 'rgba(239,68,68,.10)');
+      p.setAttribute('stroke', 'rgba(239,68,68,.85)');
+      p.setAttribute('stroke-width', '2');
+      $svg.appendChild(p);
+    }
+  }
+
+  function loadImage(){
+    const zid = currentZonaId();
+    const cara = currentCara();
+    const zonaF = zonas.find(z => nichosZonaId(z) === zid);
+    const url = nichosResolveImageUrl(zonaF, cara);
+
+    if (!url){
+      setMsg('Falta imagenConvexo/imagenConcavo en data/nichos-zonas.geojson');
+      $img.removeAttribute('src');
+      $svg.innerHTML = '';
+      return;
+    }
+
+    setMsg(`Imagen: ${url}`);
+
+    $img.onload = () => {
+      const w = $img.naturalWidth || 1;
+      const h = $img.naturalHeight || 1;
+      $svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      $svg.setAttribute('width', String(w));
+      $svg.setAttribute('height', String(h));
+      renderRects();
+    };
+
+    $img.onerror = () => {
+      setMsg(`No se pudo cargar: ${url}`);
+      $svg.innerHTML = '';
+    };
+
+    $img.src = url;
+  }
+
+  function svgPoint(ev){
+    const pt = $svg.createSVGPoint();
+    pt.x = ev.clientX;
+    pt.y = ev.clientY;
+    const m = $svg.getScreenCTM();
+    if (!m) return {x:0,y:0};
+    const p = pt.matrixTransform(m.inverse());
+    return { x: p.x, y: p.y };
+  }
+
+  function makeRectFeature(zid, cara, codigo, x1,y1,x2,y2){
+    const left = _min(x1,x2);
+    const right = _max(x1,x2);
+    const top = _min(y1,y2);
+    const bottom = _max(y1,y2);
+    const ring = [
+      [left, top],
+      [right, top],
+      [right, bottom],
+      [left, bottom],
+      [left, top],
+    ];
+    return {
+      type:'Feature',
+      geometry:{ type:'Polygon', coordinates:[ring] },
+      properties:{ tipo:'nicho', zonaId:zid, cara:cara, codigo: codigo || '' }
+    };
+  }
+
+  let drawing = false;
+  let start = null;
+
+  $svg.addEventListener('pointerdown', (ev) => {
+    drawing = true;
+    start = svgPoint(ev);
+  });
+
+  window.addEventListener('pointermove', (ev) => {
+    if (!drawing || !start) return;
+    const prev = $svg.querySelector('path[data-preview="1"]');
+    if (prev) prev.remove();
+
+    const p = svgPoint(ev);
+    const ring = [
+      [_min(start.x, p.x), _min(start.y, p.y)],
+      [_max(start.x, p.x), _min(start.y, p.y)],
+      [_max(start.x, p.x), _max(start.y, p.y)],
+      [_min(start.x, p.x), _max(start.y, p.y)],
+      [_min(start.x, p.x), _min(start.y, p.y)],
+    ];
+
+    const d = ring.map(([x,y], i) => `${i===0?'M':'L'} ${x} ${y}`).join(' ') + ' Z';
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'rgba(16,185,129,.12)');
+    path.setAttribute('stroke', 'rgba(16,185,129,.90)');
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('data-preview','1');
+    $svg.appendChild(path);
+  });
+
+  window.addEventListener('pointerup', (ev) => {
+    if (!drawing || !start) return;
+    drawing = false;
+
+    const zid = currentZonaId();
+    const cara = currentCara();
+    const codigo = ($codigo.value || '').toString().trim();
+
+    const prev = $svg.querySelector('path[data-preview="1"]');
+    if (prev) prev.remove();
+
+    if (!codigo){
+      setMsg('Escribe un CÓDIGO antes de dibujar.');
+      start = null;
+      renderRects();
+      return;
+    }
+
+    const p = svgPoint(ev);
+    const f = makeRectFeature(zid, cara, codigo, start.x, start.y, p.x, p.y);
+
+    if (!nichosOverlayRaw) nichosOverlayRaw = { type:'FeatureCollection', features:[] };
+
+    nichosOverlayRaw.features = (nichosOverlayRaw.features || []).filter(x => {
+      const pc = (x?.properties?.codigo || x?.properties?.id || '').toString().trim();
+      const pz = (x?.properties?.zonaId || x?.properties?.columbarioId || '').toString().trim();
+      const pr = (x?.properties?.cara || '').toString().trim().toLowerCase();
+      return !(pc === codigo && pz === zid && pr === cara);
+    });
+
+    nichosOverlayRaw.features.push(f);
+
+    start = null;
+    renderRects();
+    setMsg('Rectángulo guardado en memoria. Usa Copiar GeoJSON para pegar en data/nichos-overlay.geojson');
+  });
+
+  root.querySelector('#noeCopy').onclick = async () => {
+    const txt = JSON.stringify(nichosOverlayRaw || { type:'FeatureCollection', features:[] }, null, 2);
+    try {
+      await navigator.clipboard.writeText(txt);
+      notify('GeoJSON copiado. Pégalo en data/nichos-overlay.geojson', 2400);
+    } catch {
+      setMsg('No pude copiar automáticamente. Revisa consola (F12).');
+      console.log(txt);
+    }
+  };
+
+  root.querySelector('#noeExit').onclick = () => location.href = './';
+
+  $zona.onchange = loadImage;
+  $cara.onchange = loadImage;
+
+  loadImage();
 }
 
 main();
