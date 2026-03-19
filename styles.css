@@ -155,15 +155,21 @@ body { margin: 0; font-family: system-ui, Arial, sans-serif; }
    NICHOS modal (fullscreen sobre el mapa)
    ========================================================= */
 .nm-backdrop{
+  /* Debe cubrir la pantalla completa y NO fluir en el layout */
   position: fixed !important;
-  /* deja visible la barra superior */
-  inset: 52px 0 0 0 !important;
+  inset: 0 !important;
   background: rgba(0,0,0,.45);
-  z-index: 5000;
+  z-index: 9999;
   display: none;
   align-items: stretch;
   justify-content: stretch;
 }
+
+/* Safety net: si por alguna razón se pierde la clase, el id igual queda fijo */
+#nichosModal{ position: fixed; inset: 0; z-index: 9999; }
+
+/* Editor de nichos-overlay: el panel debe permanecer visible y el mapa se usa como editor de imagen */
+body.fullOverlayEditor .layout{ grid-template-columns: 1fr 420px; height: calc(100vh - 52px); }
 .nm-card{
   background: #fff;
   width: 100%;
@@ -288,12 +294,15 @@ body { margin: 0; font-family: system-ui, Arial, sans-serif; }
   /* mostrar lo más zoom-out posible */
   width: auto;
   height: auto;
+  position: relative;
+  z-index: 0;
 }
 #noeSvg{
   position: absolute;
   left: 0;
   top: 0;
   pointer-events: auto;
+  z-index: 2;
 }
 .noe-side{
   border-left: 1px solid #e5e7eb;
@@ -302,7 +311,7 @@ body { margin: 0; font-family: system-ui, Arial, sans-serif; }
 }
 
 /* Safety: keep the Nichos modal above Leaflet panes */
-#nichosModal{ position: fixed !important; inset: 52px 0 0 0 !important; z-index: 5000 !important; }
+#nichosModal{ position: fixed !important; inset: 0 !important; z-index: 9999 !important; }
 
 /* Overlay-only editor mode (?edit=nichos-overlay): hide map, panel full width */
 body.overlayOnly #map{ display:none !important; }
