@@ -154,12 +154,12 @@ body { margin: 0; font-family: system-ui, Arial, sans-serif; }
    NICHOS modal (fullscreen sobre el mapa)
    ========================================================= */
 .nm-backdrop{
-  position: fixed;
+  position: fixed !important;
   /* deja visible la barra superior */
-  inset: 52px 0 0 0;
+  inset: 52px 0 0 0 !important;
   background: rgba(0,0,0,.45);
-  z-index: 4000;
-  display: flex;
+  z-index: 5000;
+  display: none;
   align-items: stretch;
   justify-content: stretch;
 }
@@ -299,3 +299,11 @@ body { margin: 0; font-family: system-ui, Arial, sans-serif; }
   padding: 12px;
   overflow: auto;
 }
+
+/* Safety: keep the Nichos modal above Leaflet panes */
+#nichosModal{ position: fixed !important; inset: 52px 0 0 0 !important; z-index: 5000 !important; }
+
+/* Overlay-only editor mode (?edit=nichos-overlay): hide map, panel full width */
+body.overlayOnly #map{ display:none !important; }
+body.overlayOnly .layout{ grid-template-columns: 1fr !important; }
+body.overlayOnly .panel{ width:100% !important; height: calc(100vh - 52px) !important; border-left:none !important; }
