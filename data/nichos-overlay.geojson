@@ -1,0 +1,182 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "tipo": "nicho",
+        "zonaId": "PLN",
+        "cara": "convexo",
+        "codigo": "PLN-CV-001",
+        "estatus": "disponible"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [0.10, 0.10],
+            [0.18, 0.10],
+            [0.18, 0.20],
+            [0.10, 0.20],
+            [0.10, 0.10]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "tipo": "nicho",
+        "zonaId": "PLN",
+        "cara": "convexo",
+        "codigo": "PLN-CV-002",
+        "estatus": "ocupado"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [0.20, 0.10],
+            [0.28, 0.10],
+            [0.28, 0.20],
+            [0.20, 0.20],
+            [0.20, 0.10]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "tipo": "nicho",
+        "zonaId": "PLN",
+        "cara": "convexo",
+        "codigo": "PLN-CV-003",
+        "estatus": "disponible"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [0.30, 0.10],
+            [0.38, 0.10],
+            [0.38, 0.20],
+            [0.30, 0.20],
+            [0.30, 0.10]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "tipo": "nicho",
+        "zonaId": "PLN",
+        "cara": "convexo",
+        "codigo": "PLN-CV-004",
+        "estatus": "por construir"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [0.10, 0.22],
+            [0.18, 0.22],
+            [0.18, 0.32],
+            [0.10, 0.32],
+            [0.10, 0.22]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "tipo": "nicho",
+        "zonaId": "PLN",
+        "cara": "convexo",
+        "codigo": "PLN-CV-005",
+        "estatus": "disponible"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [0.20, 0.22],
+            [0.28, 0.22],
+            [0.28, 0.32],
+            [0.20, 0.32],
+            [0.20, 0.22]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "tipo": "nicho",
+        "zonaId": "PLN",
+        "cara": "convexo",
+        "codigo": "PLN-CV-006",
+        "estatus": "ocupado"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [0.30, 0.22],
+            [0.38, 0.22],
+            [0.38, 0.32],
+            [0.30, 0.32],
+            [0.30, 0.22]
+          ]
+        ]
+      }
+    },
+
+    {
+      "type": "Feature",
+      "properties": {
+        "tipo": "nicho",
+        "zonaId": "PLN",
+        "cara": "concavo",
+        "codigo": "PLN-CC-001",
+        "estatus": "disponible"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [0.12, 0.12],
+            [0.22, 0.12],
+            [0.22, 0.24],
+            [0.12, 0.24],
+            [0.12, 0.12]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "tipo": "nicho",
+        "zonaId": "PLN",
+        "cara": "concavo",
+        "codigo": "PLN-CC-002",
+        "estatus": "ocupado"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [0.24, 0.12],
+            [0.34, 0.12],
+            [0.34, 0.24],
+            [0.24, 0.24],
+            [0.24, 0.12]
+          ]
+        ]
+      }
+    }
+  ]
+}
