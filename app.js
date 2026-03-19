@@ -27,9 +27,10 @@ const isEditSecciones = editMode === "secciones";
 const isEditManzanas  = editMode === "manzanas";
 const isEditLotes     = editMode === "lotes";
 const isEditNichos    = editMode === "nichos";
+const isEditNichosOverlay = editMode === "nichos-overlay";
 const IS_EDIT = !!editMode;
 
-const BASE_IMAGE_URL = (isEditSecciones || isEditManzanas || isEditLotes || isEditNichos)
+const BASE_IMAGE_URL = (isEditSecciones || isEditManzanas || isEditLotes || isEditNichos || isEditNichosOverlay)
   ? BASE_IMAGE_EDIT_URL
   : BASE_IMAGE_PUBLIC_URL;
 
@@ -602,6 +603,11 @@ function flyToManzanaFeature(feature, layer){
 let pinnedSeccionLayer = null;
 let pinnedManzanaLayer = null;
 let pinnedLotLayer = null;
+
+// Mantener la capa de nichos encima para capturar clicks antes que secciones/manzanas.
+function bringNichosLayerToFront(){
+  try { if (nichosLayer) nichosLayer.bringToFront(); } catch {}
+}
 
 function clearLotesLayer(){
   if (lotesLayer){ lotesLayer.remove(); lotesLayer = null; }
@@ -3813,12 +3819,19 @@ async function main(){
   map = L.map("map", {
     crs: L.CRS.Simple,
     minZoom: -3,
-    maxZoom: (isEditSecciones || isEditManzanas || isEditLotes || isEditNichos) ? 6 : 4,
+    maxZoom: (isEditSecciones || isEditManzanas || isEditLotes || isEditNichos || isEditNichosOverlay) ? 6 : 4,
     zoomAnimation: !IS_MOBILE,
     fadeAnimation: false,
     markerZoomAnimation: !IS_MOBILE,
     preferCanvas: true
   });
+
+  // Pane dedicado para nichos (encima de secciones/manzanas/lotes)
+  try {
+    const p = map.createPane('nichosPane');
+    p.style.zIndex = 650;
+    p.style.pointerEvents = 'auto';
+  } catch {}
 
   // Pane para nichos (encima de secciones/manzanas)
   try {
@@ -4014,13 +4027,24 @@ async function main(){
         if (nichosLayer) { nichosLayer.remove(); nichosLayer = null; }
 
         nichosLayer = L.geoJSON(nichosZonasScaled, {
-          style: { weight: 2, opacity: 0.001, fillOpacity: 0.001 },
+          pane: 'nichosPane',
+          // oculto hasta hover (igual que secciones/manzanas)
+          style: { weight: 2, opacity: 0, fillOpacity: 0 },
           onEachFeature: (feature, layer) => {
             layer.on("mouseover", () => layer.setStyle({ weight: 2, opacity: 1, fillOpacity: 0.05 }));
             layer.on("mouseout",  () => layer.setStyle({ weight: 2, opacity: 0, fillOpacity: 0 }));
-            layer.on("click", () => openNichoModal(feature));
+            layer.on("click", (ev) => {
+              // evita que el click atraviese y seleccione una sección debajo
+              try {
+                L.DomEvent.stop(ev);
+                if (ev?.originalEvent) L.DomEvent.stop(ev.originalEvent);
+              } catch {}
+              openNichoModal(feature);
+            });
           }
         }).addTo(map);
+
+        bringNichosLayerToFront();
       } catch (e) {
         console.warn("Nichos no cargados:", e);
       }
