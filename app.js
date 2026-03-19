@@ -80,7 +80,6 @@ let lotesLayer = null;             // público + editor lotes
 
 let nichosZonasScaled = null;       // zonas escaladas para público
 let nichosZonasLayerPublic = null;  // capa clickeable de zonas de nichos (público)
-let pinnedNichoZonaLayer = null;    // selección visual
 
 let currentSeccion = null;
 let currentSeccionFeature = null;
@@ -114,6 +113,34 @@ function setPanel(title, html){
   $title.textContent = title;
   $body.innerHTML = html;
 }
+
+function forceFullScreenEditorLayout(){
+  // 1) Body flag (por si quieres CSS)
+  try { document.body.classList.add("fullMap"); } catch {}
+
+  // 2) Oculta panel lateral (tu HTML usa .panel / .layout)
+  const panel = document.querySelector(".panel");
+  if (panel) panel.style.display = "none";
+
+  // 3) Layout: una sola columna
+  const layout = document.querySelector(".layout");
+  if (layout){
+    layout.style.gridTemplateColumns = "1fr";
+    layout.style.gridTemplateRows = "1fr";
+    layout.style.height = "calc(100vh - 52px)";
+  }
+
+  // 4) Asegura que el mapa use todo el espacio
+  const mapEl = document.getElementById("map");
+  if (mapEl){
+    mapEl.style.width = "100%";
+    mapEl.style.height = "100%";
+  }
+
+  // 5) Leaflet recalcula
+  try { setTimeout(() => map.invalidateSize(), 50); } catch {}
+}
+
 function safe(v){ return (v === null || v === undefined) ? "" : String(v); }
 
 async function loadJson(url){
@@ -587,42 +614,66 @@ function nichosZoomToPolygon(ring, imgW, imgH){
 }
 
 function renderEditNichosOverlayPanel(){
-  setPanel("Edición: NICHOS overlay", `
-    <p style="font-size:12px;color:#6b7280;">
-      Ajusta la caja (área del grid) sobre la imagen. Luego copia el JSON y pégalo en
-      <b>${safe(NICHOS_OVERLAY_CFG_URL)}</b>.
-    </p>
-
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;">
-      <input id="noPrefix" placeholder="Prefijo (ej. PLN)" value="PLN"
-        style="padding:8px;border:1px solid #ccc;border-radius:8px;min-width:160px;" />
-
-      <select id="noCara" style="padding:8px;border:1px solid #ccc;border-radius:8px;">
-        <option value="concavo">concavo</option>
-        <option value="convexo">convexo</option>
-      </select>
-
-      <button id="noCopy" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar JSON</button>
-      <button id="noReset" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Reset caja</button>
-    </div>
-
-    <div id="noMsg" style="font-size:12px;color:#6b7280;margin-bottom:8px;"></div>
-
-    <div id="noWrap" style="position:relative;max-width:100%;overflow:auto;border:1px solid #e5e7eb;border-radius:12px;background:#fff;">
-      <img id="noImg" alt="nichos" style="display:block;max-width:none;" />
-      <div id="noBox" style="position:absolute;border:2px solid #ef4444;border-radius:10px;box-sizing:border-box;touch-action:none;">
-        <div class="noH" data-h="tl"></div>
-        <div class="noH" data-h="tr"></div>
-        <div class="noH" data-h="bl"></div>
-        <div class="noH" data-h="br"></div>
-      </div>
-    </div>
-
-    <p style="font-size:12px;color:#6b7280;margin-top:10px;">
-      Tip: arrastra el borde rojo para mover; usa esquinas para redimensionar.
-    </p>
-  `);
-
+  // Forzar fullscreen (oculta panel lateral y hace el mapa ocupar todo)
+   forceFullScreenEditorLayout();
+   
+   let root = document.getElementById("overlayUiRoot");
+   if (!root){
+     root = document.createElement("div");
+     root.id = "overlayUiRoot";
+     root.style.position = "absolute";
+     root.style.left = "0";
+     root.style.top = "0";
+     root.style.right = "0";
+     root.style.bottom = "0";
+     root.style.zIndex = "9999";
+     // intenta montarlo encima del mapa
+     const mapEl = document.getElementById("map");
+     if (mapEl && mapEl.parentElement) mapEl.parentElement.appendChild(root);
+     else document.body.appendChild(root);
+   }
+   
+   root.innerHTML = `
+     <div style="position:absolute;left:12px;top:12px;right:12px;max-width:980px;">
+       <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.15);">
+         <h3 style="margin:0 0 8px 0;">Edición: NICHOS overlay</h3>
+   
+         <p style="font-size:12px;color:#6b7280;">
+           Ajusta la caja (área del grid) sobre la imagen. Luego copia el JSON y pégalo en
+           <b>${safe(NICHOS_OVERLAY_CFG_URL)}</b>.
+         </p>
+   
+         <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;">
+           <input id="noPrefix" placeholder="Prefijo (ej. PLN)" value="PLN"
+             style="padding:8px;border:1px solid #ccc;border-radius:8px;min-width:160px;" />
+   
+           <select id="noCara" style="padding:8px;border:1px solid #ccc;border-radius:8px;">
+             <option value="concavo">concavo</option>
+             <option value="convexo">convexo</option>
+           </select>
+   
+           <button id="noCopy" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar JSON</button>
+           <button id="noReset" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Reset caja</button>
+         </div>
+   
+         <div id="noMsg" style="font-size:12px;color:#6b7280;margin-bottom:8px;"></div>
+   
+         <div id="noWrap" style="position:relative;max-width:100%;overflow:auto;border:1px solid #e5e7eb;border-radius:12px;background:#fff;">
+           <img id="noImg" alt="nichos" style="display:block;max-width:none;" />
+           <div id="noBox" style="position:absolute;border:2px solid #ef4444;border-radius:10px;box-sizing:border-box;touch-action:none;">
+             <div class="noH" data-h="tl"></div>
+             <div class="noH" data-h="tr"></div>
+             <div class="noH" data-h="bl"></div>
+             <div class="noH" data-h="br"></div>
+           </div>
+         </div>
+   
+         <p style="font-size:12px;color:#6b7280;margin-top:10px;">
+           Tip: arrastra el borde rojo para mover; usa esquinas para redimensionar.
+         </p>
+       </div>
+     </div>
+   `;
   const $prefix = document.getElementById("noPrefix");
   const $cara   = document.getElementById("noCara");
   const $img    = document.getElementById("noImg");
@@ -1174,6 +1225,12 @@ let pinnedSeccionLayer = null;
 let pinnedManzanaLayer = null;
 let pinnedLotLayer = null;
 
+let pinnedNichoZonaLayer = null;
+
+function bringNichosZonasToFront(){
+  try { if (nichosZonasLayerPublic) nichosZonasLayerPublic.bringToFront(); } catch {}
+}
+
 function clearLotesLayer(){
   if (lotesLayer){ lotesLayer.remove(); lotesLayer = null; }
 }
@@ -1234,7 +1291,9 @@ function renderSeccionesLayerPublic(){
         if (pinnedSeccionLayer !== layer) layer.setStyle({ ...hiddenStyle(), color: col, fillColor: col });
       });
 
-      layer.on("click", () => {
+      layer.on("click", (ev) => {
+        // Si ya lo consumió otra capa (nichos), no ejecutar
+        try { if (ev?.originalEvent?.__nichosHandled) return; } catch {} 
         if (pinnedSeccionLayer && pinnedSeccionLayer !== layer){
           const prevCol = getSeccionColor(pinnedSeccionLayer.feature);
           pinnedSeccionLayer.setStyle({ ...hiddenStyle(), color: prevCol, fillColor: prevCol });
@@ -1255,6 +1314,7 @@ function renderSeccionesLayerPublic(){
     <p>2) Luego seleccionarás una <b>MANZANA</b>.</p>
     <p>3) Después un <b>LOTE</b>.</p>
   `);
+   bringNichosZonasToFront();
 }
 
 function clearNichosZonasLayerPublic(){
@@ -1279,56 +1339,58 @@ function renderNichosZonasLayerPublic(){
 
   const fc = { type:"FeatureCollection", features: zonas };
 
-  nichosZonasLayerPublic = L.geoJSON(fc, {
-    style: () => ({
-      color: "#2563eb",
-      weight: 2,
-      opacity: 1,
-      fillColor: "#2563eb",
-      fillOpacity: 0.10
-    }),
-    pointToLayer: (feature, latlng) => {
-      // soporta círculo si tu zona fuera Point+shape circle
-      const layer = featureToLayerCircleAware(feature, latlng);
+pinnedNichoZonaLayer = null;
+
+nichosZonasLayerPublic = L.geoJSON(fc, {
+  style: () => {
+    // Igual que secciones/manzanas: oculto hasta hover
+    const col = "#3b82f6";
+    return { ...hiddenStyle(), color: col, fillColor: col };
+  },
+  pointToLayer: (feature, latlng) => {
+    const layer = featureToLayerCircleAware(feature, latlng);
+    try {
+      const col = "#3b82f6";
+      layer.setStyle({ ...hiddenStyle(), color: col, fillColor: col });
+    } catch {}
+    return layer;
+  },
+  onEachFeature: (feature, layer) => {
+    const col = "#3b82f6";
+
+    layer.on("mouseover", () => {
+      if (pinnedNichoZonaLayer !== layer) layer.setStyle(hoverStyle(col));
+    });
+
+    layer.on("mouseout", () => {
+      if (pinnedNichoZonaLayer !== layer) layer.setStyle({ ...hiddenStyle(), color: col, fillColor: col });
+    });
+
+    layer.on("click", (ev) => {
+      // MUY IMPORTANTE: evita que el click “atraviese” y seleccione la sección
       try {
-        layer.setStyle({
-          color: "#2563eb",
-          weight: 2,
-          opacity: 1,
-          fillColor: "#2563eb",
-          fillOpacity: 0.10
-        });
+        // ev es Leaflet event; originalEvent es el DOM event
+        if (ev?.originalEvent) ev.originalEvent.__nichosHandled = true;
+        L.DomEvent.stop(ev);
+        if (ev?.originalEvent) L.DomEvent.stop(ev.originalEvent);
       } catch {}
-      return layer;
-    },
-    onEachFeature: (feature, layer) => {
-      layer.on("mouseover", () => {
-        if (pinnedNichoZonaLayer !== layer){
-          try { layer.setStyle({ fillOpacity: 0.22, weight: 3 }); } catch {}
-        }
-      });
-      layer.on("mouseout", () => {
-        if (pinnedNichoZonaLayer !== layer){
-          try { layer.setStyle({ fillOpacity: 0.10, weight: 2 }); } catch {}
-        }
-      });
 
-      layer.on("click", () => {
-        // fija estilo
-        if (pinnedNichoZonaLayer && pinnedNichoZonaLayer !== layer){
-          try { pinnedNichoZonaLayer.setStyle({ fillOpacity: 0.10, weight: 2 }); } catch {}
-        }
-        pinnedNichoZonaLayer = layer;
-        try { layer.setStyle({ fillOpacity: 0.28, weight: 3 }); } catch {}
+      if (pinnedNichoZonaLayer && pinnedNichoZonaLayer !== layer){
+        pinnedNichoZonaLayer.setStyle({ ...hiddenStyle(), color: col, fillColor: col });
+      }
+      pinnedNichoZonaLayer = layer;
 
-        // abre modal directo
-        nichosOpen(feature);
-      });
-    }
-  }).addTo(map);
+      const base = pinnedStyle(col);
+      layer.setStyle(base);
+      pulseLayer(layer, base, { ms: 220 });
 
-  // Asegura que quede encima de secciones/manzanas
-  try { nichosZonasLayerPublic.bringToFront(); } catch {}
+      nichosOpen(feature);
+    });
+  }
+}).addTo(map);
+
+// Asegura que la capa quede arriba de todo
+bringNichosZonasToFront();
 }
 
 function selectSeccionPublic(feature, layer){
@@ -1412,6 +1474,7 @@ function renderManzanasLayer(filteredFeatures, opts){
       <p>3) Escribe <b>LOTE</b> (opcional) y presiona Buscar</p>
     `);
   }
+  bringNichosZonasToFront();
 }
 
 async function selectManzana(feature, layer){
@@ -1512,6 +1575,7 @@ async function loadLotesForCurrentManzana(){
     <p><b>Paquete (manzana):</b> ${manzanaPkg ? safe(manzanaPkg) : "<i>Sin paquete asignado</i>"}</p>
     <p>Selecciona un lote o usa <b>Mostrar lotes</b>.</p>
   `);
+  bringNichosZonasToFront();
 }
 
 function showLoteInfo(feature){
@@ -4269,10 +4333,8 @@ async function main(){
       manzanasScaled = deepCopy(manzanasRaw);
       applyCoordScaleToGeoJSON(manzanasScaled, COORD_SCALE_X, COORD_SCALE_Y);
 
-      // Nichos (público): capa clickeable desde el inicio
-      nichosZonasScaled = deepCopy(nichosZonasRaw || { type:"FeatureCollection", features:[] });
+      nichosZonasScaled = deepCopy(nichosZonasRaw);
       applyCoordScaleToGeoJSON(nichosZonasScaled, COORD_SCALE_X, COORD_SCALE_Y);
-      renderNichosZonasLayerPublic();
 
       const secciones = buildSeccionesList(
         seccionesTopScaled.features.length
@@ -4283,6 +4345,11 @@ async function main(){
       $manzanaSelect.innerHTML = `<option value="">MANZANA...</option>`;
 
       showPublicLevelSecciones();
+      
+      // IMPORTANTÍSIMO: dibuja nichos DESPUÉS para que queden arriba y capturen clicks
+      renderNichosZonasLayerPublic();
+      bringNichosZonasToFront();
+      
       setupDropdowns();
       setupSearch();
       setupButtons();
