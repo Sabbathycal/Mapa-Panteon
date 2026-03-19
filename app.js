@@ -17,17 +17,18 @@ const NICHOS_ZONAS_URL  = "./data/nichos-zonas.geojson";  //NICHOS
 const LOTES_INFO_URL    = "./data/lotes.json";
 const PAQUETES_URL      = "./data/paquetes.json";
 
-// Edit modes:
 // ?edit=secciones  => EDITOR SECCIONES
 // ?edit=manzanas   => EDITOR MANZANAS
 // ?edit=lotes      => EDITOR LOTES
-const editMode = new URLSearchParams(location.search).get("edit"); // null | "secciones" | "manzanas" | "lotes"
+// ?edit=nichos     => EDITOR NICHOS (zonas)
+const editMode = new URLSearchParams(location.search).get("edit"); // null | "secciones" | "manzanas" | "lotes" | "nichos"
 const isEditSecciones = editMode === "secciones";
 const isEditManzanas  = editMode === "manzanas";
 const isEditLotes     = editMode === "lotes";
+const isEditNichos    = editMode === "nichos";
 const IS_EDIT = !!editMode;
 
-const BASE_IMAGE_URL = (isEditSecciones || isEditManzanas || isEditLotes)
+const BASE_IMAGE_URL = (isEditSecciones || isEditManzanas || isEditLotes || isEditNichos)
   ? BASE_IMAGE_EDIT_URL
   : BASE_IMAGE_PUBLIC_URL;
 
@@ -1571,6 +1572,7 @@ function getActiveEditDatasetArr(){
   if (isEditSecciones) return seccionesTopRaw?.features || null;
   if (isEditManzanas)  return manzanasRaw?.features || null;
   if (isEditLotes)     return currentLotesRaw?.features || null;
+  if (isEditNichos)    return (nichosZonasRaw?.features || null);
   return null;
 }
 
@@ -1578,6 +1580,7 @@ function rerenderActiveEditor(){
   if (isEditSecciones) return rerenderSecciones_Edit();
   if (isEditManzanas)  return rerenderManzanas_Edit();
   if (isEditLotes)     return rerenderLotes_Edit();
+  if (isEditNichos)    return rerenderNichos_Edit();
 }
 
 /* ---------- FEATURE ID helpers ---------- */
@@ -2052,6 +2055,7 @@ function getEditDataset(){
   if (isEditSecciones) return { label:"SECCIONES", data: seccionesTopRaw, dest: SECCIONES_TOP_URL };
   if (isEditManzanas)  return { label:"MANZANAS",  data: manzanasRaw,     dest: MANZANAS_URL };
   if (isEditLotes)     return { label:"LOTES",     data: currentLotesRaw, dest: currentLotesSourceUrl || (getSelectedSeccion() ? getSharedLotesUrlForSeccion(getSelectedSeccion()) : "(elige SECCIÓN)") };
+  if (isEditNichos)    return { label:"NICHOS-ZONAS", data: nichosZonasRaw, dest: NICHOS_ZONAS_URL };
   return null;
 }
 
@@ -2767,8 +2771,6 @@ function renderEditManzanasPanel(){
   document.getElementById("btnEdit").click();
 }
 
-
-
 function renderEditLotesPanel(){
   // NOTA: en editor LOTES, el dataset es por SECCIÓN (archivo compartido).
   // La MANZANA es solo un filtro visual.
@@ -3066,6 +3068,172 @@ function renderEditLotesPanel(){
 
   // estado inicial
   document.getElementById('btnEdit').click();
+}
+
+function renderEditNichosPanel(){
+  editor.mode = "edit";
+  editor.drawShape = "polygon";
+  editor.gridArmed = false;
+  editor.gridConfig = null;
+  editor.pasteArmed = false;
+
+  editorClearPoly(); editorClearCircle(); editorStopEditing();
+  clearMultiSelection();
+
+  setPanel("Edición: NICHOS (ZONAS)", `
+    <p>Editor de <b>ZONAS</b> de nichos en <code>${safe(NICHOS_ZONAS_URL)}</code>.</p>
+    <p style="font-size:12px;color:#6b7280;">
+      • Click normal: selecciona y permite <b>mover/escalar</b>.<br/>
+      • Botón “Editar puntos” para vértices.<br/>
+      • Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click.
+    </p>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button id="btnEdit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Editar existente</button>
+      <button id="btnCreate" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Crear zona</button>
+      <button id="btnCopy" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar GeoJSON</button>
+      <button id="btnExit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Salir</button>
+    </div>
+
+    <hr/>
+    <div id="editBody"></div>
+
+    <p style="font-size:12px;color:#666;margin-top:10px;">
+      Destino: <b>${safe(NICHOS_ZONAS_URL)}</b>
+    </p>
+  `);
+
+  const $editBody = document.getElementById("editBody");
+
+  document.getElementById("btnEdit").onclick = () => {
+    editor.mode = "edit";
+    editorClearPoly(); editorClearCircle();
+    editorStopEditing();
+    clearMultiSelection();
+    $editBody.innerHTML = `<p><b>Editar:</b> clic en una zona para seleccionar.</p>`;
+    rerenderNichos_Edit();
+  };
+
+  document.getElementById("btnCreate").onclick = () => {
+    editor.mode = "create";
+    editorStopEditing();
+    clearMultiSelection();
+    clearGroupTransformUI();
+    editorClearPoly(); editorClearCircle();
+
+    $editBody.innerHTML = `
+      <p><b>Crear zona:</b> (polígono o círculo)</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+        <button id="btnPoly" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Polígono</button>
+        <button id="btnCircle" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Círculo</button>
+        <button id="btnClear" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Limpiar</button>
+      </div>
+
+      <p><b>Puntos (polígono):</b> <span id="ptCount">0</span></p>
+
+      <label><b>ID zona</b> (ej. PLN)</label><br/>
+      <input id="newZonaId" placeholder="Ej. PLN" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+      <label><b>Nombre</b></label><br/>
+      <input id="newZonaNombre" placeholder="Ej. BUEN PASTOR NICHOS" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+      <label><b>Imagen Convexo</b></label><br/>
+      <input id="newImgConvexo" placeholder="./assets/nichos/PLN-convexo.png" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+      <label><b>Imagen Cóncavo</b></label><br/>
+      <input id="newImgConcavo" placeholder="./assets/nichos/PLN-concavo.png" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+        <button id="btnSaveNew" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Guardar</button>
+      </div>
+    `;
+
+    document.getElementById("btnPoly").onclick = () => { editor.drawShape = "polygon"; };
+    document.getElementById("btnCircle").onclick = () => { editor.drawShape = "circle"; };
+    document.getElementById("btnClear").onclick = () => { editorClearPoly(); editorClearCircle(); };
+
+    document.getElementById("btnSaveNew").onclick = () => {
+      if (!nichosZonasRaw) nichosZonasRaw = { type:"FeatureCollection", features:[] };
+
+      const id = (document.getElementById("newZonaId").value || "").trim();
+      const nombre = (document.getElementById("newZonaNombre").value || "").trim();
+      const imgConv = (document.getElementById("newImgConvexo").value || "").trim();
+      const imgConc = (document.getElementById("newImgConcavo").value || "").trim();
+
+      if (!id) return notify("Falta ID zona.", 2000);
+
+      const props = {
+        tipo: "zona",
+        id,
+        nombre: nombre || id,
+        imagenConvexo: imgConv,
+        imagenConcavo: imgConc
+      };
+
+      let feature = null;
+      if (editor.drawShape === "polygon"){
+        if (editor.polyPoints.length < 3) return notify("Polígono: mínimo 3 puntos.", 2200);
+        feature = { type:"Feature", geometry:{ type:"Polygon", coordinates:ringToGeoJsonCoords(editor.polyPoints) }, properties: props };
+      } else {
+        if (!editor.circleCenter || typeof editor.circleRadius !== "number") return notify("Círculo: clic centro y luego borde.", 2200);
+        feature = { type:"Feature", geometry:{ type:"Point", coordinates: latLngToXY(editor.circleCenter) }, properties:{ ...props, shape:"circle", radius: editor.circleRadius } };
+      }
+
+      nichosZonasRaw.features.push(feature);
+      editorClearPoly(); editorClearCircle();
+      rerenderNichos_Edit();
+      notify("✅ Zona creada (en memoria). Usa 'Copiar GeoJSON' para pegar en el archivo.", 2400);
+    };
+
+    rerenderNichos_Edit();
+  };
+
+  document.getElementById("btnCopy").onclick = async () => {
+    const txt = JSON.stringify(nichosZonasRaw || { type:"FeatureCollection", features:[] }, null, 2);
+    try {
+      await navigator.clipboard.writeText(txt);
+      notify("GeoJSON copiado. Pégalo en data/nichos-zonas.geojson.", 2400);
+    } catch {
+      setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
+    }
+  };
+
+  document.getElementById("btnExit").onclick = () => location.href = "./";
+  document.getElementById("btnEdit").click();
+}
+
+function rerenderNichos_Edit(){
+  // Reusa manzanasLayer como “capa editable” de nichos (no afecta público)
+  if (manzanasLayer){ manzanasLayer.remove(); manzanasLayer = null; }
+  editorStopVertexEditing();
+  clearGroupTransformUI();
+
+  const all = (nichosZonasRaw?.features || []);
+  const zonas = all.filter(f => (f?.properties?.tipo || "").toString().trim() === "zona");
+
+  const fc = { type:"FeatureCollection", features: zonas };
+
+  manzanasLayer = L.geoJSON(fc, {
+    style: { weight: 2, opacity: 1, fillOpacity: 0.06 },
+    interactive: (editor.mode === "edit"),
+    pointToLayer: (feature, latlng) => {
+      const layer = featureToLayerCircleAware(feature, latlng);
+      try { layer.setStyle({ weight:2, opacity:1, fillOpacity:0.06 }); } catch {}
+      return layer;
+    },
+    onEachFeature: (feature, layer) => {
+      layer.on("click", (ev) => handleEditorFeatureClick(feature, layer, ev));
+    }
+  }).addTo(map);
+
+  rebuildSelectedLayersFromLayerGroup(manzanasLayer);
+  applyMultiSelectionStyle();
+  if (editor.selectedSet.size > 0){
+    showGroupTransformHandles();
+    if (editor.selectedSet.size === 1 && editor.editSubmode === "transform"){
+      renderEditSelectedPanel();
+    }
+  }
 }
 
 function renderCircularRepeatPanel(){
@@ -3570,7 +3738,7 @@ async function main(){
   map = L.map("map", {
     crs: L.CRS.Simple,
     minZoom: -3,
-    maxZoom: (isEditSecciones || isEditManzanas || isEditLotes) ? 6 : 4,
+    maxZoom: (isEditSecciones || isEditManzanas || isEditLotes || isEditNichos) ? 6 : 4,
     zoomAnimation: !IS_MOBILE,
     fadeAnimation: false,
     markerZoomAnimation: !IS_MOBILE,
@@ -3600,6 +3768,8 @@ async function main(){
       manzanasRaw = await loadJson(MANZANAS_URL);
       try { seccionesTopRaw = await loadJson(SECCIONES_TOP_URL); }
       catch { seccionesTopRaw = { type:"FeatureCollection", features: [] }; }
+
+      nichosZonasRaw = await loadJson(NICHOS_ZONAS_URL).catch(() => ({ type:"FeatureCollection", features:[] }));
 
       // Nichos zonas (si existe)
       try { nichosZonasRaw = await loadJson(NICHOS_ZONAS_URL); }
@@ -3724,6 +3894,18 @@ async function main(){
         return;
       }
 
+      // ====== EDIT NICHOS (ZONAS) ======
+      if (isEditNichos){
+        if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
+        if ($searchBtn) $searchBtn.disabled = true;
+
+        $seccionSelect.innerHTML = `<option value="">(Edición NICHOS)</option>`;
+        $manzanaSelect.innerHTML = `<option value="">(Edición NICHOS)</option>`;
+
+        rerenderNichos_Edit();
+        renderEditNichosPanel();
+        return;
+      }
 // ====== NORMAL (público) ======
       seccionesTopScaled = deepCopy(seccionesTopRaw);
       applyCoordScaleToGeoJSON(seccionesTopScaled, COORD_SCALE_X, COORD_SCALE_Y);
