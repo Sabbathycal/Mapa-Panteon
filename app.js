@@ -27,7 +27,8 @@ const isEditSecciones = editMode === "secciones";
 const isEditManzanas  = editMode === "manzanas";
 const isEditLotes     = editMode === "lotes";
 const isEditNichos    = editMode === "nichos";
-const isEditNichosOverlay = editMode === "nichos-overlay";
+// aceptar ambas variantes por si tecleas ?edit=nichos-overlays
+const isEditNichosOverlay = (editMode === "nichos-overlay" || editMode === "nichos-overlays");
 const IS_EDIT = !!editMode;
 
 // UI layout: pantalla completa en nichos-overlay
@@ -1313,6 +1314,15 @@ function setupDropdowns(){
    ========================================================= */
 function setupButtons(){
   $backBtn.onclick = () => {
+    // Si estás dentro del modal de columbarios/nichos: volver = regresar a SECCIONES
+    try {
+      if (nichosUI?.open){
+        nichosClose();
+        showPublicLevelSecciones();
+        return;
+      }
+    } catch {}
+
     if (lotesLayer){
       clearLotesLayer();
       pinnedLotLayer = null;
@@ -3693,6 +3703,18 @@ function attachEditorMapClick(){
    INIT
    ========================================================= */
 async function main(){
+  // MODO: EDITOR NICHOS-OVERLAY (standalone, sin Leaflet)
+  // La petición es que este editor NO muestre el mapa base.
+  if (isEditNichosOverlay){
+    try {
+      await initNichosOverlayEditorStandalone();
+    } catch (err){
+      console.error(err);
+      setPanel("Error en nichos-overlay", `<pre style="white-space:pre-wrap;color:#b91c1c;">${safe(err?.stack || err)}</pre>`);
+    }
+    return;
+  }
+
   map = L.map("map", {
     crs: L.CRS.Simple,
     minZoom: -3,
@@ -3877,16 +3899,7 @@ async function main(){
       }
 
       // ====== EDIT NICHOS OVERLAY ======
-      if (isEditNichosOverlay){
-        if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
-        if ($searchBtn) $searchBtn.disabled = true;
-
-        $seccionSelect.innerHTML = `<option value="">(Edición NICHOS overlay)</option>`;
-        $manzanaSelect.innerHTML = `<option value="">(Edición NICHOS overlay)</option>`;
-
-        initNichosOverlayEditor();
-        return;
-      }
+      // (ya se maneja ANTES de inicializar Leaflet, en main())
 // ====== NORMAL (público) ======
       seccionesTopScaled = deepCopy(seccionesTopRaw);
       applyCoordScaleToGeoJSON(seccionesTopScaled, COORD_SCALE_X, COORD_SCALE_Y);
@@ -3936,7 +3949,40 @@ async function main(){
    - Ejecutar: ?edit=nichos-overlay
    - Guarda FeatureCollection en data/nichos-overlay.geojson
    ========================================================= */
+async function initNichosOverlayEditorStandalone(){
+  // Cargar datos mínimos para el editor
+  try { nichosZonasRaw = await loadJson(NICHOS_ZONAS_URL); } catch { nichosZonasRaw = { type:'FeatureCollection', features:[] }; }
+  // OJO: el usuario pidió guardar en data/nichos-overlay.geojson
+  // Si no existe, iniciamos vacío.
+  const OVERLAY_GEO_URL = "./data/nichos-overlay.geojson";
+  let overlayGeo = null;
+  try { overlayGeo = await loadJson(OVERLAY_GEO_URL); }
+  catch {
+    // compat: si todavía existe el JSON viejo, úsalo como fallback
+    try { overlayGeo = await loadJson(NICHOS_OVERLAY_CFG_URL); } catch { overlayGeo = null; }
+  }
+
+  // Normalizamos a FeatureCollection de rectángulos
+  // Cada feature: Polygon en coordenadas de imagen (px), properties: { tipo:'nicho', zonaId, cara, codigo }
+  if (!overlayGeo || overlayGeo.type !== 'FeatureCollection'){
+    overlayGeo = { type:'FeatureCollection', features:[] };
+  }
+
+  // Guardamos en global para el editor
+  window.__nichosOverlayGeo = overlayGeo;
+
+  // Reusa UI existente
+  initNichosOverlayEditor();
+}
+
 function initNichosOverlayEditor(){
+  // dataset en memoria (FeatureCollection)
+  let nichosOverlayRaw = window.__nichosOverlayGeo;
+  if (!nichosOverlayRaw || nichosOverlayRaw.type !== 'FeatureCollection'){
+    nichosOverlayRaw = { type:'FeatureCollection', features:[] };
+    window.__nichosOverlayGeo = nichosOverlayRaw;
+  }
+
   // Overlay editor sin mapa (solo panel a pantalla completa)
   try { document.body.classList.add('overlayOnly'); } catch {}
 
@@ -4003,6 +4049,31 @@ function initNichosOverlayEditor(){
   const $svg = root.querySelector('#noeSvg');
   const $canvas = root.querySelector('.noe-canvas');
 
+  // selección + drag
+  let selectedFeat = null; // referencia al feature dentro de nichosOverlayRaw.features
+  let dragState = null;    // { mode:'move'|'tl'|'tr'|'bl'|'br', start:{x,y}, box:{l,t,r,b} }
+
+  function featBox(f){
+    const ring = f?.geometry?.coordinates?.[0] || [];
+    let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+    for (const pt of ring){
+      const x = pt[0], y = pt[1];
+      if (!isFinite(x) || !isFinite(y)) continue;
+      if (x < minX) minX = x;
+      if (y < minY) minY = y;
+      if (x > maxX) maxX = x;
+      if (y > maxY) maxY = y;
+    }
+    if (!isFinite(minX) || !isFinite(minY)) return null;
+    return { l:minX, t:minY, r:maxX, b:maxY };
+  }
+
+  function setFeatBox(f, box){
+    const l = box.l, t = box.t, r = box.r, b = box.b;
+    const ring = [[l,t],[r,t],[r,b],[l,b],[l,t]];
+    f.geometry = { type:'Polygon', coordinates:[ring] };
+  }
+
   // zoom-out por default: ajusta para que se vea la imagen completa (fit)
   function applyFitScale(){
     if (!$canvas) return;
@@ -4056,8 +4127,136 @@ function initNichosOverlayEditor(){
       p.setAttribute('fill', 'rgba(239,68,68,.10)');
       p.setAttribute('stroke', 'rgba(239,68,68,.85)');
       p.setAttribute('stroke-width', '2');
+      const codigo = (f?.properties?.codigo || '').toString().trim();
+      p.setAttribute('data-codigo', codigo);
+      p.style.pointerEvents = 'auto';
+      p.style.cursor = 'pointer';
+
+      p.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        selectedFeat = f;
+        renderRects();
+        setMsg(`Seleccionado: ${codigo || '(sin código)'} (arrastra para mover; esquinas para escalar)`);
+      });
+
+      // mover (drag) sobre el rectángulo cuando está seleccionado
+      p.addEventListener('pointerdown', (ev) => {
+        if (selectedFeat !== f) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        const box = featBox(f);
+        if (!box) return;
+        const pt = svgPoint(ev);
+        dragState = { mode:'move', start:{ x:pt.x, y:pt.y }, box: { ...box } };
+        window.addEventListener('pointermove', onDragMove);
+        window.addEventListener('pointerup', onDragUp, { once:true });
+      });
+
       $svg.appendChild(p);
     }
+
+    // Handles de selección
+    if (selectedFeat){
+      const zid2 = currentZonaId();
+      const cara2 = currentCara();
+      const ok = (selectedFeat?.properties?.zonaId || '').toString().trim() === zid2 && (selectedFeat?.properties?.cara || '').toString().trim().toLowerCase() === cara2;
+      if (!ok){ selectedFeat = null; return; }
+
+      const box = featBox(selectedFeat);
+      if (!box) return;
+
+      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+      g.setAttribute('data-handles','1');
+      g.style.pointerEvents = 'auto';
+
+      const outline = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      outline.setAttribute('x', String(box.l));
+      outline.setAttribute('y', String(box.t));
+      outline.setAttribute('width', String(Math.max(1, box.r - box.l)));
+      outline.setAttribute('height', String(Math.max(1, box.b - box.t)));
+      outline.setAttribute('fill', 'none');
+      outline.setAttribute('stroke', 'rgba(16,185,129,.95)');
+      outline.setAttribute('stroke-width', '2');
+      outline.setAttribute('stroke-dasharray', '6 4');
+      g.appendChild(outline);
+
+      const corners = [
+        { h:'tl', x:box.l, y:box.t, cur:'nwse-resize' },
+        { h:'tr', x:box.r, y:box.t, cur:'nesw-resize' },
+        { h:'bl', x:box.l, y:box.b, cur:'nesw-resize' },
+        { h:'br', x:box.r, y:box.b, cur:'nwse-resize' },
+      ];
+
+      for (const c of corners){
+        const h = document.createElementNS('http://www.w3.org/2000/svg','rect');
+        const s = 14;
+        h.setAttribute('x', String(c.x - s/2));
+        h.setAttribute('y', String(c.y - s/2));
+        h.setAttribute('width', String(s));
+        h.setAttribute('height', String(s));
+        h.setAttribute('rx', '3');
+        h.setAttribute('fill', 'rgba(16,185,129,.95)');
+        h.setAttribute('stroke', '#fff');
+        h.setAttribute('stroke-width', '2');
+        h.setAttribute('data-h', c.h);
+        h.style.cursor = c.cur;
+        h.addEventListener('pointerdown', (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          const b0 = featBox(selectedFeat);
+          if (!b0) return;
+          const pt = svgPoint(ev);
+          dragState = { mode:c.h, start:{ x:pt.x, y:pt.y }, box:{ ...b0 } };
+          window.addEventListener('pointermove', onDragMove);
+          window.addEventListener('pointerup', onDragUp, { once:true });
+        });
+        g.appendChild(h);
+      }
+
+      $svg.appendChild(g);
+    }
+  }
+
+  function onDragMove(ev){
+    if (!dragState || !selectedFeat) return;
+    const pt = svgPoint(ev);
+    const dx = pt.x - dragState.start.x;
+    const dy = pt.y - dragState.start.y;
+
+    let b = { ...dragState.box };
+    const minSize = 8;
+
+    if (dragState.mode === 'move'){
+      b.l += dx; b.r += dx;
+      b.t += dy; b.b += dy;
+    } else {
+      if (dragState.mode === 'tl'){ b.l += dx; b.t += dy; }
+      if (dragState.mode === 'tr'){ b.r += dx; b.t += dy; }
+      if (dragState.mode === 'bl'){ b.l += dx; b.b += dy; }
+      if (dragState.mode === 'br'){ b.r += dx; b.b += dy; }
+
+      // clamp mínimo
+      if ((b.r - b.l) < minSize){
+        const mid = (b.l + b.r)/2;
+        b.l = mid - minSize/2;
+        b.r = mid + minSize/2;
+      }
+      if ((b.b - b.t) < minSize){
+        const mid = (b.t + b.b)/2;
+        b.t = mid - minSize/2;
+        b.b = mid + minSize/2;
+      }
+    }
+
+    setFeatBox(selectedFeat, b);
+    renderRects();
+  }
+
+  function onDragUp(){
+    window.removeEventListener('pointermove', onDragMove);
+    dragState = null;
+    setMsg('Rectángulo actualizado (en memoria).');
   }
 
   function loadImage(){
