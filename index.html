@@ -397,20 +397,32 @@
       <div class="nm-header">
         <div>
           <div id="nmTitle" class="nm-title">Nichos</div>
-          <div id="nmZona" class="nm-subtitle"></div>
+          <div id="nmSubtitle" class="nm-subtitle"></div>
         </div>
         <button id="nmBtnClose" class="nm-btn">Cerrar</button>
       </div>
 
       <div class="nm-body">
         <div class="nm-side">
-          <label class="nm-label">Cara</label>
+          <div class="nm-label">Columbario</div>
+          <div id="nmZona" class="nm-subtitle"></div>
+
+          <label class="nm-label" style="margin-top:10px;">Cara</label>
           <select id="nmCara" class="nm-select"></select>
+
+          <label class="nm-label" style="margin-top:10px;">Zoom</label>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <input id="nmZoom" type="range" min="10" max="250" value="100" style="flex:1;" />
+            <div id="nmZoomPct" style="min-width:52px;text-align:right;">100%</div>
+          </div>
+
+          <div class="nm-label" style="margin-top:14px;">Nicho seleccionado</div>
+          <div id="nmSelection" class="nm-selection">(ninguno)</div>
 
           <div class="nm-info" id="nmNichoInfo"></div>
         </div>
 
-        <div class="nm-stage">
+        <div id="nmStage" class="nm-stage">
           <div class="nm-canvas">
             <img id="nmImg" alt="nichos" />
             <svg id="nmSvg"></svg>
