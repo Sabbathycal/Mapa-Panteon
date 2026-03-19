@@ -61,3 +61,92 @@ body { margin: 0; font-family: system-ui, Arial, sans-serif; }
   opacity: .5;
   cursor: not-allowed;
 }
+
+.nm-backdrop{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.35);
+  display:flex; align-items:center; justify-content:center;
+  z-index:9999;
+}
+.nm-card{
+  width:min(1200px, 92vw);
+  height:min(720px, 86vh);
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.nm-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px;
+  border-bottom:1px solid #e5e7eb;
+}
+.nm-title{ font-weight:800; font-size:18px; }
+.nm-subtitle{ font-size:12px; color:#6b7280; margin-top:2px; }
+.nm-actions{ display:flex; gap:8px; }
+.nm-btn{
+  padding:8px 12px;
+  border:1px solid #d1d5db;
+  background:#fff;
+  border-radius:10px;
+  cursor:pointer;
+}
+.nm-btn-primary{ border-color:#111827; }
+.nm-btn[disabled]{ opacity:.5; cursor:not-allowed; }
+
+.nm-body{
+  flex:1;
+  display:grid;
+  grid-template-columns: 1fr 320px;
+  gap:0;
+  min-height:0;
+}
+.nm-left{
+  border-right:1px solid #e5e7eb;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+.nm-stage{
+  position:relative;
+  flex:1;
+  background:#f9fafb;
+  overflow:hidden;
+  user-select:none;
+  cursor:grab;
+}
+.nm-stage:active{ cursor:grabbing; }
+
+/* la imagen + svg van transformadas igual */
+#nmImg, #nmSvg{
+  position:absolute; left:0; top:0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+#nmImg{ display:block; }
+
+.nm-svg{ pointer-events:none; } /* se habilita “a mano” por nicho */
+
+.nm-zoom{
+  display:flex; align-items:center; gap:10px;
+  padding:10px 12px;
+  border-top:1px solid #e5e7eb;
+}
+.nm-zoom-label{ font-size:12px; color:#374151; width:44px; }
+.nm-zoom-pct{ font-size:12px; color:#374151; width:46px; text-align:right; }
+
+.nm-right{
+  padding:12px;
+  overflow:auto;
+}
+.nm-box{
+  border:1px solid #e5e7eb;
+  border-radius:12px;
+  padding:10px;
+  background:#fff;
+}
+.nm-box-title{ font-weight:800; margin-bottom:6px; }
+.nm-selection{ font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px; }
+.nm-hint{ margin-top:12px; font-size:12px; color:#6b7280; }

@@ -213,5 +213,53 @@
       document.body.appendChild(s);
     })();
   </script>
+
+  <!-- =========================
+      MODAL: NICHOS
+      ========================= -->
+  <div id="nichosModal" class="nm-backdrop" style="display:none;">
+    <div class="nm-card">
+      <div class="nm-header">
+        <div>
+          <div id="nmTitle" class="nm-title">Nichos</div>
+          <div id="nmSubtitle" class="nm-subtitle"></div>
+        </div>
+
+        <div class="nm-actions">
+          <button id="nmBtnConcavo" class="nm-btn">Cóncavo</button>
+          <button id="nmBtnConvexo" class="nm-btn">Convexo</button>
+          <button id="nmBtnClose" class="nm-btn nm-btn-primary">Cerrar</button>
+        </div>
+      </div>
+
+      <div class="nm-body">
+        <div class="nm-left">
+          <div id="nmStage" class="nm-stage">
+            <img id="nmImg" alt="" draggable="false" />
+            <!-- overlay svg -->
+            <svg id="nmSvg" class="nm-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+          </div>
+
+          <div class="nm-zoom">
+            <label class="nm-zoom-label">Zoom</label>
+            <input id="nmZoom" type="range" min="10" max="250" value="100" />
+            <div id="nmZoomPct" class="nm-zoom-pct">100%</div>
+          </div>
+        </div>
+
+        <div class="nm-right">
+          <div class="nm-box">
+            <div class="nm-box-title">Selección</div>
+            <div id="nmSelection" class="nm-selection">(ninguno)</div>
+          </div>
+
+          <div class="nm-hint">
+            Tip: clic en un nicho para centrar/zoom. Arrastra para mover la vista.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

@@ -11,6 +11,7 @@ const DATA_COORD_HEIGHT = 9250;
 // Archivos de datos
 const SECCIONES_TOP_URL = "./data/secciones-top.geojson"; // editor ?edit=secciones + PUBLICO secciones
 const MANZANAS_URL      = "./data/secciones.geojson";     // MANZANAS
+const NICHOS_ZONAS_URL  = "./data/nichos-zonas.geojson";  //NICHOS
 
 // Catálogos
 const LOTES_INFO_URL    = "./data/lotes.json";
@@ -241,6 +242,315 @@ function getSharedLotesUrlForSeccion(seccion){
   const folder = FOLDER_OVERRIDES[slug] || slug;
   return `./data/lotes/${folder}/lotes.geojson`;
 }
+
+
+/* =========================================================
+   NICHOS (MODAL) - módulo limpio y aislado
+   Data source: ./data/nichos-zonas.geojson
+   ========================================================= */
+let nichosZonasRaw = null;
+
+const nichosUI = {
+  open: false,
+  cara: "convexo",   // "convexo" | "concavo"
+  zonaFeature: null,
+  scale: 1,
+  panX: 0,
+  panY: 0,
+  dragging: false,
+  dragStart: null,
+
+  // DOM
+  $modal: null,
+  $title: null,
+  $subtitle: null,
+  $btnClose: null,
+  $btnConcavo: null,
+  $btnConvexo: null,
+  $zoom: null,
+  $zoomPct: null,
+  $stage: null,
+  $img: null,
+  $svg: null,
+  $sel: null,
+};
+
+function nichosInitDom(){
+  nichosUI.$modal = document.getElementById("nichosModal");
+  nichosUI.$title = document.getElementById("nmTitle");
+  nichosUI.$subtitle = document.getElementById("nmSubtitle");
+  nichosUI.$btnClose = document.getElementById("nmBtnClose");
+  nichosUI.$btnConcavo = document.getElementById("nmBtnConcavo");
+  nichosUI.$btnConvexo = document.getElementById("nmBtnConvexo");
+  nichosUI.$zoom = document.getElementById("nmZoom");
+  nichosUI.$zoomPct = document.getElementById("nmZoomPct");
+  nichosUI.$stage = document.getElementById("nmStage");
+  nichosUI.$img = document.getElementById("nmImg");
+  nichosUI.$svg = document.getElementById("nmSvg");
+  nichosUI.$sel = document.getElementById("nmSelection");
+
+  // Cerrar
+  nichosUI.$btnClose.onclick = () => nichosClose();
+
+  // Cara
+  nichosUI.$btnConcavo.onclick = () => nichosSetCara("concavo");
+  nichosUI.$btnConvexo.onclick = () => nichosSetCara("convexo");
+
+  // Zoom slider (10%..250%)
+  nichosUI.$zoom.oninput = () => {
+    const pct = Number(nichosUI.$zoom.value || 100);
+    nichosUI.scale = Math.max(0.10, Math.min(2.50, pct / 100));
+    nichosApplyTransform();
+  };
+
+  // Pan (drag)
+  nichosUI.$stage.addEventListener("mousedown", (ev) => {
+    nichosUI.dragging = true;
+    nichosUI.dragStart = { x: ev.clientX, y: ev.clientY, panX: nichosUI.panX, panY: nichosUI.panY };
+  });
+  window.addEventListener("mousemove", (ev) => {
+    if (!nichosUI.dragging || !nichosUI.dragStart) return;
+    const dx = ev.clientX - nichosUI.dragStart.x;
+    const dy = ev.clientY - nichosUI.dragStart.y;
+    nichosUI.panX = nichosUI.dragStart.panX + dx;
+    nichosUI.panY = nichosUI.dragStart.panY + dy;
+    nichosApplyTransform();
+  });
+  window.addEventListener("mouseup", () => {
+    nichosUI.dragging = false;
+    nichosUI.dragStart = null;
+  });
+
+  // Cerrar con Escape
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && nichosUI.open) nichosClose();
+  });
+}
+
+function nichosGetProp(f, key){
+  return (f?.properties?.[key] ?? "").toString().trim();
+}
+
+/**
+ * Convención recomendada en nichos-zonas.geojson:
+ * properties: {
+ *   id: "PLN",
+ *   nombre: "BUEN PASTOR NICHOS",
+ *   imagenConvexo: "./assets/nichos/PLN-convexo.png",
+ *   imagenConcavo: "./assets/nichos/PLN-concavo.png",
+ *   // y cada nicho (otra feature) tiene properties.zonaId="PLN" y properties.codigo="PLN-1-AX"
+ * }
+ */
+function nichosResolveImageUrl(zonaFeature, cara){
+  const p = zonaFeature?.properties || {};
+  const imgKey = (cara === "concavo") ? "imagenConcavo" : "imagenConvexo";
+  const url = (p[imgKey] || "").toString().trim();
+  return url || null;
+}
+
+function nichosOpenByZonaId(zonaId){
+  if (!nichosZonasRaw?.features?.length){
+    notify("No se cargó nichos-zonas.geojson", 2200);
+    return;
+  }
+
+  const id = (zonaId || "").toString().trim();
+  const zona = nichosZonasRaw.features.find(f => nichosGetProp(f, "id") === id);
+  if (!zona){
+    notify(`No encontré zona de nichos id="${id}" en nichos-zonas.geojson`, 2600);
+    return;
+  }
+
+  nichosOpen(zona);
+}
+
+function nichosOpen(zonaFeature){
+  if (!nichosUI.$modal) nichosInitDom();
+
+  nichosUI.open = true;
+  nichosUI.zonaFeature = zonaFeature;
+  nichosUI.cara = "convexo";
+  nichosUI.scale = 1;
+  nichosUI.panX = 0;
+  nichosUI.panY = 0;
+
+  nichosUI.$modal.style.display = "flex";
+  nichosUI.$title.textContent = "Nichos";
+  nichosUI.$subtitle.textContent = `Zona: ${nichosGetProp(zonaFeature, "nombre") || nichosGetProp(zonaFeature, "id")}`;
+
+  nichosUI.$sel.textContent = "(ninguno)";
+  nichosUI.$zoom.value = "100";
+  nichosUI.$zoomPct.textContent = "100%";
+
+  nichosRenderCara();
+}
+
+function nichosClose(){
+  if (!nichosUI.$modal) return;
+  nichosUI.open = false;
+  nichosUI.zonaFeature = null;
+  nichosUI.$modal.style.display = "none";
+
+  // limpia svg
+  if (nichosUI.$svg) nichosUI.$svg.innerHTML = "";
+}
+
+function nichosSetCara(cara){
+  nichosUI.cara = cara;
+  nichosRenderCara();
+}
+
+function nichosRenderCara(){
+  const zona = nichosUI.zonaFeature;
+  if (!zona) return;
+
+  // UI botones
+  nichosUI.$btnConcavo.disabled = (nichosUI.cara === "concavo");
+  nichosUI.$btnConvexo.disabled = (nichosUI.cara === "convexo");
+
+  const imgUrl = nichosResolveImageUrl(zona, nichosUI.cara);
+  if (!imgUrl){
+    nichosUI.$img.src = "";
+    nichosUI.$svg.innerHTML = "";
+    nichosUI.$subtitle.textContent = `Zona: ${nichosGetProp(zona, "nombre") || nichosGetProp(zona, "id")} — (falta imagen${nichosUI.cara})`;
+    return;
+  }
+
+  // Carga imagen para dimensionar svg
+  nichosUI.$img.onload = () => {
+    const w = nichosUI.$img.naturalWidth || 1;
+    const h = nichosUI.$img.naturalHeight || 1;
+
+    // set tamaños base
+    nichosUI.$img.style.width = w + "px";
+    nichosUI.$img.style.height = h + "px";
+
+    nichosUI.$svg.setAttribute("width", String(w));
+    nichosUI.$svg.setAttribute("height", String(h));
+    nichosUI.$svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+    nichosUI.$svg.innerHTML = "";
+
+    // Render de nichos (features con zonaId == zona.id y cara == concavo/convexo)
+    nichosRenderOverlay(w, h);
+
+    // Fit inicial (mostrar “toda la imagen” dentro del stage)
+    nichosFitToStage(w, h);
+  };
+
+  nichosUI.$img.onerror = () => {
+    nichosUI.$svg.innerHTML = "";
+    nichosUI.$subtitle.textContent = `Zona: ${nichosGetProp(zona, "nombre") || nichosGetProp(zona, "id")} — No encontré imagen: ${imgUrl}`;
+  };
+
+  nichosUI.$img.src = imgUrl;
+}
+
+function nichosFitToStage(imgW, imgH){
+  const stage = nichosUI.$stage;
+  if (!stage) return;
+
+  const sw = stage.clientWidth || 1;
+  const sh = stage.clientHeight || 1;
+
+  const s = Math.min(sw / imgW, sh / imgH);
+  nichosUI.scale = Math.max(0.10, Math.min(2.50, s));
+
+  // centra
+  nichosUI.panX = (sw - imgW * nichosUI.scale) / 2;
+  nichosUI.panY = (sh - imgH * nichosUI.scale) / 2;
+
+  const pct = Math.round(nichosUI.scale * 100);
+  nichosUI.$zoom.value = String(Math.max(10, Math.min(250, pct)));
+  nichosUI.$zoomPct.textContent = `${pct}%`;
+
+  nichosApplyTransform();
+}
+
+function nichosApplyTransform(){
+  const t = `translate(${nichosUI.panX}px, ${nichosUI.panY}px) scale(${nichosUI.scale})`;
+  nichosUI.$img.style.transform = t;
+  nichosUI.$svg.style.transform = t;
+
+  const pct = Math.round(nichosUI.scale * 100);
+  nichosUI.$zoomPct.textContent = `${pct}%`;
+}
+
+function nichosRenderOverlay(imgW, imgH){
+  const zona = nichosUI.zonaFeature;
+  const zonaId = nichosGetProp(zona, "id");
+  const cara = nichosUI.cara;
+
+  // esperamos que los nichos estén en el MISMO geojson como features separados
+  // con properties: { tipo:"nicho", zonaId:"PLN", cara:"convexo", codigo:"PLN-1-AX" }
+  const nichos = (nichosZonasRaw?.features || []).filter(f => {
+    const tipo = nichosGetProp(f, "tipo");
+    const zId = nichosGetProp(f, "zonaId");
+    const c = nichosGetProp(f, "cara");
+    return tipo === "nicho" && zId === zonaId && (!c || c === cara);
+  });
+
+  // Importante: aquí asumimos que geometry.coordinates de cada nicho está en coords de imagen:
+  // Polygon con puntos [x,y] donde x=px horizontal, y=px vertical.
+  for (const f of nichos){
+    if (f?.geometry?.type !== "Polygon") continue;
+    const ring = f.geometry.coordinates?.[0] || [];
+    if (ring.length < 3) continue;
+
+    const d = ring.map(([x,y], i) => `${i===0?'M':'L'} ${x} ${y}`).join(" ") + " Z";
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", d);
+    path.setAttribute("fill", "rgba(59,130,246,.18)");
+    path.setAttribute("stroke", "rgba(59,130,246,.9)");
+    path.setAttribute("stroke-width", "2");
+
+    // permitir click
+    path.style.pointerEvents = "auto";
+    path.style.cursor = "pointer";
+
+    const codigo = nichosGetProp(f, "codigo") || "(sin código)";
+    path.addEventListener("click", () => {
+      nichosUI.$sel.textContent = codigo;
+      nichosZoomToPolygon(ring, imgW, imgH);
+    });
+
+    nichosUI.$svg.appendChild(path);
+  }
+}
+
+function nichosZoomToPolygon(ring, imgW, imgH){
+  // bounds del polígono
+  let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+  for (const [x,y] of ring){
+    if (x < minX) minX = x;
+    if (y < minY) minY = y;
+    if (x > maxX) maxX = x;
+    if (y > maxY) maxY = y;
+  }
+
+  const boxW = Math.max(1, maxX - minX);
+  const boxH = Math.max(1, maxY - minY);
+  const cx = minX + boxW/2;
+  const cy = minY + boxH/2;
+
+  const stage = nichosUI.$stage;
+  const sw = stage.clientWidth || 1;
+  const sh = stage.clientHeight || 1;
+
+  // zoom objetivo: que el nicho ocupe ~45% del stage
+  const targetScale = Math.min((sw*0.45)/boxW, (sh*0.45)/boxH);
+  nichosUI.scale = Math.max(0.10, Math.min(2.50, targetScale));
+
+  // pan para centrar el nicho
+  nichosUI.panX = (sw/2) - (cx * nichosUI.scale);
+  nichosUI.panY = (sh/2) - (cy * nichosUI.scale);
+
+  const pct = Math.round(nichosUI.scale * 100);
+  nichosUI.$zoom.value = String(Math.max(10, Math.min(250, pct)));
+
+  nichosApplyTransform();
+}
+
+
 
 // Decide qué archivo leer (compat: si manzana trae lotesFile, úsalo)
 // Si NO trae lotesFile => usa el archivo compartido por sección
@@ -862,6 +1172,11 @@ async function loadLotesForCurrentManzana(){
 
 function showLoteInfo(feature){
   const props = feature?.properties || {};
+  const nichosZonaId =
+    (props.nichosZonaId || "").toString().trim() ||
+    (currentManzanaFeature?.properties?.nichosZonaId || "").toString().trim() ||
+    (currentSeccionFeature?.properties?.nichosZonaId || "").toString().trim();
+
   const loteVal = (props.lote || props.id || "").toString();
   const status = (props.estatus || "").toString() || (lotesInfo[loteVal]?.estatus) || "desconocido";
   const paqueteKey = (props.paquete || currentManzanaFeature?.properties?.paquete || null);
@@ -895,9 +1210,31 @@ function showLoteInfo(feature){
     `;
   }
 
+  if (nichosZonaId){
+    html += `
+      <hr/>
+      <button id="btnNichos" style="padding:8px 12px;border-radius:8px;border:1px solid #111;background:#fff;cursor:pointer;">
+        Ver nichos
+      </button>
+      <p style="font-size:12px;color:#6b7280;margin-top:6px;">
+        Zona Nichos: <b>${safe(nichosZonaId)}</b>
+      </p>
+    `;
+  }
+
+  
   setPanel("Lote", html);
   const btn = document.getElementById("moreBtn");
   if (btn) btn.onclick = () => notify("Aquí irá el login + consulta segura del saldo.", 2200);
+
+  const btnNichos = document.getElementById("btnNichos");
+  if (btnNichos){
+    btnNichos.onclick = () => {
+      if (!nichosZonaId) return;
+      nichosOpenByZonaId(nichosZonaId);
+    };
+  }
+
 }
 
 /* =========================================================
@@ -3263,6 +3600,10 @@ async function main(){
       manzanasRaw = await loadJson(MANZANAS_URL);
       try { seccionesTopRaw = await loadJson(SECCIONES_TOP_URL); }
       catch { seccionesTopRaw = { type:"FeatureCollection", features: [] }; }
+
+      // Nichos zonas (si existe)
+      try { nichosZonasRaw = await loadJson(NICHOS_ZONAS_URL); }
+      catch { nichosZonasRaw = { type:"FeatureCollection", features:[] }; }
 
 
       // ====== EDIT SECCIONES ======
