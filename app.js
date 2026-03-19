@@ -16,6 +16,7 @@ const NICHOS_ZONAS_URL  = "./data/nichos-zonas.geojson";  //NICHOS
 // Catálogos
 const LOTES_INFO_URL    = "./data/lotes.json";
 const PAQUETES_URL      = "./data/paquetes.json";
+const NICHOS_OVERLAY_CFG_URL = "./data/nichos-overlay.json";
 
 // ?edit=secciones  => EDITOR SECCIONES
 // ?edit=manzanas   => EDITOR MANZANAS
@@ -26,6 +27,7 @@ const isEditSecciones = editMode === "secciones";
 const isEditManzanas  = editMode === "manzanas";
 const isEditLotes     = editMode === "lotes";
 const isEditNichos    = editMode === "nichos";
+const isEditNichosOverlay = editMode === "nichos-overlay";
 const IS_EDIT = !!editMode;
 
 const BASE_IMAGE_URL = (isEditSecciones || isEditManzanas || isEditLotes || isEditNichos)
@@ -55,6 +57,7 @@ let map;
 
 let lotesInfo = {};
 let paquetesInfo = {};
+let nichosOverlayCfg = {}; // { "PLN-concavo": { box:{left,top,right,bottom} }, ... }
 
 // RAW (coords base.png)
 let seccionesTopRaw = null;   // SECCIONES
@@ -242,6 +245,30 @@ function getSharedLotesUrlForSeccion(seccion){
 
   const folder = FOLDER_OVERRIDES[slug] || slug;
   return `./data/lotes/${folder}/lotes.geojson`;
+}
+
+
+// =========================================================
+// NICHOS overlay "box" (área del grid) por zona/cara
+// data/nichos-overlay.json  => { "PLN-concavo": { box:{left,top,right,bottom} }, ... }
+// Valores en proporción 0..1 relativos a la imagen.
+// =========================================================
+const DEFAULT_NICHOS_GRID_BOX = {
+  left: 0.34,
+  top: 0.58,
+  right: 0.98,
+  bottom: 0.98
+};
+
+function getOverlayKey(prefix, cara){
+  return `${String(prefix||"").toUpperCase()}-${String(cara||"").toLowerCase()}`;
+}
+
+function getNichoGridBox(prefix, cara){
+  const key = getOverlayKey(prefix, cara);
+  const box = nichosOverlayCfg?.[key]?.box;
+  if (box && isFinite(box.left) && isFinite(box.top) && isFinite(box.right) && isFinite(box.bottom)) return box;
+  return DEFAULT_NICHOS_GRID_BOX;
 }
 
 
@@ -551,7 +578,241 @@ function nichosZoomToPolygon(ring, imgW, imgH){
   nichosApplyTransform();
 }
 
+function renderEditNichosOverlayPanel(){
+  setPanel("Edición: NICHOS overlay", `
+    <p style="font-size:12px;color:#6b7280;">
+      Ajusta la caja (área del grid) sobre la imagen. Luego copia el JSON y pégalo en
+      <b>${safe(NICHOS_OVERLAY_CFG_URL)}</b>.
+    </p>
 
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;">
+      <input id="noPrefix" placeholder="Prefijo (ej. PLN)" value="PLN"
+        style="padding:8px;border:1px solid #ccc;border-radius:8px;min-width:160px;" />
+
+      <select id="noCara" style="padding:8px;border:1px solid #ccc;border-radius:8px;">
+        <option value="concavo">concavo</option>
+        <option value="convexo">convexo</option>
+      </select>
+
+      <button id="noCopy" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar JSON</button>
+      <button id="noReset" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Reset caja</button>
+    </div>
+
+    <div id="noMsg" style="font-size:12px;color:#6b7280;margin-bottom:8px;"></div>
+
+    <div id="noWrap" style="position:relative;max-width:100%;overflow:auto;border:1px solid #e5e7eb;border-radius:12px;background:#fff;">
+      <img id="noImg" alt="nichos" style="display:block;max-width:none;" />
+      <div id="noBox" style="position:absolute;border:2px solid #ef4444;border-radius:10px;box-sizing:border-box;touch-action:none;">
+        <div class="noH" data-h="tl"></div>
+        <div class="noH" data-h="tr"></div>
+        <div class="noH" data-h="bl"></div>
+        <div class="noH" data-h="br"></div>
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:#6b7280;margin-top:10px;">
+      Tip: arrastra el borde rojo para mover; usa esquinas para redimensionar.
+    </p>
+  `);
+
+  const $prefix = document.getElementById("noPrefix");
+  const $cara   = document.getElementById("noCara");
+  const $img    = document.getElementById("noImg");
+  const $box    = document.getElementById("noBox");
+  const $msg    = document.getElementById("noMsg");
+
+  // estilos handles (inyectados aquí)
+  const styleId = "noHandleStyle";
+  if (!document.getElementById(styleId)){
+    const st = document.createElement("style");
+    st.id = styleId;
+    st.textContent = `
+      #noBox .noH{ position:absolute;width:14px;height:14px;background:#22c55e;border:2px solid #fff;box-shadow:0 0 0 1px #111;border-radius:4px; }
+      #noBox .noH[data-h="tl"]{left:-8px;top:-8px;cursor:nwse-resize;}
+      #noBox .noH[data-h="tr"]{right:-8px;top:-8px;cursor:nesw-resize;}
+      #noBox .noH[data-h="bl"]{left:-8px;bottom:-8px;cursor:nesw-resize;}
+      #noBox .noH[data-h="br"]{right:-8px;bottom:-8px;cursor:nwse-resize;}
+    `;
+    document.head.appendChild(st);
+  }
+
+  function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
+  function currentKey(){
+    return getOverlayKey($prefix.value, $cara.value);
+  }
+
+  function applyBoxToDom(box){
+    const w = $img.naturalWidth || 1;
+    const h = $img.naturalHeight || 1;
+
+    const left   = clamp(box.left,   0, 1) * w;
+    const top    = clamp(box.top,    0, 1) * h;
+    const right  = clamp(box.right,  0, 1) * w;
+    const bottom = clamp(box.bottom, 0, 1) * h;
+
+    $box.style.left = left + "px";
+    $box.style.top  = top + "px";
+    $box.style.width  = Math.max(10, right - left) + "px";
+    $box.style.height = Math.max(10, bottom - top) + "px";
+  }
+
+  function readBoxFromDom(){
+    const w = $img.naturalWidth || 1;
+    const h = $img.naturalHeight || 1;
+
+    const leftPx   = parseFloat($box.style.left || "0");
+    const topPx    = parseFloat($box.style.top || "0");
+    const widthPx  = parseFloat($box.style.width || "0");
+    const heightPx = parseFloat($box.style.height || "0");
+
+    const rightPx  = leftPx + widthPx;
+    const bottomPx = topPx + heightPx;
+
+    return {
+      left:   clamp(leftPx / w, 0, 1),
+      top:    clamp(topPx / h, 0, 1),
+      right:  clamp(rightPx / w, 0, 1),
+      bottom: clamp(bottomPx / h, 0, 1),
+    };
+  }
+
+  function persistCurrentBox(){
+    const key = currentKey();
+    const box = readBoxFromDom();
+    if (!nichosOverlayCfg) nichosOverlayCfg = {};
+    nichosOverlayCfg[key] = { box };
+    $msg.textContent = `Guardado en memoria: ${key} (listo para copiar JSON)`;
+  }
+
+  function loadImage(){
+    const prefix = ($prefix.value || "").trim().toUpperCase();
+    const cara   = ($cara.value || "").trim().toLowerCase();
+
+    // OJO: ajusta este path a tu convención real si es diferente
+    const src = `./assets/nichos/${prefix}-${cara}.png`;
+    $msg.textContent = `Imagen: ${src}`;
+    $img.src = src;
+
+    $img.onload = () => {
+      $img.style.width = $img.naturalWidth + "px";
+      $img.style.height = $img.naturalHeight + "px";
+
+      const boxCfg = getNichoGridBox(prefix, cara);
+      applyBoxToDom(boxCfg);
+    };
+
+    $img.onerror = () => {
+      $msg.textContent = `No encontré la imagen: ${src}`;
+    };
+  }
+
+  // drag move / resize
+  let dragMode = null; // "move" | "tl" | "tr" | "bl" | "br"
+  let start = null;
+
+  function onPointerDown(ev){
+    ev.preventDefault();
+    const t = ev.target;
+    const h = t?.getAttribute?.("data-h");
+    dragMode = h ? h : "move";
+
+    start = {
+      clientX: ev.clientX, clientY: ev.clientY,
+      left: parseFloat($box.style.left || "0"),
+      top: parseFloat($box.style.top || "0"),
+      width: parseFloat($box.style.width || "0"),
+      height: parseFloat($box.style.height || "0"),
+    };
+
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp, { once:true });
+  }
+
+  function onPointerMove(ev){
+    if (!start) return;
+
+    const dx = ev.clientX - start.clientX;
+    const dy = ev.clientY - start.clientY;
+
+    let left = start.left;
+    let top = start.top;
+    let width = start.width;
+    let height = start.height;
+
+    if (dragMode === "move"){
+      left = start.left + dx;
+      top  = start.top + dy;
+    } else {
+      if (dragMode === "tl"){
+        left = start.left + dx;
+        top = start.top + dy;
+        width = start.width - dx;
+        height = start.height - dy;
+      }
+      if (dragMode === "tr"){
+        top = start.top + dy;
+        width = start.width + dx;
+        height = start.height - dy;
+      }
+      if (dragMode === "bl"){
+        left = start.left + dx;
+        width = start.width - dx;
+        height = start.height + dy;
+      }
+      if (dragMode === "br"){
+        width = start.width + dx;
+        height = start.height + dy;
+      }
+    }
+
+    const imgW = $img.naturalWidth || 1;
+    const imgH = $img.naturalHeight || 1;
+
+    width = Math.max(10, width);
+    height = Math.max(10, height);
+
+    left = clamp(left, 0, imgW - width);
+    top  = clamp(top,  0, imgH - height);
+
+    $box.style.left = left + "px";
+    $box.style.top  = top + "px";
+    $box.style.width  = width + "px";
+    $box.style.height = height + "px";
+  }
+
+  function onPointerUp(){
+    window.removeEventListener("pointermove", onPointerMove);
+    start = null;
+    persistCurrentBox();
+  }
+
+  $box.addEventListener("pointerdown", onPointerDown);
+
+  // buttons
+  document.getElementById("noCopy").onclick = async () => {
+    const txt = JSON.stringify(nichosOverlayCfg || {}, null, 2);
+    try {
+      await navigator.clipboard.writeText(txt);
+      notify("JSON copiado. Pégalo en data/nichos-overlay.json", 2400);
+    } catch {
+      setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
+    }
+  };
+
+  document.getElementById("noReset").onclick = () => {
+    const key = currentKey();
+    if (!nichosOverlayCfg) nichosOverlayCfg = {};
+    nichosOverlayCfg[key] = { box: deepCopy(DEFAULT_NICHOS_GRID_BOX) };
+    applyBoxToDom(DEFAULT_NICHOS_GRID_BOX);
+    notify("Caja reseteada a default (en memoria).", 1800);
+  };
+
+  $prefix.onchange = loadImage;
+  $cara.onchange = loadImage;
+
+  loadImage();
+}
 
 // Decide qué archivo leer (compat: si manzana trae lotesFile, úsalo)
 // Si NO trae lotesFile => usa el archivo compartido por sección
@@ -3516,7 +3777,7 @@ function attachEditorMapClick(){
   mapClickAttached = true;
 
   map.on("click", (e) => {
-    if (!(isEditSecciones || isEditManzanas || isEditLotes)) return;
+    if (!(isEditSecciones || isEditManzanas || isEditLotes || isEditNichos)) return;
 
     // PEGAR
     if (editor.pasteArmed && editor.clipboardFeature){
@@ -3747,6 +4008,7 @@ async function main(){
 
   try { lotesInfo = await loadJson(LOTES_INFO_URL); } catch { lotesInfo = {}; }
   try { paquetesInfo = await loadJson(PAQUETES_URL); } catch { paquetesInfo = {}; }
+  try { nichosOverlayCfg = await loadJson(NICHOS_OVERLAY_CFG_URL); } catch { nichosOverlayCfg = {}; }
 
   const img = new Image();
   img.onload = async () => {
@@ -3768,8 +4030,6 @@ async function main(){
       manzanasRaw = await loadJson(MANZANAS_URL);
       try { seccionesTopRaw = await loadJson(SECCIONES_TOP_URL); }
       catch { seccionesTopRaw = { type:"FeatureCollection", features: [] }; }
-
-      nichosZonasRaw = await loadJson(NICHOS_ZONAS_URL).catch(() => ({ type:"FeatureCollection", features:[] }));
 
       // Nichos zonas (si existe)
       try { nichosZonasRaw = await loadJson(NICHOS_ZONAS_URL); }
@@ -3906,6 +4166,20 @@ async function main(){
         renderEditNichosPanel();
         return;
       }
+
+      // ====== EDIT NICHOS OVERLAY ======
+      if (isEditNichosOverlay){
+        if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
+        if ($searchBtn) $searchBtn.disabled = true;
+
+        $seccionSelect.innerHTML = `<option value="">(Edición NICHOS overlay)</option>`;
+        $manzanaSelect.innerHTML = `<option value="">(Edición NICHOS overlay)</option>`;
+
+        renderEditNichosOverlayPanel();
+        return;
+      }
+
+
 // ====== NORMAL (público) ======
       seccionesTopScaled = deepCopy(seccionesTopRaw);
       applyCoordScaleToGeoJSON(seccionesTopScaled, COORD_SCALE_X, COORD_SCALE_Y);
