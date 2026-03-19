@@ -141,6 +141,25 @@
       max-width: min(680px, 92vw);
       box-shadow: 0 10px 30px rgba(0,0,0,.18);
     }
+    /* =========================
+      FULLSCREEN MAP (para editores como ?edit=nichos-overlay)
+      - El mapa usa todo el ancho
+      - El panel (aside) flota encima (no reduce el mapa)
+      ========================= */
+    body.fullMap main{
+      grid-template-columns: 1fr !important;
+    }
+
+    body.fullMap aside{
+      position: fixed;
+      top: 61px; /* altura del header (ajusta si cambia) */
+      right: 0;
+      width: var(--panel-w);
+      height: calc(100vh - 61px);
+      z-index: 9998;
+      box-shadow: 0 12px 30px rgba(0,0,0,.18);
+    }
+        
   </style>
 </head>
 

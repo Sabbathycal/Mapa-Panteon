@@ -28,6 +28,11 @@ const isEditManzanas  = editMode === "manzanas";
 const isEditLotes     = editMode === "lotes";
 const isEditNichos    = editMode === "nichos";
 const isEditNichosOverlay = editMode === "nichos-overlay";
+// UI layout: mapa full-screen para ciertos editores
+if (isEditNichosOverlay) {
+  document.body.classList.add("fullMap");
+}
+
 const IS_EDIT = !!editMode;
 
 const BASE_IMAGE_URL = (isEditSecciones || isEditManzanas || isEditLotes || isEditNichos)
@@ -73,6 +78,9 @@ let seccionesLayerPublic = null;   // PUBLICO secciones
 let manzanasLayer = null;          // público + editor manzanas
 let lotesLayer = null;             // público + editor lotes
 
+let nichosZonasScaled = null;       // zonas escaladas para público
+let nichosZonasLayerPublic = null;  // capa clickeable de zonas de nichos (público)
+let pinnedNichoZonaLayer = null;    // selección visual
 
 let currentSeccion = null;
 let currentSeccionFeature = null;
@@ -1247,6 +1255,80 @@ function renderSeccionesLayerPublic(){
     <p>2) Luego seleccionarás una <b>MANZANA</b>.</p>
     <p>3) Después un <b>LOTE</b>.</p>
   `);
+}
+
+function clearNichosZonasLayerPublic(){
+  if (nichosZonasLayerPublic){
+    try { nichosZonasLayerPublic.remove(); } catch {}
+    nichosZonasLayerPublic = null;
+  }
+  pinnedNichoZonaLayer = null;
+}
+
+function renderNichosZonasLayerPublic(){
+  // Solo en modo público
+  if (IS_EDIT) return;
+
+  // Si no hay data, no hacemos nada
+  const all = (nichosZonasScaled?.features || []);
+  const zonas = all.filter(f => (f?.properties?.tipo || "").toString().trim() === "zona");
+  if (!zonas.length) return;
+
+  // Limpia previa
+  clearNichosZonasLayerPublic();
+
+  const fc = { type:"FeatureCollection", features: zonas };
+
+  nichosZonasLayerPublic = L.geoJSON(fc, {
+    style: () => ({
+      color: "#2563eb",
+      weight: 2,
+      opacity: 1,
+      fillColor: "#2563eb",
+      fillOpacity: 0.10
+    }),
+    pointToLayer: (feature, latlng) => {
+      // soporta círculo si tu zona fuera Point+shape circle
+      const layer = featureToLayerCircleAware(feature, latlng);
+      try {
+        layer.setStyle({
+          color: "#2563eb",
+          weight: 2,
+          opacity: 1,
+          fillColor: "#2563eb",
+          fillOpacity: 0.10
+        });
+      } catch {}
+      return layer;
+    },
+    onEachFeature: (feature, layer) => {
+      layer.on("mouseover", () => {
+        if (pinnedNichoZonaLayer !== layer){
+          try { layer.setStyle({ fillOpacity: 0.22, weight: 3 }); } catch {}
+        }
+      });
+      layer.on("mouseout", () => {
+        if (pinnedNichoZonaLayer !== layer){
+          try { layer.setStyle({ fillOpacity: 0.10, weight: 2 }); } catch {}
+        }
+      });
+
+      layer.on("click", () => {
+        // fija estilo
+        if (pinnedNichoZonaLayer && pinnedNichoZonaLayer !== layer){
+          try { pinnedNichoZonaLayer.setStyle({ fillOpacity: 0.10, weight: 2 }); } catch {}
+        }
+        pinnedNichoZonaLayer = layer;
+        try { layer.setStyle({ fillOpacity: 0.28, weight: 3 }); } catch {}
+
+        // abre modal directo
+        nichosOpen(feature);
+      });
+    }
+  }).addTo(map);
+
+  // Asegura que quede encima de secciones/manzanas
+  try { nichosZonasLayerPublic.bringToFront(); } catch {}
 }
 
 function selectSeccionPublic(feature, layer){
@@ -4187,6 +4269,10 @@ async function main(){
       manzanasScaled = deepCopy(manzanasRaw);
       applyCoordScaleToGeoJSON(manzanasScaled, COORD_SCALE_X, COORD_SCALE_Y);
 
+      // Nichos (público): capa clickeable desde el inicio
+      nichosZonasScaled = deepCopy(nichosZonasRaw || { type:"FeatureCollection", features:[] });
+      applyCoordScaleToGeoJSON(nichosZonasScaled, COORD_SCALE_X, COORD_SCALE_Y);
+      renderNichosZonasLayerPublic();
 
       const secciones = buildSeccionesList(
         seccionesTopScaled.features.length
