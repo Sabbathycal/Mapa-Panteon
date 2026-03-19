@@ -11,28 +11,22 @@ const DATA_COORD_HEIGHT = 9250;
 // Archivos de datos
 const SECCIONES_TOP_URL = "./data/secciones-top.geojson"; // editor ?edit=secciones + PUBLICO secciones
 const MANZANAS_URL      = "./data/secciones.geojson";     // MANZANAS
-const NICHOS_ZONAS_URL  = "./data/nichos-zonas.geojson";  //NICHOS
+const NICHOS_ZONAS_URL  = "./data/nichos-zonas.geojson";  // zonas clickeables nichos
 
 // Catálogos
 const LOTES_INFO_URL    = "./data/lotes.json";
 const PAQUETES_URL      = "./data/paquetes.json";
-const NICHOS_OVERLAY_CFG_URL = "./data/nichos-overlay.json";
 
+// Edit modes:
 // ?edit=secciones  => EDITOR SECCIONES
 // ?edit=manzanas   => EDITOR MANZANAS
 // ?edit=lotes      => EDITOR LOTES
-// ?edit=nichos     => EDITOR NICHOS (zonas)
+// ?edit=nichos     => EDITOR NICHOS
 const editMode = new URLSearchParams(location.search).get("edit"); // null | "secciones" | "manzanas" | "lotes" | "nichos"
 const isEditSecciones = editMode === "secciones";
 const isEditManzanas  = editMode === "manzanas";
 const isEditLotes     = editMode === "lotes";
 const isEditNichos    = editMode === "nichos";
-const isEditNichosOverlay = editMode === "nichos-overlay";
-// UI layout: mapa full-screen para ciertos editores
-if (isEditNichosOverlay) {
-  document.body.classList.add("fullMap");
-}
-
 const IS_EDIT = !!editMode;
 
 const BASE_IMAGE_URL = (isEditSecciones || isEditManzanas || isEditLotes || isEditNichos)
@@ -62,24 +56,27 @@ let map;
 
 let lotesInfo = {};
 let paquetesInfo = {};
-let nichosOverlayCfg = {}; // { "PLN-concavo": { box:{left,top,right,bottom} }, ... }
 
 // RAW (coords base.png)
 let seccionesTopRaw = null;   // SECCIONES
 let manzanasRaw = null;       // MANZANAS
+let nichosZonasRaw = null;    // NICHOS ZONAS
 
 // Scaled a base actual (público)
 let seccionesTopScaled = null; // SECCIONES escaladas
 let manzanasScaled = null;     // MANZANAS escaladas
 let lotesScaled = null;        // LOTES escalados
+let nichosZonasScaled = null;  // NICHOS escaladas
 
 let seccionesLayer = null;         // editor secciones
 let seccionesLayerPublic = null;   // PUBLICO secciones
 let manzanasLayer = null;          // público + editor manzanas
 let lotesLayer = null;             // público + editor lotes
+let nichosLayer = null;            // público nichos
+let nichosLayerEdit = null;        // editor nichos
 
-let nichosZonasScaled = null;       // zonas escaladas para público
-let nichosZonasLayerPublic = null;  // capa clickeable de zonas de nichos (público)
+// Selección de nicho (modal)
+let nichoSelection = { zonaId: null, cara: null, numero: null };
 
 let currentSeccion = null;
 let currentSeccionFeature = null;
@@ -113,34 +110,6 @@ function setPanel(title, html){
   $title.textContent = title;
   $body.innerHTML = html;
 }
-
-function forceFullScreenEditorLayout(){
-  // 1) Body flag (por si quieres CSS)
-  try { document.body.classList.add("fullMap"); } catch {}
-
-  // 2) Oculta panel lateral (tu HTML usa .panel / .layout)
-  const panel = document.querySelector(".panel");
-  if (panel) panel.style.display = "none";
-
-  // 3) Layout: una sola columna
-  const layout = document.querySelector(".layout");
-  if (layout){
-    layout.style.gridTemplateColumns = "1fr";
-    layout.style.gridTemplateRows = "1fr";
-    layout.style.height = "calc(100vh - 52px)";
-  }
-
-  // 4) Asegura que el mapa use todo el espacio
-  const mapEl = document.getElementById("map");
-  if (mapEl){
-    mapEl.style.width = "100%";
-    mapEl.style.height = "100%";
-  }
-
-  // 5) Leaflet recalcula
-  try { setTimeout(() => map.invalidateSize(), 50); } catch {}
-}
-
 function safe(v){ return (v === null || v === undefined) ? "" : String(v); }
 
 async function loadJson(url){
@@ -280,597 +249,6 @@ function getSharedLotesUrlForSeccion(seccion){
 
   const folder = FOLDER_OVERRIDES[slug] || slug;
   return `./data/lotes/${folder}/lotes.geojson`;
-}
-
-
-// =========================================================
-// NICHOS overlay "box" (área del grid) por zona/cara
-// data/nichos-overlay.json  => { "PLN-concavo": { box:{left,top,right,bottom} }, ... }
-// Valores en proporción 0..1 relativos a la imagen.
-// =========================================================
-const DEFAULT_NICHOS_GRID_BOX = {
-  left: 0.34,
-  top: 0.58,
-  right: 0.98,
-  bottom: 0.98
-};
-
-function getOverlayKey(prefix, cara){
-  return `${String(prefix||"").toUpperCase()}-${String(cara||"").toLowerCase()}`;
-}
-
-function getNichoGridBox(prefix, cara){
-  const key = getOverlayKey(prefix, cara);
-  const box = nichosOverlayCfg?.[key]?.box;
-  if (box && isFinite(box.left) && isFinite(box.top) && isFinite(box.right) && isFinite(box.bottom)) return box;
-  return DEFAULT_NICHOS_GRID_BOX;
-}
-
-
-/* =========================================================
-   NICHOS (MODAL) - módulo limpio y aislado
-   Data source: ./data/nichos-zonas.geojson
-   ========================================================= */
-let nichosZonasRaw = null;
-
-const nichosUI = {
-  open: false,
-  cara: "convexo",   // "convexo" | "concavo"
-  zonaFeature: null,
-  scale: 1,
-  panX: 0,
-  panY: 0,
-  dragging: false,
-  dragStart: null,
-
-  // DOM
-  $modal: null,
-  $title: null,
-  $subtitle: null,
-  $btnClose: null,
-  $btnConcavo: null,
-  $btnConvexo: null,
-  $zoom: null,
-  $zoomPct: null,
-  $stage: null,
-  $img: null,
-  $svg: null,
-  $sel: null,
-};
-
-function nichosInitDom(){
-  nichosUI.$modal = document.getElementById("nichosModal");
-  nichosUI.$title = document.getElementById("nmTitle");
-  nichosUI.$subtitle = document.getElementById("nmSubtitle");
-  nichosUI.$btnClose = document.getElementById("nmBtnClose");
-  nichosUI.$btnConcavo = document.getElementById("nmBtnConcavo");
-  nichosUI.$btnConvexo = document.getElementById("nmBtnConvexo");
-  nichosUI.$zoom = document.getElementById("nmZoom");
-  nichosUI.$zoomPct = document.getElementById("nmZoomPct");
-  nichosUI.$stage = document.getElementById("nmStage");
-  nichosUI.$img = document.getElementById("nmImg");
-  nichosUI.$svg = document.getElementById("nmSvg");
-  nichosUI.$sel = document.getElementById("nmSelection");
-
-  // Cerrar
-  nichosUI.$btnClose.onclick = () => nichosClose();
-
-  // Cara
-  nichosUI.$btnConcavo.onclick = () => nichosSetCara("concavo");
-  nichosUI.$btnConvexo.onclick = () => nichosSetCara("convexo");
-
-  // Zoom slider (10%..250%)
-  nichosUI.$zoom.oninput = () => {
-    const pct = Number(nichosUI.$zoom.value || 100);
-    nichosUI.scale = Math.max(0.10, Math.min(2.50, pct / 100));
-    nichosApplyTransform();
-  };
-
-  // Pan (drag)
-  nichosUI.$stage.addEventListener("mousedown", (ev) => {
-    nichosUI.dragging = true;
-    nichosUI.dragStart = { x: ev.clientX, y: ev.clientY, panX: nichosUI.panX, panY: nichosUI.panY };
-  });
-  window.addEventListener("mousemove", (ev) => {
-    if (!nichosUI.dragging || !nichosUI.dragStart) return;
-    const dx = ev.clientX - nichosUI.dragStart.x;
-    const dy = ev.clientY - nichosUI.dragStart.y;
-    nichosUI.panX = nichosUI.dragStart.panX + dx;
-    nichosUI.panY = nichosUI.dragStart.panY + dy;
-    nichosApplyTransform();
-  });
-  window.addEventListener("mouseup", () => {
-    nichosUI.dragging = false;
-    nichosUI.dragStart = null;
-  });
-
-  // Cerrar con Escape
-  window.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && nichosUI.open) nichosClose();
-  });
-}
-
-function nichosGetProp(f, key){
-  return (f?.properties?.[key] ?? "").toString().trim();
-}
-
-/**
- * Convención recomendada en nichos-zonas.geojson:
- * properties: {
- *   id: "PLN",
- *   nombre: "BUEN PASTOR NICHOS",
- *   imagenConvexo: "./assets/nichos/PLN-convexo.png",
- *   imagenConcavo: "./assets/nichos/PLN-concavo.png",
- *   // y cada nicho (otra feature) tiene properties.zonaId="PLN" y properties.codigo="PLN-1-AX"
- * }
- */
-function nichosResolveImageUrl(zonaFeature, cara){
-  const p = zonaFeature?.properties || {};
-  const imgKey = (cara === "concavo") ? "imagenConcavo" : "imagenConvexo";
-  const url = (p[imgKey] || "").toString().trim();
-  return url || null;
-}
-
-function nichosOpenByZonaId(zonaId){
-  if (!nichosZonasRaw?.features?.length){
-    notify("No se cargó nichos-zonas.geojson", 2200);
-    return;
-  }
-
-  const id = (zonaId || "").toString().trim();
-  const zona = nichosZonasRaw.features.find(f => nichosGetProp(f, "id") === id);
-  if (!zona){
-    notify(`No encontré zona de nichos id="${id}" en nichos-zonas.geojson`, 2600);
-    return;
-  }
-
-  nichosOpen(zona);
-}
-
-function nichosOpen(zonaFeature){
-  if (!nichosUI.$modal) nichosInitDom();
-
-  nichosUI.open = true;
-  nichosUI.zonaFeature = zonaFeature;
-  nichosUI.cara = "convexo";
-  nichosUI.scale = 1;
-  nichosUI.panX = 0;
-  nichosUI.panY = 0;
-
-  nichosUI.$modal.style.display = "flex";
-  nichosUI.$title.textContent = "Nichos";
-  nichosUI.$subtitle.textContent = `Zona: ${nichosGetProp(zonaFeature, "nombre") || nichosGetProp(zonaFeature, "id")}`;
-
-  nichosUI.$sel.textContent = "(ninguno)";
-  nichosUI.$zoom.value = "100";
-  nichosUI.$zoomPct.textContent = "100%";
-
-  nichosRenderCara();
-}
-
-function nichosClose(){
-  if (!nichosUI.$modal) return;
-  nichosUI.open = false;
-  nichosUI.zonaFeature = null;
-  nichosUI.$modal.style.display = "none";
-
-  // limpia svg
-  if (nichosUI.$svg) nichosUI.$svg.innerHTML = "";
-}
-
-function nichosSetCara(cara){
-  nichosUI.cara = cara;
-  nichosRenderCara();
-}
-
-function nichosRenderCara(){
-  const zona = nichosUI.zonaFeature;
-  if (!zona) return;
-
-  // UI botones
-  nichosUI.$btnConcavo.disabled = (nichosUI.cara === "concavo");
-  nichosUI.$btnConvexo.disabled = (nichosUI.cara === "convexo");
-
-  const imgUrl = nichosResolveImageUrl(zona, nichosUI.cara);
-  if (!imgUrl){
-    nichosUI.$img.src = "";
-    nichosUI.$svg.innerHTML = "";
-    nichosUI.$subtitle.textContent = `Zona: ${nichosGetProp(zona, "nombre") || nichosGetProp(zona, "id")} — (falta imagen${nichosUI.cara})`;
-    return;
-  }
-
-  // Carga imagen para dimensionar svg
-  nichosUI.$img.onload = () => {
-    const w = nichosUI.$img.naturalWidth || 1;
-    const h = nichosUI.$img.naturalHeight || 1;
-
-    // set tamaños base
-    nichosUI.$img.style.width = w + "px";
-    nichosUI.$img.style.height = h + "px";
-
-    nichosUI.$svg.setAttribute("width", String(w));
-    nichosUI.$svg.setAttribute("height", String(h));
-    nichosUI.$svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-    nichosUI.$svg.innerHTML = "";
-
-    // Render de nichos (features con zonaId == zona.id y cara == concavo/convexo)
-    nichosRenderOverlay(w, h);
-
-    // Fit inicial (mostrar “toda la imagen” dentro del stage)
-    nichosFitToStage(w, h);
-  };
-
-  nichosUI.$img.onerror = () => {
-    nichosUI.$svg.innerHTML = "";
-    nichosUI.$subtitle.textContent = `Zona: ${nichosGetProp(zona, "nombre") || nichosGetProp(zona, "id")} — No encontré imagen: ${imgUrl}`;
-  };
-
-  nichosUI.$img.src = imgUrl;
-}
-
-function nichosFitToStage(imgW, imgH){
-  const stage = nichosUI.$stage;
-  if (!stage) return;
-
-  const sw = stage.clientWidth || 1;
-  const sh = stage.clientHeight || 1;
-
-  const s = Math.min(sw / imgW, sh / imgH);
-  nichosUI.scale = Math.max(0.10, Math.min(2.50, s));
-
-  // centra
-  nichosUI.panX = (sw - imgW * nichosUI.scale) / 2;
-  nichosUI.panY = (sh - imgH * nichosUI.scale) / 2;
-
-  const pct = Math.round(nichosUI.scale * 100);
-  nichosUI.$zoom.value = String(Math.max(10, Math.min(250, pct)));
-  nichosUI.$zoomPct.textContent = `${pct}%`;
-
-  nichosApplyTransform();
-}
-
-function nichosApplyTransform(){
-  const t = `translate(${nichosUI.panX}px, ${nichosUI.panY}px) scale(${nichosUI.scale})`;
-  nichosUI.$img.style.transform = t;
-  nichosUI.$svg.style.transform = t;
-
-  const pct = Math.round(nichosUI.scale * 100);
-  nichosUI.$zoomPct.textContent = `${pct}%`;
-}
-
-function nichosRenderOverlay(imgW, imgH){
-  const zona = nichosUI.zonaFeature;
-  const zonaId = nichosGetProp(zona, "id");
-  const cara = nichosUI.cara;
-
-  // esperamos que los nichos estén en el MISMO geojson como features separados
-  // con properties: { tipo:"nicho", zonaId:"PLN", cara:"convexo", codigo:"PLN-1-AX" }
-  const nichos = (nichosZonasRaw?.features || []).filter(f => {
-    const tipo = nichosGetProp(f, "tipo");
-    const zId = nichosGetProp(f, "zonaId");
-    const c = nichosGetProp(f, "cara");
-    return tipo === "nicho" && zId === zonaId && (!c || c === cara);
-  });
-
-  // Importante: aquí asumimos que geometry.coordinates de cada nicho está en coords de imagen:
-  // Polygon con puntos [x,y] donde x=px horizontal, y=px vertical.
-  for (const f of nichos){
-    if (f?.geometry?.type !== "Polygon") continue;
-    const ring = f.geometry.coordinates?.[0] || [];
-    if (ring.length < 3) continue;
-
-    const d = ring.map(([x,y], i) => `${i===0?'M':'L'} ${x} ${y}`).join(" ") + " Z";
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", d);
-    path.setAttribute("fill", "rgba(59,130,246,.18)");
-    path.setAttribute("stroke", "rgba(59,130,246,.9)");
-    path.setAttribute("stroke-width", "2");
-
-    // permitir click
-    path.style.pointerEvents = "auto";
-    path.style.cursor = "pointer";
-
-    const codigo = nichosGetProp(f, "codigo") || "(sin código)";
-    path.addEventListener("click", () => {
-      nichosUI.$sel.textContent = codigo;
-      nichosZoomToPolygon(ring, imgW, imgH);
-    });
-
-    nichosUI.$svg.appendChild(path);
-  }
-}
-
-function nichosZoomToPolygon(ring, imgW, imgH){
-  // bounds del polígono
-  let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
-  for (const [x,y] of ring){
-    if (x < minX) minX = x;
-    if (y < minY) minY = y;
-    if (x > maxX) maxX = x;
-    if (y > maxY) maxY = y;
-  }
-
-  const boxW = Math.max(1, maxX - minX);
-  const boxH = Math.max(1, maxY - minY);
-  const cx = minX + boxW/2;
-  const cy = minY + boxH/2;
-
-  const stage = nichosUI.$stage;
-  const sw = stage.clientWidth || 1;
-  const sh = stage.clientHeight || 1;
-
-  // zoom objetivo: que el nicho ocupe ~45% del stage
-  const targetScale = Math.min((sw*0.45)/boxW, (sh*0.45)/boxH);
-  nichosUI.scale = Math.max(0.10, Math.min(2.50, targetScale));
-
-  // pan para centrar el nicho
-  nichosUI.panX = (sw/2) - (cx * nichosUI.scale);
-  nichosUI.panY = (sh/2) - (cy * nichosUI.scale);
-
-  const pct = Math.round(nichosUI.scale * 100);
-  nichosUI.$zoom.value = String(Math.max(10, Math.min(250, pct)));
-
-  nichosApplyTransform();
-}
-
-function renderEditNichosOverlayPanel(){
-  // Forzar fullscreen (oculta panel lateral y hace el mapa ocupar todo)
-   forceFullScreenEditorLayout();
-   
-   let root = document.getElementById("overlayUiRoot");
-   if (!root){
-     root = document.createElement("div");
-     root.id = "overlayUiRoot";
-     root.style.position = "absolute";
-     root.style.left = "0";
-     root.style.top = "0";
-     root.style.right = "0";
-     root.style.bottom = "0";
-     root.style.zIndex = "9999";
-     // intenta montarlo encima del mapa
-     const mapEl = document.getElementById("map");
-     if (mapEl && mapEl.parentElement) mapEl.parentElement.appendChild(root);
-     else document.body.appendChild(root);
-   }
-   
-   root.innerHTML = `
-     <div style="position:absolute;left:12px;top:12px;right:12px;max-width:980px;">
-       <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.15);">
-         <h3 style="margin:0 0 8px 0;">Edición: NICHOS overlay</h3>
-   
-         <p style="font-size:12px;color:#6b7280;">
-           Ajusta la caja (área del grid) sobre la imagen. Luego copia el JSON y pégalo en
-           <b>${safe(NICHOS_OVERLAY_CFG_URL)}</b>.
-         </p>
-   
-         <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;">
-           <input id="noPrefix" placeholder="Prefijo (ej. PLN)" value="PLN"
-             style="padding:8px;border:1px solid #ccc;border-radius:8px;min-width:160px;" />
-   
-           <select id="noCara" style="padding:8px;border:1px solid #ccc;border-radius:8px;">
-             <option value="concavo">concavo</option>
-             <option value="convexo">convexo</option>
-           </select>
-   
-           <button id="noCopy" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar JSON</button>
-           <button id="noReset" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Reset caja</button>
-         </div>
-   
-         <div id="noMsg" style="font-size:12px;color:#6b7280;margin-bottom:8px;"></div>
-   
-         <div id="noWrap" style="position:relative;max-width:100%;overflow:auto;border:1px solid #e5e7eb;border-radius:12px;background:#fff;">
-           <img id="noImg" alt="nichos" style="display:block;max-width:none;" />
-           <div id="noBox" style="position:absolute;border:2px solid #ef4444;border-radius:10px;box-sizing:border-box;touch-action:none;">
-             <div class="noH" data-h="tl"></div>
-             <div class="noH" data-h="tr"></div>
-             <div class="noH" data-h="bl"></div>
-             <div class="noH" data-h="br"></div>
-           </div>
-         </div>
-   
-         <p style="font-size:12px;color:#6b7280;margin-top:10px;">
-           Tip: arrastra el borde rojo para mover; usa esquinas para redimensionar.
-         </p>
-       </div>
-     </div>
-   `;
-  const $prefix = document.getElementById("noPrefix");
-  const $cara   = document.getElementById("noCara");
-  const $img    = document.getElementById("noImg");
-  const $box    = document.getElementById("noBox");
-  const $msg    = document.getElementById("noMsg");
-
-  // estilos handles (inyectados aquí)
-  const styleId = "noHandleStyle";
-  if (!document.getElementById(styleId)){
-    const st = document.createElement("style");
-    st.id = styleId;
-    st.textContent = `
-      #noBox .noH{ position:absolute;width:14px;height:14px;background:#22c55e;border:2px solid #fff;box-shadow:0 0 0 1px #111;border-radius:4px; }
-      #noBox .noH[data-h="tl"]{left:-8px;top:-8px;cursor:nwse-resize;}
-      #noBox .noH[data-h="tr"]{right:-8px;top:-8px;cursor:nesw-resize;}
-      #noBox .noH[data-h="bl"]{left:-8px;bottom:-8px;cursor:nesw-resize;}
-      #noBox .noH[data-h="br"]{right:-8px;bottom:-8px;cursor:nwse-resize;}
-    `;
-    document.head.appendChild(st);
-  }
-
-  function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
-
-  function currentKey(){
-    return getOverlayKey($prefix.value, $cara.value);
-  }
-
-  function applyBoxToDom(box){
-    const w = $img.naturalWidth || 1;
-    const h = $img.naturalHeight || 1;
-
-    const left   = clamp(box.left,   0, 1) * w;
-    const top    = clamp(box.top,    0, 1) * h;
-    const right  = clamp(box.right,  0, 1) * w;
-    const bottom = clamp(box.bottom, 0, 1) * h;
-
-    $box.style.left = left + "px";
-    $box.style.top  = top + "px";
-    $box.style.width  = Math.max(10, right - left) + "px";
-    $box.style.height = Math.max(10, bottom - top) + "px";
-  }
-
-  function readBoxFromDom(){
-    const w = $img.naturalWidth || 1;
-    const h = $img.naturalHeight || 1;
-
-    const leftPx   = parseFloat($box.style.left || "0");
-    const topPx    = parseFloat($box.style.top || "0");
-    const widthPx  = parseFloat($box.style.width || "0");
-    const heightPx = parseFloat($box.style.height || "0");
-
-    const rightPx  = leftPx + widthPx;
-    const bottomPx = topPx + heightPx;
-
-    return {
-      left:   clamp(leftPx / w, 0, 1),
-      top:    clamp(topPx / h, 0, 1),
-      right:  clamp(rightPx / w, 0, 1),
-      bottom: clamp(bottomPx / h, 0, 1),
-    };
-  }
-
-  function persistCurrentBox(){
-    const key = currentKey();
-    const box = readBoxFromDom();
-    if (!nichosOverlayCfg) nichosOverlayCfg = {};
-    nichosOverlayCfg[key] = { box };
-    $msg.textContent = `Guardado en memoria: ${key} (listo para copiar JSON)`;
-  }
-
-  function loadImage(){
-    const prefix = ($prefix.value || "").trim().toUpperCase();
-    const cara   = ($cara.value || "").trim().toLowerCase();
-
-    // OJO: ajusta este path a tu convención real si es diferente
-    const src = `./assets/nichos/${prefix}-${cara}.png`;
-    $msg.textContent = `Imagen: ${src}`;
-    $img.src = src;
-
-    $img.onload = () => {
-      $img.style.width = $img.naturalWidth + "px";
-      $img.style.height = $img.naturalHeight + "px";
-
-      const boxCfg = getNichoGridBox(prefix, cara);
-      applyBoxToDom(boxCfg);
-    };
-
-    $img.onerror = () => {
-      $msg.textContent = `No encontré la imagen: ${src}`;
-    };
-  }
-
-  // drag move / resize
-  let dragMode = null; // "move" | "tl" | "tr" | "bl" | "br"
-  let start = null;
-
-  function onPointerDown(ev){
-    ev.preventDefault();
-    const t = ev.target;
-    const h = t?.getAttribute?.("data-h");
-    dragMode = h ? h : "move";
-
-    start = {
-      clientX: ev.clientX, clientY: ev.clientY,
-      left: parseFloat($box.style.left || "0"),
-      top: parseFloat($box.style.top || "0"),
-      width: parseFloat($box.style.width || "0"),
-      height: parseFloat($box.style.height || "0"),
-    };
-
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp, { once:true });
-  }
-
-  function onPointerMove(ev){
-    if (!start) return;
-
-    const dx = ev.clientX - start.clientX;
-    const dy = ev.clientY - start.clientY;
-
-    let left = start.left;
-    let top = start.top;
-    let width = start.width;
-    let height = start.height;
-
-    if (dragMode === "move"){
-      left = start.left + dx;
-      top  = start.top + dy;
-    } else {
-      if (dragMode === "tl"){
-        left = start.left + dx;
-        top = start.top + dy;
-        width = start.width - dx;
-        height = start.height - dy;
-      }
-      if (dragMode === "tr"){
-        top = start.top + dy;
-        width = start.width + dx;
-        height = start.height - dy;
-      }
-      if (dragMode === "bl"){
-        left = start.left + dx;
-        width = start.width - dx;
-        height = start.height + dy;
-      }
-      if (dragMode === "br"){
-        width = start.width + dx;
-        height = start.height + dy;
-      }
-    }
-
-    const imgW = $img.naturalWidth || 1;
-    const imgH = $img.naturalHeight || 1;
-
-    width = Math.max(10, width);
-    height = Math.max(10, height);
-
-    left = clamp(left, 0, imgW - width);
-    top  = clamp(top,  0, imgH - height);
-
-    $box.style.left = left + "px";
-    $box.style.top  = top + "px";
-    $box.style.width  = width + "px";
-    $box.style.height = height + "px";
-  }
-
-  function onPointerUp(){
-    window.removeEventListener("pointermove", onPointerMove);
-    start = null;
-    persistCurrentBox();
-  }
-
-  $box.addEventListener("pointerdown", onPointerDown);
-
-  // buttons
-  document.getElementById("noCopy").onclick = async () => {
-    const txt = JSON.stringify(nichosOverlayCfg || {}, null, 2);
-    try {
-      await navigator.clipboard.writeText(txt);
-      notify("JSON copiado. Pégalo en data/nichos-overlay.json", 2400);
-    } catch {
-      setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
-    }
-  };
-
-  document.getElementById("noReset").onclick = () => {
-    const key = currentKey();
-    if (!nichosOverlayCfg) nichosOverlayCfg = {};
-    nichosOverlayCfg[key] = { box: deepCopy(DEFAULT_NICHOS_GRID_BOX) };
-    applyBoxToDom(DEFAULT_NICHOS_GRID_BOX);
-    notify("Caja reseteada a default (en memoria).", 1800);
-  };
-
-  $prefix.onchange = loadImage;
-  $cara.onchange = loadImage;
-
-  loadImage();
 }
 
 // Decide qué archivo leer (compat: si manzana trae lotesFile, úsalo)
@@ -1094,7 +472,7 @@ function lotPinnedStyle(status){ const s = styleByStatus(status); return { ...s,
 
 function updateToggleLotsButton(){
   if (!$toggleLotsBtn) return;
-  const enabled = !!currentManzanaFeature && !(isEditSecciones || isEditManzanas || isEditLotes);
+  const enabled = !!currentManzanaFeature && !(isEditSecciones || isEditManzanas || isEditLotes || isEditNichos);
   $toggleLotsBtn.disabled = !enabled;
   $toggleLotsBtn.textContent = showAllLots ? "Ocultar lotes" : "Mostrar lotes";
 }
@@ -1225,12 +603,6 @@ let pinnedSeccionLayer = null;
 let pinnedManzanaLayer = null;
 let pinnedLotLayer = null;
 
-let pinnedNichoZonaLayer = null;
-
-function bringNichosZonasToFront(){
-  try { if (nichosZonasLayerPublic) nichosZonasLayerPublic.bringToFront(); } catch {}
-}
-
 function clearLotesLayer(){
   if (lotesLayer){ lotesLayer.remove(); lotesLayer = null; }
 }
@@ -1291,9 +663,7 @@ function renderSeccionesLayerPublic(){
         if (pinnedSeccionLayer !== layer) layer.setStyle({ ...hiddenStyle(), color: col, fillColor: col });
       });
 
-      layer.on("click", (ev) => {
-        // Si ya lo consumió otra capa (nichos), no ejecutar
-        try { if (ev?.originalEvent?.__nichosHandled) return; } catch {} 
+      layer.on("click", () => {
         if (pinnedSeccionLayer && pinnedSeccionLayer !== layer){
           const prevCol = getSeccionColor(pinnedSeccionLayer.feature);
           pinnedSeccionLayer.setStyle({ ...hiddenStyle(), color: prevCol, fillColor: prevCol });
@@ -1308,89 +678,13 @@ function renderSeccionesLayerPublic(){
       });
     }
   }).addTo(map);
+  bringNichosLayerToFront();
 
   setPanel("SECCIONES", `
     <p>1) Selecciona una <b>SECCIÓN</b> en el mapa.</p>
     <p>2) Luego seleccionarás una <b>MANZANA</b>.</p>
     <p>3) Después un <b>LOTE</b>.</p>
   `);
-   bringNichosZonasToFront();
-}
-
-function clearNichosZonasLayerPublic(){
-  if (nichosZonasLayerPublic){
-    try { nichosZonasLayerPublic.remove(); } catch {}
-    nichosZonasLayerPublic = null;
-  }
-  pinnedNichoZonaLayer = null;
-}
-
-function renderNichosZonasLayerPublic(){
-  // Solo en modo público
-  if (IS_EDIT) return;
-
-  // Si no hay data, no hacemos nada
-  const all = (nichosZonasScaled?.features || []);
-  const zonas = all.filter(f => (f?.properties?.tipo || "").toString().trim() === "zona");
-  if (!zonas.length) return;
-
-  // Limpia previa
-  clearNichosZonasLayerPublic();
-
-  const fc = { type:"FeatureCollection", features: zonas };
-
-pinnedNichoZonaLayer = null;
-
-nichosZonasLayerPublic = L.geoJSON(fc, {
-  style: () => {
-    // Igual que secciones/manzanas: oculto hasta hover
-    const col = "#3b82f6";
-    return { ...hiddenStyle(), color: col, fillColor: col };
-  },
-  pointToLayer: (feature, latlng) => {
-    const layer = featureToLayerCircleAware(feature, latlng);
-    try {
-      const col = "#3b82f6";
-      layer.setStyle({ ...hiddenStyle(), color: col, fillColor: col });
-    } catch {}
-    return layer;
-  },
-  onEachFeature: (feature, layer) => {
-    const col = "#3b82f6";
-
-    layer.on("mouseover", () => {
-      if (pinnedNichoZonaLayer !== layer) layer.setStyle(hoverStyle(col));
-    });
-
-    layer.on("mouseout", () => {
-      if (pinnedNichoZonaLayer !== layer) layer.setStyle({ ...hiddenStyle(), color: col, fillColor: col });
-    });
-
-    layer.on("click", (ev) => {
-      // MUY IMPORTANTE: evita que el click “atraviese” y seleccione la sección
-      try {
-        // ev es Leaflet event; originalEvent es el DOM event
-        if (ev?.originalEvent) ev.originalEvent.__nichosHandled = true;
-        L.DomEvent.stop(ev);
-        if (ev?.originalEvent) L.DomEvent.stop(ev.originalEvent);
-      } catch {}
-
-      if (pinnedNichoZonaLayer && pinnedNichoZonaLayer !== layer){
-        pinnedNichoZonaLayer.setStyle({ ...hiddenStyle(), color: col, fillColor: col });
-      }
-      pinnedNichoZonaLayer = layer;
-
-      const base = pinnedStyle(col);
-      layer.setStyle(base);
-      pulseLayer(layer, base, { ms: 220 });
-
-      nichosOpen(feature);
-    });
-  }
-}).addTo(map);
-
-// Asegura que la capa quede arriba de todo
-bringNichosZonasToFront();
 }
 
 function selectSeccionPublic(feature, layer){
@@ -1464,6 +758,7 @@ function renderManzanasLayer(filteredFeatures, opts){
       });
     }
   }).addTo(map);
+  bringNichosLayerToFront();
 
   if (opts?.panelTitle){
     setPanel(opts.panelTitle, opts.panelHtml || "");
@@ -1474,7 +769,6 @@ function renderManzanasLayer(filteredFeatures, opts){
       <p>3) Escribe <b>LOTE</b> (opcional) y presiona Buscar</p>
     `);
   }
-  bringNichosZonasToFront();
 }
 
 async function selectManzana(feature, layer){
@@ -1564,30 +858,22 @@ async function loadLotesForCurrentManzana(){
       });
     }
   }).addTo(map);
+  bringNichosLayerToFront();
 
   updateToggleLotsButton();
 
   const sec = currentSeccion || getPropSeccion(currentManzanaFeature);
   const man = getPropManzana(currentManzanaFeature);
-  const manzanaPkg = currentManzanaFeature?.properties?.paquete || null;
-
   setPanel(`SECCIÓN ${safe(sec)} — MANZANA ${safe(man)}`, `
-    <p><b>Paquete (manzana):</b> ${manzanaPkg ? safe(manzanaPkg) : "<i>Sin paquete asignado</i>"}</p>
     <p>Selecciona un lote o usa <b>Mostrar lotes</b>.</p>
   `);
-  bringNichosZonasToFront();
 }
 
 function showLoteInfo(feature){
   const props = feature?.properties || {};
-  const nichosZonaId =
-    (props.nichosZonaId || "").toString().trim() ||
-    (currentManzanaFeature?.properties?.nichosZonaId || "").toString().trim() ||
-    (currentSeccionFeature?.properties?.nichosZonaId || "").toString().trim();
-
   const loteVal = (props.lote || props.id || "").toString();
   const status = (props.estatus || "").toString() || (lotesInfo[loteVal]?.estatus) || "desconocido";
-  const paqueteKey = (props.paquete || currentManzanaFeature?.properties?.paquete || null);
+  const paqueteKey = (props.paquete || null);
 
   let html = `
     <p><b>SECCIÓN:</b> ${safe(currentSeccion || getPropSeccion(currentManzanaFeature))}</p>
@@ -1618,31 +904,183 @@ function showLoteInfo(feature){
     `;
   }
 
-  if (nichosZonaId){
-    html += `
-      <hr/>
-      <button id="btnNichos" style="padding:8px 12px;border-radius:8px;border:1px solid #111;background:#fff;cursor:pointer;">
-        Ver nichos
-      </button>
-      <p style="font-size:12px;color:#6b7280;margin-top:6px;">
-        Zona Nichos: <b>${safe(nichosZonaId)}</b>
-      </p>
-    `;
-  }
-
-  
   setPanel("Lote", html);
   const btn = document.getElementById("moreBtn");
   if (btn) btn.onclick = () => notify("Aquí irá el login + consulta segura del saldo.", 2200);
+}
 
-  const btnNichos = document.getElementById("btnNichos");
-  if (btnNichos){
-    btnNichos.onclick = () => {
-      if (!nichosZonaId) return;
-      nichosOpenByZonaId(nichosZonaId);
-    };
+/* =========================================================
+   NICHOS: selección dentro de la imagen (modal)
+   ========================================================= */
+const NICHOS_ROWS = ["A","B","C","D","E","F"]; // 6 filas
+const NICHOS_COLS = 79;                        // 79 nichos por fila
+const NICHOS_GRID_BOX = { left: 0.03, right: 0.97, top: 0.10, bottom: 0.95 };
+
+function clamp01(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
+
+function getNichoPrefixFromZona(zonaFeature){
+  const p = zonaFeature?.properties || {};
+  const direct = (p.prefix || p.codigo || p.tipo || "").toString().trim().toUpperCase();
+  if (direct === "PLN" || direct === "SPN") return direct;
+
+  const id = (p.id || "").toString().trim().toUpperCase();
+  if (id.startsWith("PLN")) return "PLN";
+  if (id.startsWith("SPN")) return "SPN";
+  return "PLN";
+}
+
+function nichoClickToGrid(rx, ry){
+  rx = clamp01(rx);
+  ry = clamp01(ry);
+
+  const box = NICHOS_GRID_BOX;
+  const gx = (rx - box.left) / (box.right - box.left);
+  const gy = (ry - box.top) / (box.bottom - box.top);
+  if (gx < 0 || gx > 1 || gy < 0 || gy > 1) return null;
+
+  const col = Math.floor(gx * NICHOS_COLS) + 1;              // 1..79
+  const rowIndex = Math.floor(gy * NICHOS_ROWS.length);      // 0..5
+
+  const numero = Math.min(Math.max(col, 1), NICHOS_COLS);
+  const filaIndex = Math.min(Math.max(rowIndex, 0), NICHOS_ROWS.length - 1);
+
+  return { numero, filaIndex };
+}
+
+function buildNichoCode(prefix, numero, fila, cara){
+  const suf = (cara === "convexo") ? "X" : "";
+  return `${prefix}-${numero}-${fila}${suf}`;
+}
+
+function drawNichoHighlight(clickLayerEl, rx, ry){
+  let hl = document.getElementById("nichoHighlight");
+  if (!hl){
+    hl = document.createElement("div");
+    hl.id = "nichoHighlight";
+    hl.style.position = "absolute";
+    hl.style.border = "2px solid #ef4444";
+    hl.style.borderRadius = "6px";
+    hl.style.pointerEvents = "none";
+    clickLayerEl.appendChild(hl);
   }
 
+  const box = NICHOS_GRID_BOX;
+  const gx = (rx - box.left) / (box.right - box.left);
+  const gy = (ry - box.top) / (box.bottom - box.top);
+  if (gx < 0 || gx > 1 || gy < 0 || gy > 1){
+    hl.style.display = "none";
+    return;
+  }
+
+  const cellW = (box.right - box.left) / NICHOS_COLS;
+  const cellH = (box.bottom - box.top) / NICHOS_ROWS.length;
+
+  const rectLeft = box.left + (Math.floor(gx * NICHOS_COLS) * cellW);
+  const rectTop  = box.top  + (Math.floor(gy * NICHOS_ROWS.length) * cellH);
+
+  hl.style.display = "block";
+  hl.style.left = `${rectLeft * 100}%`;
+  hl.style.top  = `${rectTop * 100}%`;
+  hl.style.width  = `${cellW * 100}%`;
+  hl.style.height = `${cellH * 100}%`;
+}
+
+function openNichoModal(zonaFeature){
+  const modal = document.getElementById("nichoModal");
+  const sub   = document.getElementById("nichoModalSub");
+  const img   = document.getElementById("nichoImg");
+  const layer = document.getElementById("nichoClickLayer");
+  const hint  = document.getElementById("nichoHint");
+  const debug = document.getElementById("nichoDebug");
+
+  if (!modal || !sub || !img || !layer || !hint || !debug){
+    notify("Falta el modal de nichos en index.html (IDs nichoModal, nichoImg, etc.).", 2600);
+    return;
+  }
+
+  const zonaId = zonaFeature?.properties?.id || "SIN-ID";
+  const prefix = getNichoPrefixFromZona(zonaFeature);
+
+  nichoSelection = { zonaId, cara: null, numero: null };
+
+  sub.textContent = `Zona: ${zonaId} (${prefix}) — Elige cara`;
+  hint.textContent = "1) Elige cóncavo o convexo. 2) Luego da click en el nicho.";
+  debug.textContent = "";
+
+  img.style.display = "none";
+  layer.style.display = "none";
+  img.src = "";
+
+  modal.style.display = "flex";
+
+  const close = () => { modal.style.display = "none"; };
+  const closeBtn = document.getElementById("nichoCloseBtn");
+  if (closeBtn) closeBtn.onclick = close;
+  modal.onclick = (e) => { if (e.target === modal) close(); };
+
+  const setCara = (cara) => {
+    nichoSelection.cara = cara;
+    sub.textContent = `Zona: ${zonaId} (${prefix}) — Cara: ${cara} — Selecciona nicho`;
+
+    const src = `./assets/nichos/${prefix}-${cara}.png`;
+
+    img.src = src;
+    img.onload = () => {
+      img.style.display = "block";
+      layer.style.display = "block";
+
+      layer.style.width = img.naturalWidth + "px";
+      layer.style.height = img.naturalHeight + "px";
+      img.style.width = img.naturalWidth + "px";
+      img.style.height = img.naturalHeight + "px";
+
+      hint.textContent = `Da click sobre el nicho. Ejemplo: ${prefix}-68-${cara === "convexo" ? "AX" : "A"}`;
+      debug.textContent = "";
+
+      const oldHL = document.getElementById("nichoHighlight");
+      if (oldHL) oldHL.remove();
+    };
+    img.onerror = () => {
+      img.style.display = "none";
+      layer.style.display = "none";
+      hint.textContent = `No encontré la imagen: ${src}`;
+      debug.textContent = "";
+    };
+  };
+
+  const concBtn = document.getElementById("caraConcavoBtn");
+  const convBtn = document.getElementById("caraConvexoBtn");
+  if (concBtn) concBtn.onclick = () => setCara("concavo");
+  if (convBtn) convBtn.onclick = () => setCara("convexo");
+
+  layer.onclick = (ev) => {
+    if (!nichoSelection.cara) return;
+
+    const rect = layer.getBoundingClientRect();
+    const rx = (ev.clientX - rect.left) / rect.width;
+    const ry = (ev.clientY - rect.top) / rect.height;
+
+    const cell = nichoClickToGrid(rx, ry);
+    if (!cell){
+      hint.textContent = "Click fuera del área de nichos. Intenta dentro del cuadro de nichos.";
+      return;
+    }
+
+    const numero = cell.numero;
+    const fila = NICHOS_ROWS[cell.filaIndex];
+    const code = buildNichoCode(prefix, numero, fila, nichoSelection.cara);
+
+    nichoSelection.numero = numero;
+
+    drawNichoHighlight(layer, rx, ry);
+    debug.textContent = `Seleccionado: ${code}`;
+
+    setPanel("Nicho seleccionado", `
+      <p><b>Código:</b> ${safe(code)}</p>
+      <p><b>Zona:</b> ${safe(zonaId)}</p>
+      <p><b>Cara:</b> ${safe(nichoSelection.cara)}</p>
+    `);
+  };
 }
 
 /* =========================================================
@@ -1979,7 +1417,7 @@ function getActiveEditDatasetArr(){
   if (isEditSecciones) return seccionesTopRaw?.features || null;
   if (isEditManzanas)  return manzanasRaw?.features || null;
   if (isEditLotes)     return currentLotesRaw?.features || null;
-  if (isEditNichos)    return (nichosZonasRaw?.features || null);
+  if (isEditNichos)    return nichosZonasRaw?.features || null;
   return null;
 }
 
@@ -2462,7 +1900,7 @@ function getEditDataset(){
   if (isEditSecciones) return { label:"SECCIONES", data: seccionesTopRaw, dest: SECCIONES_TOP_URL };
   if (isEditManzanas)  return { label:"MANZANAS",  data: manzanasRaw,     dest: MANZANAS_URL };
   if (isEditLotes)     return { label:"LOTES",     data: currentLotesRaw, dest: currentLotesSourceUrl || (getSelectedSeccion() ? getSharedLotesUrlForSeccion(getSelectedSeccion()) : "(elige SECCIÓN)") };
-  if (isEditNichos)    return { label:"NICHOS-ZONAS", data: nichosZonasRaw, dest: NICHOS_ZONAS_URL };
+  if (isEditNichos)    return { label:"NICHOS",    data: nichosZonasRaw,  dest: NICHOS_ZONAS_URL };
   return null;
 }
 
@@ -2502,32 +1940,6 @@ function renderEditSelectedPanel(){
     `;
   }
 
-  let paqueteOptionsHtml = "";
-  if (isEditManzanas && editor.selectedFeature){
-    const curPkg = (editor.selectedFeature?.properties?.paquete || "").toString().trim();
-
-    const pkgKeys = Object.keys(paquetesInfo || {}).sort((a,b) =>
-      a.localeCompare(b, "es", { sensitivity:"base" })
-    );
-
-    const opts = [
-      `<option value="">(sin paquete)</option>`,
-      ...pkgKeys.map(k => {
-        const sel = (curPkg && k === curPkg) ? "selected" : "";
-        const label = (paquetesInfo?.[k]?.nombre) ? `${k} — ${paquetesInfo[k].nombre}` : k;
-        return `<option value="${safe(k)}" ${sel}>${safe(label)}</option>`;
-      })
-    ].join("");
-
-    paqueteOptionsHtml = `
-      <hr/>
-      <label><b>Paquete de la manzana</b></label><br/>
-      <select id="editManzanaPaquete" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;">${opts}</select>
-      <p style="font-size:12px;color:#6b7280;margin-top:-2px;">
-        Este paquete se usará como default para los lotes de esta manzana que no tengan paquete propio.
-      </p>
-    `;
-  }
 
   const modeLabel = (editor.editSubmode === "vertices") ? "Edición de puntos" : "Mover/Escalar";
 
@@ -2545,7 +1957,6 @@ function renderEditSelectedPanel(){
       style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
 
     ${manzanaOptionsHtml}
-    ${paqueteOptionsHtml}
 
     ${showColor ? `
       <hr/>
@@ -2626,18 +2037,6 @@ function renderEditSelectedPanel(){
       ensureLoteContextProps(editor.selectedFeature, getSelectedSeccion(), man);
       rerenderLotes_Edit();
       notify('Manzana actualizada (en memoria).', 1200);
-    };
-  }
-  const $pkgSel = document.getElementById("editManzanaPaquete");
-  if ($pkgSel){
-    $pkgSel.onchange = () => {
-      const pkg = ($pkgSel.value || "").toString().trim();
-      if (!editor.selectedFeature.properties) editor.selectedFeature.properties = {};
-      if (!pkg) delete editor.selectedFeature.properties.paquete;
-      else editor.selectedFeature.properties.paquete = pkg;
-
-      rerenderManzanas_Edit();
-      notify("Paquete de manzana actualizado (en memoria).", 1400);
     };
   }
   if (showColor){
@@ -2743,6 +2142,7 @@ function renderEditSelectedPanel(){
     if (isEditSecciones) renderEditSeccionesPanel();
     else if (isEditManzanas) renderEditManzanasPanel();
     else if (isEditLotes) renderEditLotesPanel();
+    else renderEditNichosPanel();
   };
 }
 
@@ -3178,6 +2578,123 @@ function renderEditManzanasPanel(){
   document.getElementById("btnEdit").click();
 }
 
+function renderEditNichosPanel(){
+  editor.mode = "edit";
+  editor.drawShape = "polygon";
+  editor.gridArmed = false;
+  editor.gridConfig = null;
+  editor.pasteArmed = false;
+
+  editorClearPoly(); editorClearCircle(); editorStopEditing();
+  clearMultiSelection();
+
+  setPanel("Edición: NICHOS", `
+    <p>Editor de <b>Zonas de Nichos</b>.</p>
+    <p style="font-size:12px;color:#6b7280;">
+      Click normal: selecciona y permite <b>mover/escalar</b>. “Editar puntos” para vértices.<br/>
+      Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click.
+    </p>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button id="btnEdit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Editar existente</button>
+      <button id="btnCreate" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Crear nueva</button>
+      <button id="btnCopy" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar GeoJSON</button>
+      <button id="btnExit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Salir</button>
+    </div>
+
+    <hr/>
+    <div id="editBody"></div>
+
+    <p style="font-size:12px;color:#666;margin-top:10px;">
+      Destino: <b>${safe(NICHOS_ZONAS_URL)}</b>
+    </p>
+  `);
+
+  const $editBody = document.getElementById("editBody");
+
+  document.getElementById("btnEdit").onclick = () => {
+    editor.mode = "edit";
+    editorClearPoly(); editorClearCircle();
+    editorStopEditing();
+    clearMultiSelection();
+    $editBody.innerHTML = `<p><b>Editar:</b> clic en una zona de nichos para seleccionar.</p>`;
+    rerenderNichos_Edit();
+  };
+
+  document.getElementById("btnCreate").onclick = () => {
+    editor.mode = "create";
+    editorStopEditing();
+    clearMultiSelection();
+    clearGroupTransformUI();
+    editorClearPoly(); editorClearCircle();
+
+    $editBody.innerHTML = `
+      <p><b>Crear zona de nichos:</b></p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+        <button id="btnPoly" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Polígono</button>
+        <button id="btnCircle" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Círculo</button>
+        <button id="btnClear" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Limpiar</button>
+      </div>
+
+      <p><b>Puntos (polígono):</b> <span id="ptCount">0</span></p>
+
+      <label><b>ID zona</b></label><br/>
+      <input id="newZonaId" placeholder="Ej. PLN" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
+
+      <label><b>Prefijo</b> (PLN o SPN)</label><br/>
+      <select id="newPrefix" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;">
+        <option>PLN</option>
+        <option>SPN</option>
+      </select>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+        <button id="btnSaveNew" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Guardar zona</button>
+      </div>
+    `;
+
+    document.getElementById("btnPoly").onclick = () => { editor.drawShape = "polygon"; };
+    document.getElementById("btnCircle").onclick = () => { editor.drawShape = "circle"; };
+    document.getElementById("btnClear").onclick = () => { editorClearPoly(); editorClearCircle(); };
+
+    document.getElementById("btnSaveNew").onclick = () => {
+      const id = (document.getElementById("newZonaId").value || "").trim();
+      const prefix = (document.getElementById("newPrefix").value || "PLN").trim();
+      if (!id) return notify("Falta ID zona.", 2000);
+
+      const props = { id, prefix };
+
+      let feature = null;
+      if (editor.drawShape === "polygon"){
+        if (editor.polyPoints.length < 3) return notify("Polígono: mínimo 3 puntos.", 2200);
+        feature = { type:"Feature", geometry:{ type:"Polygon", coordinates:ringToGeoJsonCoords(editor.polyPoints) }, properties: props };
+      } else {
+        if (!editor.circleCenter || typeof editor.circleRadius !== "number") return notify("Círculo: clic centro y luego borde.", 2200);
+        feature = { type:"Feature", geometry:{ type:"Point", coordinates: latLngToXY(editor.circleCenter) }, properties:{ ...props, shape:"circle", radius: editor.circleRadius } };
+      }
+
+      nichosZonasRaw.features.push(feature);
+      editorClearPoly(); editorClearCircle();
+      rerenderNichos_Edit();
+      notify("✅ Zona creada (en memoria). Usa 'Copiar GeoJSON' para pegar en el archivo.", 2400);
+    };
+
+    rerenderNichos_Edit();
+  };
+
+  document.getElementById("btnCopy").onclick = async () => {
+    const txt = JSON.stringify(nichosZonasRaw || { type:"FeatureCollection", features:[] }, null, 2);
+    try {
+      await navigator.clipboard.writeText(txt);
+      notify("GeoJSON copiado. Pégalo en data/nichos-zonas.geojson.", 2400);
+    } catch {
+      setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
+    }
+  };
+
+  document.getElementById("btnExit").onclick = () => location.href = "./";
+  document.getElementById("btnEdit").click();
+}
+
 function renderEditLotesPanel(){
   // NOTA: en editor LOTES, el dataset es por SECCIÓN (archivo compartido).
   // La MANZANA es solo un filtro visual.
@@ -3477,172 +2994,6 @@ function renderEditLotesPanel(){
   document.getElementById('btnEdit').click();
 }
 
-function renderEditNichosPanel(){
-  editor.mode = "edit";
-  editor.drawShape = "polygon";
-  editor.gridArmed = false;
-  editor.gridConfig = null;
-  editor.pasteArmed = false;
-
-  editorClearPoly(); editorClearCircle(); editorStopEditing();
-  clearMultiSelection();
-
-  setPanel("Edición: NICHOS (ZONAS)", `
-    <p>Editor de <b>ZONAS</b> de nichos en <code>${safe(NICHOS_ZONAS_URL)}</code>.</p>
-    <p style="font-size:12px;color:#6b7280;">
-      • Click normal: selecciona y permite <b>mover/escalar</b>.<br/>
-      • Botón “Editar puntos” para vértices.<br/>
-      • Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click.
-    </p>
-
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <button id="btnEdit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Editar existente</button>
-      <button id="btnCreate" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Crear zona</button>
-      <button id="btnCopy" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Copiar GeoJSON</button>
-      <button id="btnExit" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Salir</button>
-    </div>
-
-    <hr/>
-    <div id="editBody"></div>
-
-    <p style="font-size:12px;color:#666;margin-top:10px;">
-      Destino: <b>${safe(NICHOS_ZONAS_URL)}</b>
-    </p>
-  `);
-
-  const $editBody = document.getElementById("editBody");
-
-  document.getElementById("btnEdit").onclick = () => {
-    editor.mode = "edit";
-    editorClearPoly(); editorClearCircle();
-    editorStopEditing();
-    clearMultiSelection();
-    $editBody.innerHTML = `<p><b>Editar:</b> clic en una zona para seleccionar.</p>`;
-    rerenderNichos_Edit();
-  };
-
-  document.getElementById("btnCreate").onclick = () => {
-    editor.mode = "create";
-    editorStopEditing();
-    clearMultiSelection();
-    clearGroupTransformUI();
-    editorClearPoly(); editorClearCircle();
-
-    $editBody.innerHTML = `
-      <p><b>Crear zona:</b> (polígono o círculo)</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-        <button id="btnPoly" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Polígono</button>
-        <button id="btnCircle" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Círculo</button>
-        <button id="btnClear" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Limpiar</button>
-      </div>
-
-      <p><b>Puntos (polígono):</b> <span id="ptCount">0</span></p>
-
-      <label><b>ID zona</b> (ej. PLN)</label><br/>
-      <input id="newZonaId" placeholder="Ej. PLN" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
-
-      <label><b>Nombre</b></label><br/>
-      <input id="newZonaNombre" placeholder="Ej. BUEN PASTOR NICHOS" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
-
-      <label><b>Imagen Convexo</b></label><br/>
-      <input id="newImgConvexo" placeholder="./assets/nichos/PLN-convexo.png" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
-
-      <label><b>Imagen Cóncavo</b></label><br/>
-      <input id="newImgConcavo" placeholder="./assets/nichos/PLN-concavo.png" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
-
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-        <button id="btnSaveNew" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">Guardar</button>
-      </div>
-    `;
-
-    document.getElementById("btnPoly").onclick = () => { editor.drawShape = "polygon"; };
-    document.getElementById("btnCircle").onclick = () => { editor.drawShape = "circle"; };
-    document.getElementById("btnClear").onclick = () => { editorClearPoly(); editorClearCircle(); };
-
-    document.getElementById("btnSaveNew").onclick = () => {
-      if (!nichosZonasRaw) nichosZonasRaw = { type:"FeatureCollection", features:[] };
-
-      const id = (document.getElementById("newZonaId").value || "").trim();
-      const nombre = (document.getElementById("newZonaNombre").value || "").trim();
-      const imgConv = (document.getElementById("newImgConvexo").value || "").trim();
-      const imgConc = (document.getElementById("newImgConcavo").value || "").trim();
-
-      if (!id) return notify("Falta ID zona.", 2000);
-
-      const props = {
-        tipo: "zona",
-        id,
-        nombre: nombre || id,
-        imagenConvexo: imgConv,
-        imagenConcavo: imgConc
-      };
-
-      let feature = null;
-      if (editor.drawShape === "polygon"){
-        if (editor.polyPoints.length < 3) return notify("Polígono: mínimo 3 puntos.", 2200);
-        feature = { type:"Feature", geometry:{ type:"Polygon", coordinates:ringToGeoJsonCoords(editor.polyPoints) }, properties: props };
-      } else {
-        if (!editor.circleCenter || typeof editor.circleRadius !== "number") return notify("Círculo: clic centro y luego borde.", 2200);
-        feature = { type:"Feature", geometry:{ type:"Point", coordinates: latLngToXY(editor.circleCenter) }, properties:{ ...props, shape:"circle", radius: editor.circleRadius } };
-      }
-
-      nichosZonasRaw.features.push(feature);
-      editorClearPoly(); editorClearCircle();
-      rerenderNichos_Edit();
-      notify("✅ Zona creada (en memoria). Usa 'Copiar GeoJSON' para pegar en el archivo.", 2400);
-    };
-
-    rerenderNichos_Edit();
-  };
-
-  document.getElementById("btnCopy").onclick = async () => {
-    const txt = JSON.stringify(nichosZonasRaw || { type:"FeatureCollection", features:[] }, null, 2);
-    try {
-      await navigator.clipboard.writeText(txt);
-      notify("GeoJSON copiado. Pégalo en data/nichos-zonas.geojson.", 2400);
-    } catch {
-      setPanel("Copia manual", `<pre style="white-space:pre-wrap">${safe(txt)}</pre>`);
-    }
-  };
-
-  document.getElementById("btnExit").onclick = () => location.href = "./";
-  document.getElementById("btnEdit").click();
-}
-
-function rerenderNichos_Edit(){
-  // Reusa manzanasLayer como “capa editable” de nichos (no afecta público)
-  if (manzanasLayer){ manzanasLayer.remove(); manzanasLayer = null; }
-  editorStopVertexEditing();
-  clearGroupTransformUI();
-
-  const all = (nichosZonasRaw?.features || []);
-  const zonas = all.filter(f => (f?.properties?.tipo || "").toString().trim() === "zona");
-
-  const fc = { type:"FeatureCollection", features: zonas };
-
-  manzanasLayer = L.geoJSON(fc, {
-    style: { weight: 2, opacity: 1, fillOpacity: 0.06 },
-    interactive: (editor.mode === "edit"),
-    pointToLayer: (feature, latlng) => {
-      const layer = featureToLayerCircleAware(feature, latlng);
-      try { layer.setStyle({ weight:2, opacity:1, fillOpacity:0.06 }); } catch {}
-      return layer;
-    },
-    onEachFeature: (feature, layer) => {
-      layer.on("click", (ev) => handleEditorFeatureClick(feature, layer, ev));
-    }
-  }).addTo(map);
-
-  rebuildSelectedLayersFromLayerGroup(manzanasLayer);
-  applyMultiSelectionStyle();
-  if (editor.selectedSet.size > 0){
-    showGroupTransformHandles();
-    if (editor.selectedSet.size === 1 && editor.editSubmode === "transform"){
-      renderEditSelectedPanel();
-    }
-  }
-}
-
 function renderCircularRepeatPanel(){
   const $editBody = document.getElementById('editBody');
   if (!$editBody) return;
@@ -3912,7 +3263,33 @@ function rerenderLotes_Edit(){
 }
 
 
+function rerenderNichos_Edit(){
+  if (nichosLayerEdit){ nichosLayerEdit.remove(); nichosLayerEdit = null; }
+  editorStopVertexEditing();
+  clearGroupTransformUI();
 
+  nichosLayerEdit = L.geoJSON(nichosZonasRaw || { type:"FeatureCollection", features:[] }, {
+    style: { weight: 2, opacity: 1, fillOpacity: 0.06 },
+    interactive: (editor.mode === "edit"),
+    pointToLayer: (feature, latlng) => {
+      const layer = featureToLayerCircleAware(feature, latlng);
+      try { layer.setStyle({ weight:2, opacity:1, fillOpacity:0.06 }); } catch {}
+      return layer;
+    },
+    onEachFeature: (feature, layer) => {
+      layer.on("click", (ev) => handleEditorFeatureClick(feature, layer, ev));
+    }
+  }).addTo(map);
+
+  rebuildSelectedLayersFromLayerGroup(nichosLayerEdit);
+  applyMultiSelectionStyle();
+  if (editor.selectedSet.size > 0){
+    showGroupTransformHandles();
+    if (editor.selectedSet.size === 1 && editor.editSubmode === "transform"){
+      renderEditSelectedPanel();
+    }
+  }
+}
 
 /* =========================================================
    MAP CLICK HANDLER (CREATE + PASTE + GRID)
@@ -4138,6 +3515,297 @@ function attachEditorMapClick(){
   });
 }
 
+
+
+/* =========================================================
+   EDITOR: NICHOS OVERLAY (FULLSCREEN)
+   - URL: ?edit=nichos-overlay
+   - 2 dropdowns: Zona (SPN/PLN/...) y Cara (convexo/concavo)
+   - Fit inicial lo mas zoom-out posible
+   - Zoom ajustable
+   ========================================================= */
+
+function renderEditNichosOverlayPanel(){
+  // Oculta el layout principal (mapa/panel) y crea un editor fullscreen independiente
+  const layout = document.querySelector('.layout');
+  if (layout) layout.style.display = 'none';
+
+  // contenedor fullscreen
+  let root = document.getElementById('nichosOverlayEditor');
+  if (!root){
+    root = document.createElement('div');
+    root.id = 'nichosOverlayEditor';
+    document.body.appendChild(root);
+  }
+
+  // construir catálogo de zonas desde nichosZonasRaw
+  const zonas = (nichosZonasRaw?.features || []).filter(f => (f?.properties?.tipo || '').toString().trim() === 'zona');
+  const zonaIds = zonas.map(z => (z?.properties?.id || '').toString().trim()).filter(Boolean).sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
+
+  const defaultZona = zonaIds[0] || 'PLN';
+
+  root.innerHTML = `
+    <div class="noTop">
+      <div class="noRow">
+        <label>Zona</label>
+        <select id="noZona">
+          ${zonaIds.map(id => `<option value="${safe(id)}" ${id===defaultZona?'selected':''}>${safe(id)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="noRow">
+        <label>Cara</label>
+        <select id="noCara">
+          <option value="convexo">convexo</option>
+          <option value="concavo">concavo</option>
+        </select>
+      </div>
+      <div class="noRow">
+        <label>Zoom</label>
+        <input id="noZoom" type="range" min="10" max="250" value="100" />
+        <span id="noZoomPct">100%</span>
+      </div>
+      <div class="noBtns">
+        <button id="noCopy">Copiar JSON</button>
+        <button id="noReset">Reset caja</button>
+        <button id="noExit">Salir</button>
+      </div>
+      <div id="noMsg" class="noMsg"></div>
+    </div>
+
+    <div id="noStage" class="noStage">
+      <div id="noCanvas" class="noCanvas">
+        <img id="noImg" alt="nichos" />
+        <div id="noBox" class="noBox" style="touch-action:none;">
+          <div class="noH" data-h="tl"></div>
+          <div class="noH" data-h="tr"></div>
+          <div class="noH" data-h="bl"></div>
+          <div class="noH" data-h="br"></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const $zona = document.getElementById('noZona');
+  const $cara = document.getElementById('noCara');
+  const $zoom = document.getElementById('noZoom');
+  const $zoomPct = document.getElementById('noZoomPct');
+  const $img = document.getElementById('noImg');
+  const $box = document.getElementById('noBox');
+  const $msg = document.getElementById('noMsg');
+  const $stage = document.getElementById('noStage');
+  const $canvas = document.getElementById('noCanvas');
+
+  document.getElementById('noExit').onclick = () => location.href = './';
+
+  function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
+  function key(){
+    return `${String($zona.value||'').toUpperCase()}-${String($cara.value||'').toLowerCase()}`;
+  }
+
+  function getZonaFeature(){
+    const id = String($zona.value||'').trim();
+    return zonas.find(z => String(z?.properties?.id||'').trim() === id) || null;
+  }
+
+  function getImgUrl(){
+    const z = getZonaFeature();
+    if (!z) return null;
+    const p = z.properties || {};
+    return ($cara.value === 'concavo') ? (p.imagenConcavo || null) : (p.imagenConvexo || null);
+  }
+
+  function applyBoxToDom(box){
+    const w = $img.naturalWidth || 1;
+    const h = $img.naturalHeight || 1;
+    const left   = clamp(box.left,   0, 1) * w;
+    const top    = clamp(box.top,    0, 1) * h;
+    const right  = clamp(box.right,  0, 1) * w;
+    const bottom = clamp(box.bottom, 0, 1) * h;
+    $box.style.left = left + 'px';
+    $box.style.top  = top + 'px';
+    $box.style.width  = Math.max(10, right - left) + 'px';
+    $box.style.height = Math.max(10, bottom - top) + 'px';
+  }
+
+  function readBoxFromDom(){
+    const w = $img.naturalWidth || 1;
+    const h = $img.naturalHeight || 1;
+    const leftPx   = parseFloat($box.style.left || '0');
+    const topPx    = parseFloat($box.style.top || '0');
+    const widthPx  = parseFloat($box.style.width || '0');
+    const heightPx = parseFloat($box.style.height || '0');
+    const rightPx  = leftPx + widthPx;
+    const bottomPx = topPx + heightPx;
+    return {
+      left:   clamp(leftPx / w, 0, 1),
+      top:    clamp(topPx / h, 0, 1),
+      right:  clamp(rightPx / w, 0, 1),
+      bottom: clamp(bottomPx / h, 0, 1),
+    };
+  }
+
+  function persist(){
+    const k = key();
+    const box = readBoxFromDom();
+    if (!nichosOverlayCfg) nichosOverlayCfg = {};
+    nichosOverlayCfg[k] = { box };
+    $msg.textContent = `Guardado en memoria: ${k}`;
+  }
+
+  // Zoom via transform en canvas
+  function setZoom(scale){
+    const pct = Math.round(scale * 100);
+    $canvas.style.transform = `scale(${scale})`;
+    $zoom.value = String(clamp(pct, 10, 250));
+    $zoomPct.textContent = `${pct}%`;
+  }
+
+  function fitZoom(){
+    const w = $img.naturalWidth || 1;
+    const h = $img.naturalHeight || 1;
+    const sw = $stage.clientWidth || 1;
+    const sh = $stage.clientHeight || 1;
+    const s = Math.min(sw / w, sh / h);
+    setZoom(clamp(s, 0.10, 2.50));
+  }
+
+  function load(){
+    const url = getImgUrl();
+    if (!url){
+      $msg.textContent = 'No hay imagen definida para esta zona/cara. Revisa nichos-zonas.geojson.';
+      $img.src = '';
+      return;
+    }
+    $msg.textContent = `Imagen: ${url}`;
+
+    $img.onload = () => {
+      // reset canvas transform y ajustar zoom para ver toda la imagen
+      $canvas.style.transformOrigin = '0 0';
+      const boxCfg = getNichoGridBox($zona.value, $cara.value);
+      applyBoxToDom(boxCfg);
+      fitZoom();
+    };
+    $img.onerror = () => {
+      $msg.textContent = `No pude cargar: ${url}`;
+    };
+
+    $img.src = url;
+  }
+
+  // drag move / resize box
+  let dragMode = null;
+  let start = null;
+
+  function onPointerDown(ev){
+    ev.preventDefault();
+    const t = ev.target;
+    const h = t?.getAttribute?.('data-h');
+    dragMode = h ? h : 'move';
+
+    start = {
+      x: ev.clientX, y: ev.clientY,
+      left: parseFloat($box.style.left || '0'),
+      top: parseFloat($box.style.top || '0'),
+      width: parseFloat($box.style.width || '0'),
+      height: parseFloat($box.style.height || '0'),
+    };
+
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp, { once:true });
+  }
+
+  function onPointerMove(ev){
+    if (!start) return;
+    const dx = ev.clientX - start.x;
+    const dy = ev.clientY - start.y;
+
+    let left = start.left;
+    let top = start.top;
+    let width = start.width;
+    let height = start.height;
+
+    if (dragMode === 'move'){
+      left = start.left + dx;
+      top  = start.top + dy;
+    } else {
+      if (dragMode === 'tl'){
+        left = start.left + dx;
+        top = start.top + dy;
+        width = start.width - dx;
+        height = start.height - dy;
+      }
+      if (dragMode === 'tr'){
+        top = start.top + dy;
+        width = start.width + dx;
+        height = start.height - dy;
+      }
+      if (dragMode === 'bl'){
+        left = start.left + dx;
+        width = start.width - dx;
+        height = start.height + dy;
+      }
+      if (dragMode === 'br'){
+        width = start.width + dx;
+        height = start.height + dy;
+      }
+    }
+
+    const imgW = $img.naturalWidth || 1;
+    const imgH = $img.naturalHeight || 1;
+
+    width = Math.max(10, width);
+    height = Math.max(10, height);
+    left = clamp(left, 0, imgW - width);
+    top  = clamp(top, 0, imgH - height);
+
+    $box.style.left = left + 'px';
+    $box.style.top  = top + 'px';
+    $box.style.width = width + 'px';
+    $box.style.height = height + 'px';
+  }
+
+  function onPointerUp(){
+    window.removeEventListener('pointermove', onPointerMove);
+    start = null;
+    persist();
+  }
+
+  $box.addEventListener('pointerdown', onPointerDown);
+
+  // controls
+  $zona.onchange = load;
+  $cara.onchange = load;
+
+  $zoom.oninput = () => {
+    const pct = Number($zoom.value || 100);
+    setZoom(clamp(pct/100, 0.10, 2.50));
+  };
+
+  document.getElementById('noCopy').onclick = async () => {
+    const txt = JSON.stringify(nichosOverlayCfg || {}, null, 2);
+    try {
+      await navigator.clipboard.writeText(txt);
+      notify('JSON copiado. Pégalo en data/nichos-overlay.json', 2400);
+    } catch {
+      // fallback: abre en una nueva pestaña (más descargable)
+      const blob = new Blob([txt], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    }
+  };
+
+  document.getElementById('noReset').onclick = () => {
+    const k = key();
+    if (!nichosOverlayCfg) nichosOverlayCfg = {};
+    nichosOverlayCfg[k] = { box: JSON.parse(JSON.stringify(DEFAULT_NICHOS_GRID_BOX)) };
+    applyBoxToDom(DEFAULT_NICHOS_GRID_BOX);
+    notify('Caja reseteada a default (en memoria).', 1800);
+  };
+
+  // primer load
+  load();
+}
 /* =========================================================
    INIT
    ========================================================= */
@@ -4152,9 +3820,16 @@ async function main(){
     preferCanvas: true
   });
 
+  // Pane para nichos (encima de secciones/manzanas)
+  try {
+    if (!map.getPane('nichosPane')) {
+      map.createPane('nichosPane');
+      map.getPane('nichosPane').style.zIndex = 650;
+    }
+  } catch {}
+
   try { lotesInfo = await loadJson(LOTES_INFO_URL); } catch { lotesInfo = {}; }
   try { paquetesInfo = await loadJson(PAQUETES_URL); } catch { paquetesInfo = {}; }
-  try { nichosOverlayCfg = await loadJson(NICHOS_OVERLAY_CFG_URL); } catch { nichosOverlayCfg = {}; }
 
   const img = new Image();
   img.onload = async () => {
@@ -4177,10 +3852,8 @@ async function main(){
       try { seccionesTopRaw = await loadJson(SECCIONES_TOP_URL); }
       catch { seccionesTopRaw = { type:"FeatureCollection", features: [] }; }
 
-      // Nichos zonas (si existe)
       try { nichosZonasRaw = await loadJson(NICHOS_ZONAS_URL); }
-      catch { nichosZonasRaw = { type:"FeatureCollection", features:[] }; }
-
+      catch { nichosZonasRaw = { type:"FeatureCollection", features: [] }; }
 
       // ====== EDIT SECCIONES ======
       if (isEditSecciones){
@@ -4205,6 +3878,19 @@ async function main(){
 
         rerenderManzanas_Edit();
         renderEditManzanasPanel();
+        return;
+      }
+
+      // ====== EDIT NICHOS ======
+      if (isEditNichos){
+        if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
+        if ($searchBtn) $searchBtn.disabled = true;
+
+        $seccionSelect.innerHTML = `<option value="">(Edición NICHOS)</option>`;
+        $manzanaSelect.innerHTML = `<option value="">(Edición NICHOS)</option>`;
+
+        rerenderNichos_Edit();
+        renderEditNichosPanel();
         return;
       }
 
@@ -4300,32 +3986,19 @@ async function main(){
         return;
       }
 
-      // ====== EDIT NICHOS (ZONAS) ======
-      if (isEditNichos){
-        if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
-        if ($searchBtn) $searchBtn.disabled = true;
 
-        $seccionSelect.innerHTML = `<option value="">(Edición NICHOS)</option>`;
-        $manzanaSelect.innerHTML = `<option value="">(Edición NICHOS)</option>`;
-
-        rerenderNichos_Edit();
-        renderEditNichosPanel();
-        return;
-      }
 
       // ====== EDIT NICHOS OVERLAY ======
       if (isEditNichosOverlay){
         if ($toggleLotsBtn) $toggleLotsBtn.disabled = true;
         if ($searchBtn) $searchBtn.disabled = true;
 
-        $seccionSelect.innerHTML = `<option value="">(Edición NICHOS overlay)</option>`;
-        $manzanaSelect.innerHTML = `<option value="">(Edición NICHOS overlay)</option>`;
+        // Cargar cfg si existe
+        try { nichosOverlayCfg = await loadJson(NICHOS_OVERLAY_CFG_URL); } catch { nichosOverlayCfg = {}; }
 
         renderEditNichosOverlayPanel();
         return;
       }
-
-
 // ====== NORMAL (público) ======
       seccionesTopScaled = deepCopy(seccionesTopRaw);
       applyCoordScaleToGeoJSON(seccionesTopScaled, COORD_SCALE_X, COORD_SCALE_Y);
@@ -4333,8 +4006,24 @@ async function main(){
       manzanasScaled = deepCopy(manzanasRaw);
       applyCoordScaleToGeoJSON(manzanasScaled, COORD_SCALE_X, COORD_SCALE_Y);
 
-      nichosZonasScaled = deepCopy(nichosZonasRaw);
-      applyCoordScaleToGeoJSON(nichosZonasScaled, COORD_SCALE_X, COORD_SCALE_Y);
+      // Nichos capa pública (independiente)
+      try {
+        nichosZonasScaled = deepCopy(nichosZonasRaw);
+        applyCoordScaleToGeoJSON(nichosZonasScaled, COORD_SCALE_X, COORD_SCALE_Y);
+
+        if (nichosLayer) { nichosLayer.remove(); nichosLayer = null; }
+
+        nichosLayer = L.geoJSON(nichosZonasScaled, {
+          style: { weight: 2, opacity: 0.001, fillOpacity: 0.001 },
+          onEachFeature: (feature, layer) => {
+            layer.on("mouseover", () => layer.setStyle({ weight: 2, opacity: 1, fillOpacity: 0.05 }));
+            layer.on("mouseout",  () => layer.setStyle({ weight: 2, opacity: 0, fillOpacity: 0 }));
+            layer.on("click", () => openNichoModal(feature));
+          }
+        }).addTo(map);
+      } catch (e) {
+        console.warn("Nichos no cargados:", e);
+      }
 
       const secciones = buildSeccionesList(
         seccionesTopScaled.features.length
@@ -4345,11 +4034,6 @@ async function main(){
       $manzanaSelect.innerHTML = `<option value="">MANZANA...</option>`;
 
       showPublicLevelSecciones();
-      
-      // IMPORTANTÍSIMO: dibuja nichos DESPUÉS para que queden arriba y capturen clicks
-      renderNichosZonasLayerPublic();
-      bringNichosZonasToFront();
-      
       setupDropdowns();
       setupSearch();
       setupButtons();
