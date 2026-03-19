@@ -148,10 +148,12 @@ const nichosUI = {
   $modal: null,
   $title: null,
   $zona: null,
+  $subtitle: null,
   $cara: null,
   $btnClose: null,
   $img: null,
   $svg: null,
+  $sel: null,
   $info: null,
 };
 
@@ -159,6 +161,8 @@ function nichosInitDom(){
   nichosUI.$modal = document.getElementById('nichosModal');
   nichosUI.$title = document.getElementById('nmTitle');
   nichosUI.$zona = document.getElementById('nmZona');
+  nichosUI.$subtitle = document.getElementById('nmSubtitle');
+  nichosUI.$sel = document.getElementById('nmSelection');
   nichosUI.$cara = document.getElementById('nmCara');
   nichosUI.$btnClose = document.getElementById('nmBtnClose');
   nichosUI.$img = document.getElementById('nmImg');
@@ -229,7 +233,10 @@ function nichosOpen(zonaFeature){
   if (nichosUI.$cara) nichosUI.$cara.value = nichosUI.cara;
 
   if (nichosUI.$title) nichosUI.$title.textContent = 'Nichos';
-  if (nichosUI.$zona) nichosUI.$zona.textContent = `Columbario: ${nichosGetProp(zonaFeature,'nombre') || nichosZonaId(zonaFeature)}`;
+  const zonaTxt = `Columbario: ${nichosGetProp(zonaFeature,'nombre') || nichosZonaId(zonaFeature)}`;
+  if (nichosUI.$zona) nichosUI.$zona.textContent = zonaTxt;
+  if (nichosUI.$subtitle) nichosUI.$subtitle.textContent = zonaTxt;
+  if (nichosUI.$sel) nichosUI.$sel.textContent = '(ninguno)';
   if (nichosUI.$info) nichosUI.$info.innerHTML = '<p style="color:#6b7280">Paso 1: elige CARA. Paso 2: haz click en un NICHO.</p>';
 
   if (nichosUI.$modal) nichosUI.$modal.style.display = 'flex';
@@ -318,6 +325,8 @@ function nichosRender(){
 function nichosRenderNichoInfo(feature){
   const p = feature?.properties || {};
   const codigo = (p.codigo || p.id || '(sin código)').toString();
+
+  if (nichosUI.$sel) nichosUI.$sel.textContent = codigo;
 
   let html = `<h3 style="margin:0 0 6px 0;">Nicho: ${safe(codigo)}</h3>`;
   html += `<div style="font-size:12px;color:#6b7280;margin-bottom:8px;">Columbario → Cara → Nicho</div>`;
@@ -3688,6 +3697,14 @@ async function main(){
     crs: L.CRS.Simple,
     minZoom: -3,
     maxZoom: (isEditSecciones || isEditManzanas || isEditLotes || isEditNichos || isEditNichosOverlay) ? 6 : 4,
+    // En el editor ?edit=nichos-overlay no queremos que el mapa se panée/zoomee;
+    // ahí se interactúa con el editor de rectángulos sobre la imagen.
+    dragging: !isEditNichosOverlay,
+    scrollWheelZoom: !isEditNichosOverlay,
+    doubleClickZoom: !isEditNichosOverlay,
+    boxZoom: !isEditNichosOverlay,
+    keyboard: !isEditNichosOverlay,
+    touchZoom: !isEditNichosOverlay,
     zoomAnimation: !IS_MOBILE,
     fadeAnimation: false,
     markerZoomAnimation: !IS_MOBILE,
