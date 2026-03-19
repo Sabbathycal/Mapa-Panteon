@@ -3959,7 +3959,7 @@ async function initNichosOverlayEditorStandalone(){
   try { overlayGeo = await loadJson(OVERLAY_GEO_URL); }
   catch {
     // compat: si todavía existe el JSON viejo, úsalo como fallback
-    try { overlayGeo = await loadJson(NICHOS_OVERLAY_CFG_URL); } catch { overlayGeo = null; }
+    try { overlayGeo = await loadJson(NICHOS_OVERLAY_URL); } catch { overlayGeo = null; }
   }
 
   // Normalizamos a FeatureCollection de rectángulos
