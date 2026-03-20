@@ -313,6 +313,40 @@ body.fullOverlayEditor .layout{ grid-template-columns: 1fr 420px; height: calc(1
 /* Safety: keep the Nichos modal above Leaflet panes */
 #nichosModal{ position: fixed !important; inset: 0 !important; z-index: 9999 !important; }
 
+/* =========================================================
+   NICHOS MODAL (PÚBLICO)
+   - Debe empezar debajo de la barra azul (topbar)
+   - Fondo blanco para legibilidad
+   - Zoom con mouse wheel (sin slider)
+   ========================================================= */
+:root{ --topbar-h: 52px; }
+
+/* El backdrop NO debe cubrir la topbar */
+#nichosModal .nm-backdrop{
+  top: var(--topbar-h) !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+/* Blanco para texto */
+#nichosModal .nm-card,
+#nichosModal .nm-shell,
+#nichosModal .nm-side{
+  background: #ffffff !important;
+}
+
+/* Canvas: sin scrollbars; el pan/zoom lo maneja JS */
+#nichosModal .nm-canvas{
+  background: #ffffff !important;
+  overflow: hidden !important;
+}
+
+/* Oculta el slider de zoom (usaremos wheel) */
+#nichosModal .nm-zoomwrap{ display:none !important; }
+
 /* Overlay-only editor mode (?edit=nichos-overlay): hide map, panel full width */
 body.overlayOnly #map{ display:none !important; }
 body.overlayOnly .layout{ grid-template-columns: 1fr !important; }

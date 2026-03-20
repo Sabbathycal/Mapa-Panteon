@@ -120,6 +120,12 @@ function setPanel(title, html){
 }
 function safe(v){ return (v === null || v === undefined) ? "" : String(v); }
 
+function clamp(v, a, b){
+  const x = Number(v);
+  if (!isFinite(x)) return a;
+  return Math.max(a, Math.min(b, x));
+}
+
 async function loadJson(url){
   const r = await fetch(url, { cache: "no-store" });
   if (!r.ok) throw new Error(`No se pudo cargar: ${url}`);
@@ -158,6 +164,11 @@ const nichosUI = {
   $zoom: null,
   $zoomPct: null,
   scale: 1,
+  panX: 0,
+  panY: 0,
+  panning: false,
+  panStart: null,
+  $canvas: null,
   $sel: null,
   $info: null,
 };
@@ -175,6 +186,7 @@ function nichosInitDom(){
   nichosUI.$viewport = document.getElementById('nmViewport');
   nichosUI.$zoom = document.getElementById('nmZoom');
   nichosUI.$zoomPct = document.getElementById('nmZoomPct');
+  nichosUI.$canvas = document.querySelector('#nichosModal .nm-canvas');
   nichosUI.$info = document.getElementById('nmNichoInfo');
 
   if (nichosUI.$btnClose) nichosUI.$btnClose.onclick = () => nichosClose();
@@ -184,10 +196,63 @@ function nichosInitDom(){
   if (nichosUI.$zoom){
     nichosUI.$zoom.oninput = () => {
       const pct = Number(nichosUI.$zoom.value || 100);
-      const s = Math.max(0.10, Math.min(2.50, pct/100));
+      const s = Math.max(0.10, Math.min(6.00, pct/100));
       nichosUI.scale = s;
       nichosApplyZoom();
+      if (nichosUI.$zoomPct) nichosUI.$zoomPct.textContent = `${Math.round(nichosUI.scale*100)}%`;
     };
+  }
+
+  // Zoom con rueda del mouse + pan con drag (recomendado)
+  // Nota: el slider se oculta por CSS, pero lo mantenemos sincronizado.
+  if (nichosUI.$canvas){
+    nichosUI.$canvas.addEventListener('wheel', (ev) => {
+      if (!nichosUI.open) return;
+      ev.preventDefault();
+
+      const rect = nichosUI.$canvas.getBoundingClientRect();
+      const mx = ev.clientX - rect.left;
+      const my = ev.clientY - rect.top;
+
+      const oldS = nichosUI.scale || 1;
+      const factor = Math.exp((-ev.deltaY) * 0.0012);
+      const newS = clamp(oldS * factor, 0.10, 6.00);
+      if (newS === oldS) return;
+
+      const wx = (mx - nichosUI.panX) / oldS;
+      const wy = (my - nichosUI.panY) / oldS;
+      nichosUI.panX = mx - wx * newS;
+      nichosUI.panY = my - wy * newS;
+      nichosUI.scale = newS;
+
+      nichosApplyZoom();
+      if (nichosUI.$zoom) nichosUI.$zoom.value = String(Math.round(newS * 100));
+      if (nichosUI.$zoomPct) nichosUI.$zoomPct.textContent = `${Math.round(newS*100)}%`;
+    }, { passive:false });
+
+    nichosUI.$canvas.addEventListener('pointerdown', (ev) => {
+      if (!nichosUI.open) return;
+      const tag = (ev.target?.tagName || '').toLowerCase();
+      if (tag === 'path' || tag === 'rect') return;
+      nichosUI.panning = true;
+      nichosUI.panStart = { x: ev.clientX, y: ev.clientY, panX: nichosUI.panX, panY: nichosUI.panY };
+      try { nichosUI.$canvas.setPointerCapture(ev.pointerId); } catch {}
+    });
+    nichosUI.$canvas.addEventListener('pointermove', (ev) => {
+      if (!nichosUI.panning || !nichosUI.panStart) return;
+      const dx = ev.clientX - nichosUI.panStart.x;
+      const dy = ev.clientY - nichosUI.panStart.y;
+      nichosUI.panX = nichosUI.panStart.panX + dx;
+      nichosUI.panY = nichosUI.panStart.panY + dy;
+      nichosApplyZoom();
+    });
+    const endPan = (ev) => {
+      nichosUI.panning = false;
+      nichosUI.panStart = null;
+      try { nichosUI.$canvas.releasePointerCapture(ev.pointerId); } catch {}
+    };
+    nichosUI.$canvas.addEventListener('pointerup', endPan);
+    nichosUI.$canvas.addEventListener('pointercancel', endPan);
   }
 
   if (nichosUI.$cara){
@@ -247,6 +312,11 @@ function nichosOpen(zonaFeature){
   nichosUI.open = true;
   nichosUI.zona = zonaFeature;
   nichosUI.cara = 'convexo';
+  nichosUI.scale = 1;
+  nichosUI.panX = 0;
+  nichosUI.panY = 0;
+  nichosUI.panning = false;
+  nichosUI.panStart = null;
   nichosUI.selectedNicho = null;
 
   if (nichosUI.$cara) nichosUI.$cara.value = nichosUI.cara;
@@ -279,7 +349,7 @@ function nichosApplyZoom(){
   const vp = nichosUI.$viewport;
   if (!vp) return;
   vp.style.transformOrigin = 'top left';
-  vp.style.transform = `scale(${nichosUI.scale})`;
+  vp.style.transform = `translate(${nichosUI.panX}px, ${nichosUI.panY}px) scale(${nichosUI.scale})`;
   if (nichosUI.$zoomPct){
     nichosUI.$zoomPct.textContent = `${Math.round(nichosUI.scale*100)}%`;
   }
@@ -304,13 +374,17 @@ function nichosRender(){
     const w = nichosUI.$img.naturalWidth || 1;
     const h = nichosUI.$img.naturalHeight || 1;
 
-    // Fit inicial dentro del contenedor (para que NO salga zoom-in)
+    // Fit inicial dentro del contenedor (lo más "zoomed out" posible)
     try {
-      const canvas = document.querySelector('.nm-canvas');
+      const canvas = nichosUI.$canvas || document.querySelector('#nichosModal .nm-canvas');
       const cw = canvas?.clientWidth || w;
       const ch = canvas?.clientHeight || h;
-      const fitScale = Math.max(0.10, Math.min(2.50, Math.min(cw / w, ch / h)));
+      const fitScale = clamp(Math.min(cw / w, ch / h), 0.10, 6.00);
       nichosUI.scale = fitScale;
+      // centra
+      nichosUI.panX = (cw - w * fitScale) / 2;
+      nichosUI.panY = (ch - h * fitScale) / 2;
+
       if (nichosUI.$zoom) nichosUI.$zoom.value = String(Math.round(fitScale*100));
       if (nichosUI.$zoomPct) nichosUI.$zoomPct.textContent = `${Math.round(fitScale*100)}%`;
     } catch {}
