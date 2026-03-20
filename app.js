@@ -260,6 +260,11 @@ function nichosInitDom(){
   if (nichosUI.$cara){
     // poblar opciones una vez
     if (nichosUI.$cara.options.length === 0){
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = 'SELECCIONA CARA...';
+      nichosUI.$cara.appendChild(placeholder);
+
       for (const c of NICHOS_CARAS){
         const opt = document.createElement('option');
         opt.value = c.value;
@@ -269,8 +274,9 @@ function nichosInitDom(){
     }
 
     nichosUI.$cara.onchange = () => {
-      nichosUI.cara = (nichosUI.$cara.value || 'convexo');
+      nichosUI.cara = (nichosUI.$cara.value || '').toString().trim().toLowerCase();
       nichosUI.selectedNicho = null;
+      if (nichosUI.$sel) nichosUI.$sel.textContent = '(ninguno)';
       nichosRender();
     };
   }
@@ -313,7 +319,7 @@ function nichosOpen(zonaFeature){
 
   nichosUI.open = true;
   nichosUI.zona = zonaFeature;
-  nichosUI.cara = 'convexo';
+  nichosUI.cara = '';
   nichosUI.scale = 1;
   nichosUI.panX = 0;
   nichosUI.panY = 0;
@@ -321,7 +327,7 @@ function nichosOpen(zonaFeature){
   nichosUI.panStart = null;
   nichosUI.selectedNicho = null;
 
-  if (nichosUI.$cara) nichosUI.$cara.value = nichosUI.cara;
+  if (nichosUI.$cara) nichosUI.$cara.value = '';
 
   if (nichosUI.$title) nichosUI.$title.textContent = 'Nichos';
   const zonaTxt = `Columbario: ${nichosGetProp(zonaFeature,'nombre') || nichosZonaId(zonaFeature)}`;
@@ -330,7 +336,7 @@ function nichosOpen(zonaFeature){
   if (nichosUI.$sel) nichosUI.$sel.textContent = '(ninguno)';
   if (nichosUI.$zoom) nichosUI.$zoom.value = '100';
   if (nichosUI.$zoomPct) nichosUI.$zoomPct.textContent = '100%';
-  if (nichosUI.$info) nichosUI.$info.innerHTML = '<p style="color:#6b7280">Paso 1: elige CARA. Paso 2: haz click en un NICHO.</p>';
+  if (nichosUI.$info) nichosUI.$info.innerHTML = '<p style="color:#374151">Paso 1: revisa el columbario. Paso 2: elige una CARA. Paso 3: haz click en un NICHO.</p>';
 
   if (nichosUI.$modal) nichosUI.$modal.style.display = 'flex';
 
@@ -380,15 +386,36 @@ function nichosRender(){
   if (!zona || !nichosUI.$img || !nichosUI.$svg) return;
 
   const zid = nichosZonaId(zona);
-  const cara = nichosUI.cara;
+  const cara = (nichosUI.cara || '').toString().trim().toLowerCase();
+
+  if (!cara){
+    if (nichosUI.$info) nichosUI.$info.innerHTML = `<p style="color:#374151">Selecciona una <b>CARA</b> para mostrar los nichos de <b>${safe(zid)}</b>.</p>`;
+    if (nichosUI.$img) {
+      nichosUI.$img.removeAttribute('src');
+      nichosUI.$img.style.display = 'none';
+    }
+    if (nichosUI.$svg) nichosUI.$svg.innerHTML = '';
+    if (nichosUI.$viewport){
+      nichosUI.$viewport.style.width = '100%';
+      nichosUI.$viewport.style.height = '100%';
+      nichosUI.$viewport.style.transform = 'none';
+    }
+    return;
+  }
+
   const imgUrl = nichosResolveImageUrl(zona, cara);
 
   if (!imgUrl){
-    if (nichosUI.$info) nichosUI.$info.innerHTML = `<p style="color:#b91c1c">Falta imagenConvexo/imagenConcavo para ${cara} en nichos-zonas.geojson</p>`;
-    nichosUI.$img.removeAttribute('src');
+    if (nichosUI.$info) nichosUI.$info.innerHTML = `<p style="color:#b91c1c">Falta la imagen de la cara <b>${safe(cara)}</b> para <b>${safe(zid)}</b> en nichos-zonas.geojson</p>`;
+    if (nichosUI.$img) {
+      nichosUI.$img.removeAttribute('src');
+      nichosUI.$img.style.display = 'none';
+    }
     nichosUI.$svg.innerHTML = '';
     return;
   }
+
+  nichosUI.$img.style.display = '';
 
   nichosUI.$img.onload = () => {
     const w = nichosUI.$img.naturalWidth || 1;
@@ -4150,6 +4177,7 @@ function initNichosOverlayEditor(){
 
           <label>Cara</label>
           <select id="noeCara">
+            <option value="">SELECCIONA CARA...</option>
             <option value="convexo">CONVEXO</option>
             <option value="concavo">CONCAVO</option>
           </select>
@@ -4407,16 +4435,27 @@ function initNichosOverlayEditor(){
     const zid = currentZonaId();
     const cara = currentCara();
     const zonaF = zonas.find(z => nichosZonaId(z) === zid);
+
+    if (!cara){
+      setMsg('Selecciona una CARA para comenzar a definir nichos.');
+      $img.removeAttribute('src');
+      $img.style.display = 'none';
+      $svg.innerHTML = '';
+      return;
+    }
+
     const url = nichosResolveImageUrl(zonaF, cara);
 
     if (!url){
-      setMsg('Falta imagenConvexo/imagenConcavo en data/nichos-zonas.geojson');
+      setMsg(`Falta la imagen de la cara ${cara} para ${zid} en data/nichos-zonas.geojson`);
       $img.removeAttribute('src');
+      $img.style.display = 'none';
       $svg.innerHTML = '';
       return;
     }
 
     setMsg(`Imagen: ${url}`);
+    $img.style.display = '';
 
     $img.onload = () => {
       const w = $img.naturalWidth || 1;
