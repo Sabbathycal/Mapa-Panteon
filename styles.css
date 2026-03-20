@@ -166,7 +166,7 @@ body { margin: 0; font-family: system-ui, Arial, sans-serif; }
 }
 
 /* Safety net: si por alguna razón se pierde la clase, el id igual queda fijo */
-#nichosModal{ position: fixed; inset: 0; z-index: 9999; }
+#nichosModal{ position: fixed; left:0; right:0; top:var(--topbar-h); bottom:0; z-index:9999; }
 
 /* Editor de nichos-overlay: el panel debe permanecer visible y el mapa se usa como editor de imagen */
 body.fullOverlayEditor .layout{ grid-template-columns: 1fr 420px; height: calc(100vh - 52px); }
@@ -311,7 +311,15 @@ body.fullOverlayEditor .layout{ grid-template-columns: 1fr 420px; height: calc(1
 }
 
 /* Safety: keep the Nichos modal above Leaflet panes */
-#nichosModal{ position: fixed !important; inset: 0 !important; z-index: 9999 !important; }
+#nichosModal{
+  position: fixed !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: var(--topbar-h) !important;
+  bottom: 0 !important;
+  z-index: 9999 !important;
+  background: rgba(0,0,0,.35) !important;
+}
 
 /* =========================================================
    NICHOS MODAL (PÚBLICO)
@@ -321,16 +329,7 @@ body.fullOverlayEditor .layout{ grid-template-columns: 1fr 420px; height: calc(1
    ========================================================= */
 :root{ --topbar-h: 52px; }
 
-/* El backdrop NO debe cubrir la topbar */
-#nichosModal .nm-backdrop{
-  top: var(--topbar-h) !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: auto !important;
-  height: auto !important;
-}
-
+/* El backdrop es #nichosModal (no hay .nm-backdrop interno) */
 /* Blanco para texto */
 #nichosModal .nm-card,
 #nichosModal .nm-shell,
@@ -358,6 +357,5 @@ body.overlayOnly .panel{ width:100% !important; height: calc(100vh - 52px) !impo
 
 .nm-shell{ background:#ffffff; }
 
-body.overlayOnly .topbar{ display:none !important; }
 body.overlayOnly .layout{ display:none !important; }
-body.overlayOnly #nichosOverlayRoot{ display:flex !important; position:fixed; inset:0; background:#f3f4f6; }
+body.overlayOnly #nichosOverlayRoot{ display:flex !important; position:fixed; left:0; right:0; top:var(--topbar-h); bottom:0; background:#f3f4f6; }

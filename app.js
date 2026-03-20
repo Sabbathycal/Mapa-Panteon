@@ -240,6 +240,7 @@ function nichosInitDom(){
     });
     nichosUI.$canvas.addEventListener('pointermove', (ev) => {
       if (!nichosUI.panning || !nichosUI.panStart) return;
+      try { ev.preventDefault(); ev.stopPropagation(); } catch {}
       const dx = ev.clientX - nichosUI.panStart.x;
       const dy = ev.clientY - nichosUI.panStart.y;
       nichosUI.panX = nichosUI.panStart.panX + dx;
@@ -247,6 +248,7 @@ function nichosInitDom(){
       nichosApplyZoom();
     });
     const endPan = (ev) => {
+      try { ev.preventDefault(); ev.stopPropagation(); } catch {}
       nichosUI.panning = false;
       nichosUI.panStart = null;
       try { nichosUI.$canvas.releasePointerCapture(ev.pointerId); } catch {}
@@ -332,6 +334,15 @@ function nichosOpen(zonaFeature){
 
   if (nichosUI.$modal) nichosUI.$modal.style.display = 'flex';
 
+  // evita que el mapa (Leaflet) capture wheel/drag cuando el modal está abierto
+  try {
+    if (map && map.dragging) map.dragging.disable();
+    if (map && map.scrollWheelZoom) map.scrollWheelZoom.disable();
+    if (map && map.doubleClickZoom) map.doubleClickZoom.disable();
+    if (map && map.boxZoom) map.boxZoom.disable();
+    if (map && map.keyboard) map.keyboard.disable();
+  } catch {}
+
   nichosRender();
 }
 
@@ -342,6 +353,15 @@ function nichosClose(){
   nichosUI.selectedNicho = null;
   nichosUI.$modal.style.display = 'none';
   if (nichosUI.$svg) nichosUI.$svg.innerHTML = '';
+
+  // re-activa mapa
+  try {
+    if (map && map.dragging) map.dragging.enable();
+    if (map && map.scrollWheelZoom) map.scrollWheelZoom.enable();
+    if (map && map.doubleClickZoom) map.doubleClickZoom.enable();
+    if (map && map.boxZoom) map.boxZoom.enable();
+    if (map && map.keyboard) map.keyboard.enable();
+  } catch {}
 }
 
 
@@ -3825,34 +3845,19 @@ function attachEditorMapClick(){
    INIT
    ========================================================= */
 
-/* =========================================================
-   ?edit=nichos-overlay => SOLO editor (sin Leaflet)
-   ========================================================= */
-async function startNichosOverlayOnly(){
-  try { document.body.classList.add('overlayOnly'); } catch {}
-  // cargar data necesaria
-  try { nichosZonasRaw = await loadJson(NICHOS_ZONAS_URL); } catch { nichosZonasRaw = { type:'FeatureCollection', features:[] }; }
-  try { nichosOverlayRaw = await loadJson(NICHOS_OVERLAY_URL); } catch { nichosOverlayRaw = { type:'FeatureCollection', features:[] }; }
-  renderEditNichosOverlayPanel();
-}
-
 async function main(){
-  if (isEditNichosOverlay){
-    await startNichosOverlayOnly();
-    return;
-  }
-
   // MODO: EDITOR NICHOS-OVERLAY (standalone, sin Leaflet)
-  // La petición es que este editor NO muestre el mapa base.
+  // Este editor NO debe mostrar el mapa base.
   if (isEditNichosOverlay){
     try {
       await initNichosOverlayEditorStandalone();
-    } catch (err){
+    } catch (err) {
       console.error(err);
       setPanel("Error en nichos-overlay", `<pre style="white-space:pre-wrap;color:#b91c1c;">${safe(err?.stack || err)}</pre>`);
     }
     return;
   }
+
 
   map = L.map("map", {
     crs: L.CRS.Simple,
