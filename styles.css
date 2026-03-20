@@ -235,6 +235,7 @@ body.fullOverlayEditor .layout{ grid-template-columns: 1fr 420px; height: calc(1
 .fullMap .panel{ display:none !important; }
 .fullMap .layout{ grid-template-columns: 1fr !important; }
 
+
 /* =========================================================
    NICHOS overlay editor (edit=nichos-overlay)
    ========================================================= */
@@ -267,7 +268,7 @@ body.fullOverlayEditor .layout{ grid-template-columns: 1fr 420px; height: calc(1
   padding: 8px;
   border: 1px solid #d1d5db;
   border-radius: 10px;
-  min-width: 180px;
+  min-width: 170px;
 }
 .noe-row input{
   flex: 1 1 220px;
@@ -286,6 +287,17 @@ body.fullOverlayEditor .layout{ grid-template-columns: 1fr 420px; height: calc(1
 .noe-actions{
   margin-top: 8px;
 }
+.noe-toolbtn.is-active{
+  background: #1f4f82;
+  color: #fff;
+  border-color: #1f4f82;
+}
+.noe-zoom-label{
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  padding: 0 4px;
+}
 .noe-msg{
   font-size: 12px;
   color:#6b7280;
@@ -296,14 +308,17 @@ body.fullOverlayEditor .layout{ grid-template-columns: 1fr 420px; height: calc(1
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) 340px;
 }
 .noe-canvas{
   position: relative;
   overflow: hidden;
   background: #f3f4f6;
 }
-.noe-surface{
+.noe-canvas.is-draw{ cursor: crosshair; }
+.noe-canvas.is-pan{ cursor: grab; }
+.noe-canvas.is-panning{ cursor: grabbing; }
+.noe-viewport{
   position: absolute;
   left: 0;
   top: 0;
@@ -354,6 +369,42 @@ body.fullOverlayEditor .layout{ grid-template-columns: 1fr 420px; height: calc(1
   color: #6b7280;
   line-height: 1.45;
 }
+.noe-grid-fields{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 8px;
+}
+.noe-grid-fields label{
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 4px;
+}
+.noe-grid-fields input{
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+}
+.noe-grid-actions{
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.noe-grid-actions button{
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  cursor: pointer;
+}
+@media (max-width: 1100px){
+  .noe-stage{ grid-template-columns: 1fr; }
+  .noe-side{ border-left: none; border-top: 1px solid #e5e7eb; }
+}
+
 
 /* Safety: keep the Nichos modal above Leaflet panes */
 #nichosModal{

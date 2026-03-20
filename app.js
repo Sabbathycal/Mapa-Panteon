@@ -260,11 +260,6 @@ function nichosInitDom(){
   if (nichosUI.$cara){
     // poblar opciones una vez
     if (nichosUI.$cara.options.length === 0){
-      const placeholder = document.createElement('option');
-      placeholder.value = '';
-      placeholder.textContent = 'SELECCIONA CARA...';
-      nichosUI.$cara.appendChild(placeholder);
-
       for (const c of NICHOS_CARAS){
         const opt = document.createElement('option');
         opt.value = c.value;
@@ -274,9 +269,8 @@ function nichosInitDom(){
     }
 
     nichosUI.$cara.onchange = () => {
-      nichosUI.cara = (nichosUI.$cara.value || '').toString().trim().toLowerCase();
+      nichosUI.cara = (nichosUI.$cara.value || 'convexo');
       nichosUI.selectedNicho = null;
-      if (nichosUI.$sel) nichosUI.$sel.textContent = '(ninguno)';
       nichosRender();
     };
   }
@@ -319,7 +313,7 @@ function nichosOpen(zonaFeature){
 
   nichosUI.open = true;
   nichosUI.zona = zonaFeature;
-  nichosUI.cara = '';
+  nichosUI.cara = 'convexo';
   nichosUI.scale = 1;
   nichosUI.panX = 0;
   nichosUI.panY = 0;
@@ -327,7 +321,7 @@ function nichosOpen(zonaFeature){
   nichosUI.panStart = null;
   nichosUI.selectedNicho = null;
 
-  if (nichosUI.$cara) nichosUI.$cara.value = '';
+  if (nichosUI.$cara) nichosUI.$cara.value = nichosUI.cara;
 
   if (nichosUI.$title) nichosUI.$title.textContent = 'Nichos';
   const zonaTxt = `Columbario: ${nichosGetProp(zonaFeature,'nombre') || nichosZonaId(zonaFeature)}`;
@@ -336,7 +330,7 @@ function nichosOpen(zonaFeature){
   if (nichosUI.$sel) nichosUI.$sel.textContent = '(ninguno)';
   if (nichosUI.$zoom) nichosUI.$zoom.value = '100';
   if (nichosUI.$zoomPct) nichosUI.$zoomPct.textContent = '100%';
-  if (nichosUI.$info) nichosUI.$info.innerHTML = '<p style="color:#374151">Paso 1: revisa el columbario. Paso 2: elige una CARA. Paso 3: haz click en un NICHO.</p>';
+  if (nichosUI.$info) nichosUI.$info.innerHTML = '<p style="color:#6b7280">Paso 1: elige CARA. Paso 2: haz click en un NICHO.</p>';
 
   if (nichosUI.$modal) nichosUI.$modal.style.display = 'flex';
 
@@ -386,36 +380,15 @@ function nichosRender(){
   if (!zona || !nichosUI.$img || !nichosUI.$svg) return;
 
   const zid = nichosZonaId(zona);
-  const cara = (nichosUI.cara || '').toString().trim().toLowerCase();
-
-  if (!cara){
-    if (nichosUI.$info) nichosUI.$info.innerHTML = `<p style="color:#374151">Selecciona una <b>CARA</b> para mostrar los nichos de <b>${safe(zid)}</b>.</p>`;
-    if (nichosUI.$img) {
-      nichosUI.$img.removeAttribute('src');
-      nichosUI.$img.style.display = 'none';
-    }
-    if (nichosUI.$svg) nichosUI.$svg.innerHTML = '';
-    if (nichosUI.$viewport){
-      nichosUI.$viewport.style.width = '100%';
-      nichosUI.$viewport.style.height = '100%';
-      nichosUI.$viewport.style.transform = 'none';
-    }
-    return;
-  }
-
+  const cara = nichosUI.cara;
   const imgUrl = nichosResolveImageUrl(zona, cara);
 
   if (!imgUrl){
-    if (nichosUI.$info) nichosUI.$info.innerHTML = `<p style="color:#b91c1c">Falta la imagen de la cara <b>${safe(cara)}</b> para <b>${safe(zid)}</b> en nichos-zonas.geojson</p>`;
-    if (nichosUI.$img) {
-      nichosUI.$img.removeAttribute('src');
-      nichosUI.$img.style.display = 'none';
-    }
+    if (nichosUI.$info) nichosUI.$info.innerHTML = `<p style="color:#b91c1c">Falta imagenConvexo/imagenConcavo para ${cara} en nichos-zonas.geojson</p>`;
+    nichosUI.$img.removeAttribute('src');
     nichosUI.$svg.innerHTML = '';
     return;
   }
-
-  nichosUI.$img.style.display = '';
 
   nichosUI.$img.onload = () => {
     const w = nichosUI.$img.naturalWidth || 1;
@@ -426,7 +399,8 @@ function nichosRender(){
       const canvas = nichosUI.$canvas || document.querySelector('#nichosModal .nm-canvas');
       const cw = canvas?.clientWidth || w;
       const ch = canvas?.clientHeight || h;
-      const fitScale = clamp(Math.min(cw / w, ch / h), 0.10, 6.00);
+      const pad = 24;
+      const fitScale = clamp(Math.min((cw - pad * 2) / w, (ch - pad * 2) / h, 1), 0.10, 6.00);
       nichosUI.scale = fitScale;
       // centra
       nichosUI.panX = (cw - w * fitScale) / 2;
@@ -4148,27 +4122,22 @@ async function initNichosOverlayEditorStandalone(){
 
 
 function initNichosOverlayEditor(){
-  // dataset en memoria (FeatureCollection)
   let nichosOverlayRaw = window.__nichosOverlayGeo;
   if (!nichosOverlayRaw || nichosOverlayRaw.type !== 'FeatureCollection'){
     nichosOverlayRaw = { type:'FeatureCollection', features:[] };
     window.__nichosOverlayGeo = nichosOverlayRaw;
   }
 
-  // Overlay editor sin mapa (solo panel a pantalla completa)
   try { document.body.classList.add('overlayOnly'); } catch {}
 
-  // oculta el mapa completamente
   const mapEl = document.getElementById('map');
   if (mapEl) mapEl.style.display = 'none';
   const layout = document.querySelector('.layout');
   if (layout) layout.style.gridTemplateColumns = '1fr';
 
-  // si quedó un root viejo, elimínalo
   let root = document.getElementById('nichosOverlayEditor');
   if (root) root.remove();
 
-  // render dentro del panel (no dentro del mapa)
   setPanel('Edición: NICHOS overlay', `
     <div id="nichosOverlayEditor" style="height: calc(100vh - 52px); display:flex; flex-direction:column;">
       <div class="noe-toolbar">
@@ -4188,10 +4157,15 @@ function initNichosOverlayEditor(){
         </div>
 
         <div class="noe-row noe-actions">
+          <button id="noeToolDraw" class="noe-toolbtn is-active">Dibujar</button>
+          <button id="noeToolPan" class="noe-toolbtn">Mover vista</button>
           <button id="noeEdit" disabled>Editar</button>
           <button id="noeDuplicate" disabled>Duplicar</button>
           <button id="noeDelete" disabled>Borrar</button>
+          <button id="noeGrid">Cuadrícula</button>
           <button id="noeFit">Ajustar imagen</button>
+          <button id="noeZoom100">100%</button>
+          <span id="noeZoomLabel" class="noe-zoom-label">100%</span>
           <button id="noeCopy">Copiar GeoJSON</button>
           <button id="noeExit">Salir</button>
         </div>
@@ -4200,9 +4174,9 @@ function initNichosOverlayEditor(){
       </div>
 
       <div class="noe-stage" style="flex:1; min-height:0;">
-        <div class="noe-canvas" id="noeCanvas">
-          <div class="noe-surface" id="noeSurface">
-            <img id="noeImg" alt="nichos" />
+        <div class="noe-canvas is-draw" id="noeCanvas">
+          <div class="noe-viewport" id="noeViewport">
+            <img id="noeImg" alt="nichos" draggable="false" />
             <svg id="noeSvg"></svg>
           </div>
         </div>
@@ -4216,13 +4190,70 @@ function initNichosOverlayEditor(){
 
           <div class="noe-side-box">
             <h3 style="margin:0 0 8px 0;">Instrucciones</h3>
-            <div style="font-size:12px;color:#6b7280;line-height:1.5;">
+            <div style="font-size:12px;color:#6b7280;line-height:1.55;">
               1) Elige <b>Columbario</b> y <b>Cara</b>.<br/>
-              2) Escribe el <b>Código</b> del nicho.<br/>
-              3) Arrastra sobre la imagen para crear el rectángulo.<br/>
-              4) Para modificar uno existente, haz click sobre él y usa <b>Editar</b>, <b>Borrar</b> o <b>Duplicar</b>.<br/>
-              5) Al terminar usa <b>Copiar GeoJSON</b> para pegar en <code>data/nichos-overlay.geojson</code>.
+              2) Usa <b>Dibujar</b> para crear nichos o <b>Cuadrícula</b> para colocarlos en bloque.<br/>
+              3) Usa <b>Mover vista</b> o mantén <b>barra espaciadora</b> mientras arrastras para recorrer la imagen.<br/>
+              4) Rueda del mouse = <b>zoom</b>. <b>Ajustar imagen</b> regresa al encuadre inicial.<br/>
+              5) Para modificar uno existente, selecciónalo y usa <b>Editar</b>, <b>Duplicar</b> o <b>Borrar</b>.<br/>
+              6) Al terminar usa <b>Copiar GeoJSON</b> para pegar en <code>data/nichos-overlay.geojson</code>.
             </div>
+          </div>
+
+          <div class="noe-side-box">
+            <h3 style="margin:0 0 8px 0;">Cuadrícula de nichos</h3>
+            <div class="noe-grid-fields">
+              <div>
+                <label>Filas</label>
+                <input id="noeGridRows" type="number" min="1" value="6" />
+              </div>
+              <div>
+                <label>Columnas</label>
+                <input id="noeGridCols" type="number" min="1" value="12" />
+              </div>
+              <div>
+                <label>Ancho (px)</label>
+                <input id="noeGridW" type="number" min="1" value="32" />
+              </div>
+              <div>
+                <label>Alto (px)</label>
+                <input id="noeGridH" type="number" min="1" value="32" />
+              </div>
+              <div>
+                <label>Espacio X (px)</label>
+                <input id="noeGridGapX" type="number" min="0" value="2" />
+              </div>
+              <div>
+                <label>Espacio Y (px)</label>
+                <input id="noeGridGapY" type="number" min="0" value="2" />
+              </div>
+              <div>
+                <label>Rotación (grados)</label>
+                <input id="noeGridRot" type="number" step="0.1" value="0" />
+              </div>
+              <div>
+                <label>Columna inicial</label>
+                <input id="noeGridStartCol" type="number" step="1" value="1" />
+              </div>
+              <div>
+                <label>Incremento columna</label>
+                <input id="noeGridInc" type="number" min="1" value="1" />
+              </div>
+              <div>
+                <label>Etiquetas filas</label>
+                <input id="noeGridRowLabels" value="A,B,C,D,E,F" />
+              </div>
+            </div>
+            <div style="margin-top:10px;">
+              <label style="display:block;font-size:12px;font-weight:700;color:#374151;">Plantilla de código</label>
+              <input id="noeGridTemplate" value="{rowLabel}X{col}" style="width:100%;padding:8px;margin-top:6px;border:1px solid #d1d5db;border-radius:10px;" />
+              <div class="noe-side-hint" style="margin-top:6px;">Tokens: <code>{rowLabel}</code>, <code>{row}</code>, <code>{col}</code>, <code>{n}</code>.</div>
+            </div>
+            <div class="noe-grid-actions">
+              <button id="noeGridArm">Armar cuadrícula</button>
+              <button id="noeGridCancel">Cancelar</button>
+            </div>
+            <div id="noeGridHint" class="noe-side-hint">Configura la cuadrícula y luego haz click en la imagen para colocar la esquina superior izquierda.</div>
           </div>
         </div>
       </div>
@@ -4239,24 +4270,60 @@ function initNichosOverlayEditor(){
   const $img = root.querySelector('#noeImg');
   const $svg = root.querySelector('#noeSvg');
   const $canvas = root.querySelector('#noeCanvas');
-  const $surface = root.querySelector('#noeSurface');
+  const $viewport = root.querySelector('#noeViewport');
   const $selection = root.querySelector('#noeSelection');
   const $selectionHint = root.querySelector('#noeSelectionHint');
+  const $btnToolDraw = root.querySelector('#noeToolDraw');
+  const $btnToolPan = root.querySelector('#noeToolPan');
   const $btnEdit = root.querySelector('#noeEdit');
   const $btnDuplicate = root.querySelector('#noeDuplicate');
   const $btnDelete = root.querySelector('#noeDelete');
   const $btnFit = root.querySelector('#noeFit');
+  const $btnZoom100 = root.querySelector('#noeZoom100');
+  const $zoomLabel = root.querySelector('#noeZoomLabel');
+  const $gridHint = root.querySelector('#noeGridHint');
 
-  // selección + drag
-  let selectedFeat = null; // referencia al feature dentro de nichosOverlayRaw.features
-  let dragState = null;    // { mode:'move'|'tl'|'tr'|'bl'|'br', start:{x,y}, box:{l,t,r,b} }
+  const view = {
+    scale: 1,
+    panX: 0,
+    panY: 0,
+    tool: 'draw',
+    panning: false,
+    panStart: null,
+    imageWidth: 0,
+    imageHeight: 0,
+  };
+
+  let selectedFeat = null;
+  let dragState = null;
   let drawing = false;
   let start = null;
-  let fitScale = 1;
+  let spacePan = false;
+  let gridArmed = false;
+
+  function currentZonaId(){ return ($zona.value || '').toString().trim(); }
+  function currentCara(){ return ($cara.value || '').toString().trim().toLowerCase(); }
+  function hasLoadedImage(){ return !!($img && $img.complete && $img.naturalWidth && $img.naturalHeight); }
+  function _min(a,b){ return a < b ? a : b; }
+  function _max(a,b){ return a > b ? a : b; }
+  function normCode(v){ return (v || '').toString().trim().toUpperCase(); }
+  function setMsg(t){ $msg.textContent = t || ''; }
+  function clampLocal(v, min, max){ return Math.max(min, Math.min(max, v)); }
+
+  function alphaLabel(idx){
+    let n = Number(idx) + 1;
+    let out = '';
+    while (n > 0){
+      const rem = (n - 1) % 26;
+      out = String.fromCharCode(65 + rem) + out;
+      n = Math.floor((n - 1) / 26);
+    }
+    return out;
+  }
 
   function featBox(f){
     const ring = f?.geometry?.coordinates?.[0] || [];
-    let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (const pt of ring){
       const x = pt[0], y = pt[1];
       if (!isFinite(x) || !isFinite(y)) continue;
@@ -4269,28 +4336,37 @@ function initNichosOverlayEditor(){
     return { l:minX, t:minY, r:maxX, b:maxY };
   }
 
+  function featureRing(f){
+    return ((f?.geometry?.coordinates?.[0] || []).map(([x, y]) => [Number(x), Number(y)]));
+  }
+
   function setFeatBox(f, box){
     const l = box.l, t = box.t, r = box.r, b = box.b;
     const ring = [[l,t],[r,t],[r,b],[l,b],[l,t]];
     f.geometry = { type:'Polygon', coordinates:[ring] };
   }
 
-  function translateFeatureBox(f, dx, dy){
-    const ring = f?.geometry?.coordinates?.[0] || [];
+  function translateFeature(f, dx, dy, sourceRing = null){
+    const ring = sourceRing || featureRing(f);
     f.geometry = {
       type: 'Polygon',
       coordinates: [[...ring.map(([x, y]) => [x + dx, y + dy])]]
     };
   }
 
-  function currentZonaId(){ return ($zona.value || '').toString().trim(); }
-  function currentCara(){ return ($cara.value || '').toString().trim().toLowerCase(); }
-  function hasLoadedImage(){ return !!($img && $img.complete && $img.naturalWidth && $img.naturalHeight); }
-  function _min(a,b){ return a < b ? a : b; }
-  function _max(a,b){ return a > b ? a : b; }
-  function normCode(v){ return (v || '').toString().trim().toUpperCase(); }
-
-  function setMsg(t){ $msg.textContent = t || ''; }
+  function canResizeFeature(f){
+    const ring = featureRing(f);
+    if (ring.length < 4) return false;
+    const box = featBox(f);
+    if (!box) return false;
+    const pts = ring.slice(0, -1);
+    const tol = 0.01;
+    return pts.every(([x, y]) => {
+      const onX = Math.abs(x - box.l) < tol || Math.abs(x - box.r) < tol;
+      const onY = Math.abs(y - box.t) < tol || Math.abs(y - box.b) < tol;
+      return onX && onY;
+    });
+  }
 
   function listCurrentRects(zid, cara){
     return (nichosOverlayRaw?.features || []).filter(f => {
@@ -4317,9 +4393,9 @@ function initNichosOverlayEditor(){
       $selection.textContent = active ? `${codigo || '(sin código)'} · ${currentZonaId()} · ${currentCara().toUpperCase()}` : '(ninguno)';
     }
     if ($selectionHint){
-      $selectionHint.textContent = active
-        ? 'Arrastra dentro del rectángulo para moverlo. Usa las esquinas verdes para escalarlo.'
-        : 'Haz click en un rectángulo para editarlo.';
+      if (!active) $selectionHint.textContent = 'Haz click en un rectángulo para editarlo.';
+      else if (canResizeFeature(selectedFeat)) $selectionHint.textContent = 'Arrastra dentro del rectángulo para moverlo. Usa las esquinas verdes para escalarlo.';
+      else $selectionHint.textContent = 'Arrastra dentro del rectángulo para moverlo. Al venir de una cuadrícula rotada, las esquinas ya no escalan de forma libre.';
     }
     if ($btnEdit) $btnEdit.disabled = !active;
     if ($btnDuplicate) $btnDuplicate.disabled = !active;
@@ -4362,27 +4438,187 @@ function initNichosOverlayEditor(){
     return candidate;
   }
 
-  function applyFitScale(){
-    if (!$canvas || !$surface || !$img) return;
-    const iw = $img.naturalWidth || 0;
-    const ih = $img.naturalHeight || 0;
-    const aw = $canvas.clientWidth || 0;
-    const ah = $canvas.clientHeight || 0;
-    if (!iw || !ih || !aw || !ah) return;
+  function updateCanvasCursor(){
+    if (!$canvas) return;
+    $canvas.classList.remove('is-draw', 'is-pan', 'is-panning');
+    if (view.panning) $canvas.classList.add('is-panning');
+    else if (view.tool === 'pan' || spacePan) $canvas.classList.add('is-pan');
+    else $canvas.classList.add('is-draw');
+  }
 
-    fitScale = Math.min(aw / iw, ah / ih);
-    if (!isFinite(fitScale) || fitScale <= 0) fitScale = 1;
-    fitScale = Math.max(0.25, Math.min(12, fitScale));
+  function setTool(tool){
+    view.tool = (tool === 'pan') ? 'pan' : 'draw';
+    if ($btnToolDraw) $btnToolDraw.classList.toggle('is-active', view.tool === 'draw');
+    if ($btnToolPan) $btnToolPan.classList.toggle('is-active', view.tool === 'pan');
+    updateCanvasCursor();
+  }
 
-    const usedW = iw * fitScale;
-    const usedH = ih * fitScale;
-    const offsetX = Math.max(0, (aw - usedW) / 2);
-    const offsetY = Math.max(0, (ah - usedH) / 2);
+  function applyView(){
+    if (!$viewport) return;
+    $viewport.style.width = `${view.imageWidth || 0}px`;
+    $viewport.style.height = `${view.imageHeight || 0}px`;
+    $viewport.style.transformOrigin = 'top left';
+    $viewport.style.transform = `translate(${view.panX}px, ${view.panY}px) scale(${view.scale})`;
+    if ($zoomLabel) $zoomLabel.textContent = `${Math.round(view.scale * 100)}%`;
+  }
 
-    $surface.style.width = `${iw}px`;
-    $surface.style.height = `${ih}px`;
-    $surface.style.transformOrigin = 'top left';
-    $surface.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${fitScale})`;
+  function fitToImage(limitToOne = true){
+    if (!$canvas || !hasLoadedImage()) return;
+    const iw = $img.naturalWidth || 1;
+    const ih = $img.naturalHeight || 1;
+    const cw = $canvas.clientWidth || iw;
+    const ch = $canvas.clientHeight || ih;
+    const pad = 24;
+    let s = Math.min((cw - pad * 2) / iw, (ch - pad * 2) / ih);
+    if (!isFinite(s) || s <= 0) s = 1;
+    if (limitToOne) s = Math.min(1, s);
+    view.scale = clampLocal(s, 0.05, 20);
+    view.panX = (cw - iw * view.scale) / 2;
+    view.panY = (ch - ih * view.scale) / 2;
+    applyView();
+  }
+
+  function setActualSize(){
+    if (!hasLoadedImage()) return;
+    const iw = $img.naturalWidth || 1;
+    const ih = $img.naturalHeight || 1;
+    const cw = $canvas.clientWidth || iw;
+    const ch = $canvas.clientHeight || ih;
+    view.scale = 1;
+    view.panX = (cw - iw) / 2;
+    view.panY = (ch - ih) / 2;
+    applyView();
+  }
+
+  function zoomAt(clientX, clientY, nextScale){
+    if (!hasLoadedImage()) return;
+    const rect = $canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    const newScale = clampLocal(nextScale, 0.05, 20);
+    const worldX = (x - view.panX) / view.scale;
+    const worldY = (y - view.panY) / view.scale;
+    view.scale = newScale;
+    view.panX = x - worldX * newScale;
+    view.panY = y - worldY * newScale;
+    applyView();
+  }
+
+  function svgPoint(ev){
+    const rect = $canvas.getBoundingClientRect();
+    return {
+      x: (ev.clientX - rect.left - view.panX) / view.scale,
+      y: (ev.clientY - rect.top - view.panY) / view.scale,
+    };
+  }
+
+  function makePolygonFeature(zid, cara, codigo, ring){
+    return {
+      type:'Feature',
+      geometry:{ type:'Polygon', coordinates:[ring] },
+      properties:{ tipo:'nicho', zonaId:zid, cara:cara, codigo: codigo || '' }
+    };
+  }
+
+  function makeRectFeature(zid, cara, codigo, x1, y1, x2, y2){
+    const left = _min(x1, x2);
+    const right = _max(x1, x2);
+    const top = _min(y1, y2);
+    const bottom = _max(y1, y2);
+    return makePolygonFeature(zid, cara, codigo, [
+      [left, top],
+      [right, top],
+      [right, bottom],
+      [left, bottom],
+      [left, top],
+    ]);
+  }
+
+  function rotatePoint(x, y, ox, oy, radians){
+    const cos = Math.cos(radians);
+    const sin = Math.sin(radians);
+    const dx = x - ox;
+    const dy = y - oy;
+    return [ox + dx * cos - dy * sin, oy + dx * sin + dy * cos];
+  }
+
+  function buildGridCode(template, rowLabel, rowIndex, colValue, seq){
+    const base = (template || '{rowLabel}{col}').toString();
+    return base
+      .replace(/\{rowLabel\}/gi, rowLabel)
+      .replace(/\{row\}/gi, String(rowIndex))
+      .replace(/\{col\}/gi, String(colValue))
+      .replace(/\{n\}/gi, String(seq));
+  }
+
+  function cancelGrid(reason = 'Cuadrícula cancelada.'){
+    gridArmed = false;
+    if ($gridHint) $gridHint.textContent = 'Configura la cuadrícula y luego haz click en la imagen para colocar la esquina superior izquierda.';
+    setMsg(reason);
+  }
+
+  function placeGrid(origin){
+    const rows = Number(root.querySelector('#noeGridRows')?.value || 0);
+    const cols = Number(root.querySelector('#noeGridCols')?.value || 0);
+    const w = Number(root.querySelector('#noeGridW')?.value || 0);
+    const h = Number(root.querySelector('#noeGridH')?.value || 0);
+    const gapX = Number(root.querySelector('#noeGridGapX')?.value || 0);
+    const gapY = Number(root.querySelector('#noeGridGapY')?.value || 0);
+    const rot = Number(root.querySelector('#noeGridRot')?.value || 0);
+    const startCol = Number(root.querySelector('#noeGridStartCol')?.value || 1);
+    const inc = Number(root.querySelector('#noeGridInc')?.value || 1);
+    const rowLabelsRaw = (root.querySelector('#noeGridRowLabels')?.value || '').trim();
+    const template = (root.querySelector('#noeGridTemplate')?.value || '').trim();
+    const zid = currentZonaId();
+    const cara = currentCara();
+
+    if (!rows || !cols || w <= 0 || h <= 0){
+      setMsg('Revisa filas, columnas, ancho y alto de la cuadrícula.');
+      return;
+    }
+    if (!zid || !cara){
+      setMsg('Elige columbario y cara antes de crear la cuadrícula.');
+      return;
+    }
+
+    const rowLabels = rowLabelsRaw
+      ? rowLabelsRaw.split(/[\n,;]+/).map(x => x.trim()).filter(Boolean)
+      : [];
+
+    const rad = (rot * Math.PI) / 180;
+    const features = [];
+    let seq = 1;
+
+    for (let r = 0; r < rows; r += 1){
+      const rowLabel = rowLabels[r] || alphaLabel(r);
+      for (let c = 0; c < cols; c += 1){
+        const left = origin.x + c * (w + gapX);
+        const top = origin.y + r * (h + gapY);
+        let ring = [
+          [left, top],
+          [left + w, top],
+          [left + w, top + h],
+          [left, top + h],
+          [left, top],
+        ];
+        if (rad){
+          ring = ring.map(([x, y]) => rotatePoint(x, y, origin.x, origin.y, rad));
+        }
+        const colValue = startCol + c * inc;
+        const baseCode = buildGridCode(template || '{rowLabel}{col}', rowLabel, r + 1, colValue, seq);
+        const codigo = makeUniqueCodigo(baseCode, null);
+        features.push(makePolygonFeature(zid, cara, codigo, ring));
+        seq += 1;
+      }
+    }
+
+    nichosOverlayRaw.features.push(...features);
+    window.__nichosOverlayGeo = nichosOverlayRaw;
+    gridArmed = false;
+    if ($gridHint) $gridHint.textContent = `Se agregaron ${features.length} nichos. Puedes volver a armar otra cuadrícula.`;
+    selectFeature(features[features.length - 1] || null, true);
+    renderRects();
+    setMsg(`Cuadrícula creada con ${features.length} nichos.`);
   }
 
   const zonas = (nichosZonasRaw?.features || []).filter(f => ((f?.properties?.tipo || 'zona').toString().trim().toLowerCase() === 'zona'));
@@ -4397,21 +4633,18 @@ function initNichosOverlayEditor(){
     const cara = currentCara();
     const rects = listCurrentRects(zid, cara);
 
-    if (selectedFeat && !rects.includes(selectedFeat)){
-      clearSelection(false);
-    }
-
+    if (selectedFeat && !rects.includes(selectedFeat)) clearSelection(false);
     $svg.innerHTML = '';
 
     for (const f of rects){
       if (f?.geometry?.type !== 'Polygon') continue;
       const ring = f.geometry.coordinates?.[0] || [];
       if (ring.length < 4) continue;
-      const d = ring.map(([x,y], i) => `${i===0?'M':'L'} ${x} ${y}`).join(' ') + ' Z';
+      const d = ring.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x} ${y}`).join(' ') + ' Z';
       const codigo = (f?.properties?.codigo || '').toString().trim();
       const isSelected = selectedFeat === f;
 
-      const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+      const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       p.setAttribute('d', d);
       p.setAttribute('fill', isSelected ? 'rgba(16,185,129,.14)' : 'rgba(239,68,68,.10)');
       p.setAttribute('stroke', isSelected ? 'rgba(16,185,129,.96)' : 'rgba(239,68,68,.85)');
@@ -4425,18 +4658,17 @@ function initNichosOverlayEditor(){
         ev.stopPropagation();
         selectFeature(f, true);
         renderRects();
-        setMsg(`Seleccionado: ${codigo || '(sin código)'} (arrastra para mover; esquinas para escalar)`);
+        setMsg(`Seleccionado: ${codigo || '(sin código)'}`);
       });
 
-      // mover (drag) sobre el rectángulo cuando está seleccionado
       p.addEventListener('pointerdown', (ev) => {
-        if (selectedFeat !== f) return;
+        if (selectedFeat !== f || ev.button !== 0) return;
         ev.preventDefault();
         ev.stopPropagation();
         const box = featBox(f);
         if (!box) return;
         const pt = svgPoint(ev);
-        dragState = { mode:'move', start:{ x:pt.x, y:pt.y }, box: { ...box } };
+        dragState = { mode:'move', start:{ x:pt.x, y:pt.y }, box:{ ...box }, ring: featureRing(f) };
         window.addEventListener('pointermove', onDragMove);
         window.addEventListener('pointerup', onDragUp, { once:true });
       });
@@ -4445,7 +4677,7 @@ function initNichosOverlayEditor(){
 
       const box = featBox(f);
       if (box && codigo){
-        const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+        const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         txt.setAttribute('x', String((box.l + box.r) / 2));
         txt.setAttribute('y', String((box.t + box.b) / 2));
         txt.setAttribute('text-anchor', 'middle');
@@ -4459,26 +4691,26 @@ function initNichosOverlayEditor(){
       }
     }
 
-    // Handles de selección
-    if (selectedFeat){
-      const box = featBox(selectedFeat);
-      if (!box) return;
+    if (!selectedFeat) return;
+    const box = featBox(selectedFeat);
+    if (!box) return;
 
-      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
-      g.setAttribute('data-handles','1');
-      g.style.pointerEvents = 'auto';
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('data-handles', '1');
+    g.style.pointerEvents = 'auto';
 
-      const outline = document.createElementNS('http://www.w3.org/2000/svg','rect');
-      outline.setAttribute('x', String(box.l));
-      outline.setAttribute('y', String(box.t));
-      outline.setAttribute('width', String(Math.max(1, box.r - box.l)));
-      outline.setAttribute('height', String(Math.max(1, box.b - box.t)));
-      outline.setAttribute('fill', 'none');
-      outline.setAttribute('stroke', 'rgba(16,185,129,.95)');
-      outline.setAttribute('stroke-width', '2');
-      outline.setAttribute('stroke-dasharray', '6 4');
-      g.appendChild(outline);
+    const outline = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    outline.setAttribute('x', String(box.l));
+    outline.setAttribute('y', String(box.t));
+    outline.setAttribute('width', String(Math.max(1, box.r - box.l)));
+    outline.setAttribute('height', String(Math.max(1, box.b - box.t)));
+    outline.setAttribute('fill', 'none');
+    outline.setAttribute('stroke', 'rgba(16,185,129,.95)');
+    outline.setAttribute('stroke-width', '2');
+    outline.setAttribute('stroke-dasharray', '6 4');
+    g.appendChild(outline);
 
+    if (canResizeFeature(selectedFeat)){
       const corners = [
         { h:'tl', x:box.l, y:box.t, cur:'nwse-resize' },
         { h:'tr', x:box.r, y:box.t, cur:'nesw-resize' },
@@ -4487,10 +4719,10 @@ function initNichosOverlayEditor(){
       ];
 
       for (const c of corners){
-        const h = document.createElementNS('http://www.w3.org/2000/svg','rect');
+        const h = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         const s = 14;
-        h.setAttribute('x', String(c.x - s/2));
-        h.setAttribute('y', String(c.y - s/2));
+        h.setAttribute('x', String(c.x - s / 2));
+        h.setAttribute('y', String(c.y - s / 2));
         h.setAttribute('width', String(s));
         h.setAttribute('height', String(s));
         h.setAttribute('rx', '3');
@@ -4511,9 +4743,9 @@ function initNichosOverlayEditor(){
         });
         g.appendChild(h);
       }
-
-      $svg.appendChild(g);
     }
+
+    $svg.appendChild(g);
   }
 
   function onDragMove(ev){
@@ -4521,33 +4753,29 @@ function initNichosOverlayEditor(){
     const pt = svgPoint(ev);
     const dx = pt.x - dragState.start.x;
     const dy = pt.y - dragState.start.y;
-
-    let b = { ...dragState.box };
     const minSize = 8;
 
     if (dragState.mode === 'move'){
-      b.l += dx; b.r += dx;
-      b.t += dy; b.b += dy;
+      translateFeature(selectedFeat, dx, dy, dragState.ring);
     } else {
+      let b = { ...dragState.box };
       if (dragState.mode === 'tl'){ b.l += dx; b.t += dy; }
       if (dragState.mode === 'tr'){ b.r += dx; b.t += dy; }
       if (dragState.mode === 'bl'){ b.l += dx; b.b += dy; }
       if (dragState.mode === 'br'){ b.r += dx; b.b += dy; }
 
-      // clamp mínimo
       if ((b.r - b.l) < minSize){
-        const mid = (b.l + b.r)/2;
-        b.l = mid - minSize/2;
-        b.r = mid + minSize/2;
+        const mid = (b.l + b.r) / 2;
+        b.l = mid - minSize / 2;
+        b.r = mid + minSize / 2;
       }
       if ((b.b - b.t) < minSize){
-        const mid = (b.t + b.b)/2;
-        b.t = mid - minSize/2;
-        b.b = mid + minSize/2;
+        const mid = (b.t + b.b) / 2;
+        b.t = mid - minSize / 2;
+        b.b = mid + minSize / 2;
       }
+      setFeatBox(selectedFeat, b);
     }
-
-    setFeatBox(selectedFeat, b);
     renderRects();
   }
 
@@ -4564,22 +4792,25 @@ function initNichosOverlayEditor(){
 
     clearSelection(true);
     $svg.innerHTML = '';
-    if ($surface){
-      $surface.style.transform = 'translate(0px, 0px) scale(1)';
-      $surface.style.width = '0px';
-      $surface.style.height = '0px';
-    }
+    gridArmed = false;
+    if ($gridHint) $gridHint.textContent = 'Configura la cuadrícula y luego haz click en la imagen para colocar la esquina superior izquierda.';
 
     if (!cara){
       $img.removeAttribute('src');
+      view.imageWidth = 0;
+      view.imageHeight = 0;
+      applyView();
       setMsg('Selecciona una cara para cargar la imagen del columbario.');
       return;
     }
 
     const url = nichosResolveImageUrl(zonaF, cara);
     if (!url){
-      setMsg('Falta imagenConvexo/imagenConcavo en data/nichos-zonas.geojson');
       $img.removeAttribute('src');
+      view.imageWidth = 0;
+      view.imageHeight = 0;
+      applyView();
+      setMsg('Falta imagenConvexo/imagenConcavo en data/nichos-zonas.geojson');
       return;
     }
 
@@ -4588,51 +4819,24 @@ function initNichosOverlayEditor(){
     $img.onload = () => {
       const w = $img.naturalWidth || 1;
       const h = $img.naturalHeight || 1;
+      view.imageWidth = w;
+      view.imageHeight = h;
       $svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
       $svg.setAttribute('width', String(w));
       $svg.setAttribute('height', String(h));
-      applyFitScale();
+      fitToImage(true);
       renderRects();
-      if (fitScale > 1){
-        setMsg(`Imagen cargada: ${url} · ampliada automáticamente a ${Math.round(fitScale * 100)}%`);
-      }
     };
 
     $img.onerror = () => {
+      view.imageWidth = 0;
+      view.imageHeight = 0;
+      applyView();
       setMsg(`No se pudo cargar: ${url}`);
       $svg.innerHTML = '';
     };
 
     $img.src = url;
-  }
-
-  function svgPoint(ev){
-    const pt = $svg.createSVGPoint();
-    pt.x = ev.clientX;
-    pt.y = ev.clientY;
-    const m = $svg.getScreenCTM();
-    if (!m) return {x:0,y:0};
-    const p = pt.matrixTransform(m.inverse());
-    return { x: p.x, y: p.y };
-  }
-
-  function makeRectFeature(zid, cara, codigo, x1,y1,x2,y2){
-    const left = _min(x1,x2);
-    const right = _max(x1,x2);
-    const top = _min(y1,y2);
-    const bottom = _max(y1,y2);
-    const ring = [
-      [left, top],
-      [right, top],
-      [right, bottom],
-      [left, bottom],
-      [left, top],
-    ];
-    return {
-      type:'Feature',
-      geometry:{ type:'Polygon', coordinates:[ring] },
-      properties:{ tipo:'nicho', zonaId:zid, cara:cara, codigo: codigo || '' }
-    };
   }
 
   function applySelectedCode(){
@@ -4661,11 +4865,9 @@ function initNichosOverlayEditor(){
     const inputCode = ($codigo.value || '').toString().trim();
     const baseCode = (inputCode && normCode(inputCode) !== normCode(currentCode)) ? inputCode : `${currentCode || 'NICHO'}-COPIA`;
     const newCode = makeUniqueCodigo(baseCode, null);
-
     if (!copy.properties) copy.properties = {};
     copy.properties.codigo = newCode;
-    translateFeatureBox(copy, 16, 16);
-
+    translateFeature(copy, 16, 16);
     nichosOverlayRaw.features.push(copy);
     window.__nichosOverlayGeo = nichosOverlayRaw;
     selectFeature(copy, true);
@@ -4684,14 +4886,39 @@ function initNichosOverlayEditor(){
     setMsg(`Nicho borrado: ${codigo}.`);
   }
 
-  $svg.addEventListener('pointerdown', (ev) => {
-    if (ev.button !== 0) return;
+  $canvas.addEventListener('wheel', (ev) => {
+    if (!hasLoadedImage()) return;
+    ev.preventDefault();
+    const factor = ev.deltaY < 0 ? 1.12 : (1 / 1.12);
+    zoomAt(ev.clientX, ev.clientY, view.scale * factor);
+  }, { passive:false });
+
+  $canvas.addEventListener('pointerdown', (ev) => {
+    if (ev.button !== 0 || !hasLoadedImage()) return;
+    const tag = (ev.target?.tagName || '').toLowerCase();
+    const backgroundClick = (ev.target === $canvas || ev.target === $viewport || ev.target === $svg || ev.target === $img);
+
+    if ((view.tool === 'pan' || spacePan) && backgroundClick){
+      ev.preventDefault();
+      view.panning = true;
+      view.panStart = { x: ev.clientX, y: ev.clientY, panX: view.panX, panY: view.panY };
+      updateCanvasCursor();
+      return;
+    }
+
+    if (!backgroundClick || tag === 'path' || tag === 'rect') return;
     if (!currentCara()){
       setMsg('Selecciona una cara antes de dibujar.');
       return;
     }
-    if (!hasLoadedImage()) return;
-    if (ev.target && ev.target !== $svg) return;
+
+    if (gridArmed){
+      ev.preventDefault();
+      placeGrid(svgPoint(ev));
+      return;
+    }
+
+    if (view.tool !== 'draw') return;
 
     drawing = true;
     start = svgPoint(ev);
@@ -4702,6 +4929,13 @@ function initNichosOverlayEditor(){
   });
 
   window.addEventListener('pointermove', (ev) => {
+    if (view.panning && view.panStart){
+      view.panX = view.panStart.panX + (ev.clientX - view.panStart.x);
+      view.panY = view.panStart.panY + (ev.clientY - view.panStart.y);
+      applyView();
+      return;
+    }
+
     if (!drawing || !start) return;
     const prev = $svg.querySelector('path[data-preview="1"]');
     if (prev) prev.remove();
@@ -4715,28 +4949,32 @@ function initNichosOverlayEditor(){
       [_min(start.x, p.x), _min(start.y, p.y)],
     ];
 
-    const d = ring.map(([x,y], i) => `${i===0?'M':'L'} ${x} ${y}`).join(' ') + ' Z';
-    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    const d = ring.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x} ${y}`).join(' ') + ' Z';
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', d);
     path.setAttribute('fill', 'rgba(16,185,129,.12)');
     path.setAttribute('stroke', 'rgba(16,185,129,.90)');
     path.setAttribute('stroke-width', '2');
-    path.setAttribute('data-preview','1');
+    path.setAttribute('data-preview', '1');
     path.setAttribute('pointer-events', 'none');
     $svg.appendChild(path);
   });
 
   window.addEventListener('pointerup', (ev) => {
+    if (view.panning){
+      view.panning = false;
+      view.panStart = null;
+      updateCanvasCursor();
+      return;
+    }
+
     if (!drawing || !start) return;
     drawing = false;
-
-    const zid = currentZonaId();
-    const cara = currentCara();
-    const codigoRaw = ($codigo.value || '').toString().trim();
 
     const prev = $svg.querySelector('path[data-preview="1"]');
     if (prev) prev.remove();
 
+    const codigoRaw = ($codigo.value || '').toString().trim();
     if (!codigoRaw){
       setMsg('Escribe un CÓDIGO antes de dibujar.');
       start = null;
@@ -4754,16 +4992,7 @@ function initNichosOverlayEditor(){
     }
 
     const codigo = makeUniqueCodigo(codigoRaw, null);
-    const f = makeRectFeature(zid, cara, codigo, start.x, start.y, p.x, p.y);
-
-    if (!nichosOverlayRaw) nichosOverlayRaw = { type:'FeatureCollection', features:[] };
-
-    nichosOverlayRaw.features = (nichosOverlayRaw.features || []).filter(x => {
-      const pc = (x?.properties?.codigo || x?.properties?.id || '').toString().trim();
-      const pz = (x?.properties?.zonaId || x?.properties?.columbarioId || '').toString().trim();
-      const pr = (x?.properties?.cara || '').toString().trim().toLowerCase();
-      return !(normCode(pc) === normCode(codigoRaw) && pz === zid && pr === cara);
-    });
+    const f = makeRectFeature(currentZonaId(), currentCara(), codigo, start.x, start.y, p.x, p.y);
 
     nichosOverlayRaw.features.push(f);
     window.__nichosOverlayGeo = nichosOverlayRaw;
@@ -4772,9 +5001,23 @@ function initNichosOverlayEditor(){
     selectFeature(f, true);
     renderRects();
     setMsg(codigo !== codigoRaw
-      ? `Rectángulo guardado en memoria con código ${codigo} (el original ya existía).`
+      ? `Rectángulo guardado con código ${codigo} (el original ya existía).`
       : 'Rectángulo guardado en memoria. Usa Copiar GeoJSON para pegar en data/nichos-overlay.geojson');
   });
+
+  root.querySelector('#noeGrid').onclick = () => {
+    gridArmed = true;
+    setTool('draw');
+    if ($gridHint) $gridHint.textContent = '✅ Cuadrícula armada. Haz click en la imagen para colocarla.';
+    setMsg('Cuadrícula armada. Click en la imagen para colocar la esquina superior izquierda.');
+  };
+  root.querySelector('#noeGridArm').onclick = () => {
+    gridArmed = true;
+    setTool('draw');
+    if ($gridHint) $gridHint.textContent = '✅ Cuadrícula armada. Haz click en la imagen para colocarla.';
+    setMsg('Cuadrícula armada. Click en la imagen para colocar la esquina superior izquierda.');
+  };
+  root.querySelector('#noeGridCancel').onclick = () => cancelGrid();
 
   root.querySelector('#noeCopy').onclick = async () => {
     const txt = JSON.stringify(nichosOverlayRaw || { type:'FeatureCollection', features:[] }, null, 2);
@@ -4788,7 +5031,10 @@ function initNichosOverlayEditor(){
   };
 
   root.querySelector('#noeExit').onclick = () => location.href = './';
-  if ($btnFit) $btnFit.onclick = () => { applyFitScale(); renderRects(); };
+  if ($btnToolDraw) $btnToolDraw.onclick = () => setTool('draw');
+  if ($btnToolPan) $btnToolPan.onclick = () => setTool('pan');
+  if ($btnFit) $btnFit.onclick = () => { fitToImage(true); renderRects(); };
+  if ($btnZoom100) $btnZoom100.onclick = () => { setActualSize(); renderRects(); };
   if ($btnEdit) $btnEdit.onclick = applySelectedCode;
   if ($btnDuplicate) $btnDuplicate.onclick = duplicateSelectedFeature;
   if ($btnDelete) $btnDelete.onclick = deleteSelectedFeature;
@@ -4801,6 +5047,14 @@ function initNichosOverlayEditor(){
   });
 
   window.addEventListener('keydown', (ev) => {
+    if (ev.code === 'Space'){
+      const ae = document.activeElement;
+      const isTyping = ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA');
+      if (!isTyping){
+        spacePan = true;
+        updateCanvasCursor();
+      }
+    }
     if (!featureBelongsToCurrentView(selectedFeat)) return;
     if ((ev.key === 'Delete' || ev.key === 'Backspace') && selectedFeat){
       const ae = document.activeElement;
@@ -4816,14 +5070,22 @@ function initNichosOverlayEditor(){
     }
   });
 
+  window.addEventListener('keyup', (ev) => {
+    if (ev.code === 'Space'){
+      spacePan = false;
+      updateCanvasCursor();
+    }
+  });
+
   window.addEventListener('resize', () => {
-    try { applyFitScale(); renderRects(); } catch {}
+    try { fitToImage(true); renderRects(); } catch {}
   });
 
   $zona.onchange = loadImage;
   $cara.onchange = loadImage;
 
   refreshSelectionUI();
+  setTool('draw');
   loadImage();
 }
 
