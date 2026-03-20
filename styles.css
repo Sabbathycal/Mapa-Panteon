@@ -317,3 +317,13 @@ body.fullOverlayEditor .layout{ grid-template-columns: 1fr 420px; height: calc(1
 body.overlayOnly #map{ display:none !important; }
 body.overlayOnly .layout{ grid-template-columns: 1fr !important; }
 body.overlayOnly .panel{ width:100% !important; height: calc(100vh - 52px) !important; border-left:none !important; }
+
+.nm-viewport{ position:relative; display:inline-block; transform-origin: top left; }
+.nm-viewport > img{ display:block; }
+.nm-viewport > svg{ position:absolute; inset:0; }
+
+.nm-shell{ background:#ffffff; }
+
+body.overlayOnly .topbar{ display:none !important; }
+body.overlayOnly .layout{ display:none !important; }
+body.overlayOnly #nichosOverlayRoot{ display:flex !important; position:fixed; inset:0; background:#f3f4f6; }

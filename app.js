@@ -154,6 +154,10 @@ const nichosUI = {
   $btnClose: null,
   $img: null,
   $svg: null,
+  $viewport: null,
+  $zoom: null,
+  $zoomPct: null,
+  scale: 1,
   $sel: null,
   $info: null,
 };
@@ -168,9 +172,23 @@ function nichosInitDom(){
   nichosUI.$btnClose = document.getElementById('nmBtnClose');
   nichosUI.$img = document.getElementById('nmImg');
   nichosUI.$svg = document.getElementById('nmSvg');
+  nichosUI.$viewport = document.getElementById('nmViewport');
+  nichosUI.$zoom = document.getElementById('nmZoom');
+  nichosUI.$zoomPct = document.getElementById('nmZoomPct');
   nichosUI.$info = document.getElementById('nmNichoInfo');
 
   if (nichosUI.$btnClose) nichosUI.$btnClose.onclick = () => nichosClose();
+
+
+  // Zoom (range 10..250)
+  if (nichosUI.$zoom){
+    nichosUI.$zoom.oninput = () => {
+      const pct = Number(nichosUI.$zoom.value || 100);
+      const s = Math.max(0.10, Math.min(2.50, pct/100));
+      nichosUI.scale = s;
+      nichosApplyZoom();
+    };
+  }
 
   if (nichosUI.$cara){
     // poblar opciones una vez
@@ -238,6 +256,8 @@ function nichosOpen(zonaFeature){
   if (nichosUI.$zona) nichosUI.$zona.textContent = zonaTxt;
   if (nichosUI.$subtitle) nichosUI.$subtitle.textContent = zonaTxt;
   if (nichosUI.$sel) nichosUI.$sel.textContent = '(ninguno)';
+  if (nichosUI.$zoom) nichosUI.$zoom.value = '100';
+  if (nichosUI.$zoomPct) nichosUI.$zoomPct.textContent = '100%';
   if (nichosUI.$info) nichosUI.$info.innerHTML = '<p style="color:#6b7280">Paso 1: elige CARA. Paso 2: haz click en un NICHO.</p>';
 
   if (nichosUI.$modal) nichosUI.$modal.style.display = 'flex';
@@ -252,6 +272,17 @@ function nichosClose(){
   nichosUI.selectedNicho = null;
   nichosUI.$modal.style.display = 'none';
   if (nichosUI.$svg) nichosUI.$svg.innerHTML = '';
+}
+
+
+function nichosApplyZoom(){
+  const vp = nichosUI.$viewport;
+  if (!vp) return;
+  vp.style.transformOrigin = 'top left';
+  vp.style.transform = `scale(${nichosUI.scale})`;
+  if (nichosUI.$zoomPct){
+    nichosUI.$zoomPct.textContent = `${Math.round(nichosUI.scale*100)}%`;
+  }
 }
 
 function nichosRender(){
@@ -273,10 +304,27 @@ function nichosRender(){
     const w = nichosUI.$img.naturalWidth || 1;
     const h = nichosUI.$img.naturalHeight || 1;
 
+    // Fit inicial dentro del contenedor (para que NO salga zoom-in)
+    try {
+      const canvas = document.querySelector('.nm-canvas');
+      const cw = canvas?.clientWidth || w;
+      const ch = canvas?.clientHeight || h;
+      const fitScale = Math.max(0.10, Math.min(2.50, Math.min(cw / w, ch / h)));
+      nichosUI.scale = fitScale;
+      if (nichosUI.$zoom) nichosUI.$zoom.value = String(Math.round(fitScale*100));
+      if (nichosUI.$zoomPct) nichosUI.$zoomPct.textContent = `${Math.round(fitScale*100)}%`;
+    } catch {}
+
     nichosUI.$svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
     nichosUI.$svg.setAttribute('width', String(w));
     nichosUI.$svg.setAttribute('height', String(h));
     nichosUI.$svg.innerHTML = '';
+
+    if (nichosUI.$viewport){
+      nichosUI.$viewport.style.width = w + 'px';
+      nichosUI.$viewport.style.height = h + 'px';
+    }
+    nichosApplyZoom();
 
     const rects = nichosFilterOverlayFeatures(zid, cara);
     if (rects.length === 0){
@@ -3702,7 +3750,24 @@ function attachEditorMapClick(){
 /* =========================================================
    INIT
    ========================================================= */
+
+/* =========================================================
+   ?edit=nichos-overlay => SOLO editor (sin Leaflet)
+   ========================================================= */
+async function startNichosOverlayOnly(){
+  try { document.body.classList.add('overlayOnly'); } catch {}
+  // cargar data necesaria
+  try { nichosZonasRaw = await loadJson(NICHOS_ZONAS_URL); } catch { nichosZonasRaw = { type:'FeatureCollection', features:[] }; }
+  try { nichosOverlayRaw = await loadJson(NICHOS_OVERLAY_URL); } catch { nichosOverlayRaw = { type:'FeatureCollection', features:[] }; }
+  renderEditNichosOverlayPanel();
+}
+
 async function main(){
+  if (isEditNichosOverlay){
+    await startNichosOverlayOnly();
+    return;
+  }
+
   // MODO: EDITOR NICHOS-OVERLAY (standalone, sin Leaflet)
   // La petición es que este editor NO muestre el mapa base.
   if (isEditNichosOverlay){
