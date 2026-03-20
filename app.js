@@ -308,6 +308,52 @@ function nichosFilterOverlayFeatures(zid, cara){
   });
 }
 
+
+function nichosFeatureCoordMode(feature){
+  const p = feature?.properties || {};
+  const explicit = (p.coordMode || p.coords || p.coordinateMode || '').toString().trim().toLowerCase();
+  if (explicit === 'normalized' || explicit === 'normalizado' || explicit === 'ratio' || explicit === 'relativo' || explicit === 'norm') return 'normalized';
+  if (explicit === 'pixel' || explicit === 'pixels' || explicit === 'px' || explicit === 'pixeles') return 'pixel';
+
+  const ring = feature?.geometry?.coordinates?.[0] || [];
+  let maxAbs = 0;
+  for (const pt of ring){
+    const x = Math.abs(Number(pt?.[0] || 0));
+    const y = Math.abs(Number(pt?.[1] || 0));
+    maxAbs = Math.max(maxAbs, x, y);
+  }
+  return maxAbs <= 2 ? 'normalized' : 'pixel';
+}
+
+function nichosRingToImageSpace(feature, imageWidth, imageHeight){
+  const ring = feature?.geometry?.coordinates?.[0] || [];
+  const mode = nichosFeatureCoordMode(feature);
+  if (mode === 'normalized'){
+    return ring.map(([x, y]) => [Number(x) * imageWidth, Number(y) * imageHeight]);
+  }
+  return ring.map(([x, y]) => [Number(x), Number(y)]);
+}
+
+function nichosRingFromImageSpace(ring, imageWidth, imageHeight, mode = 'normalized'){
+  if (mode === 'normalized'){
+    return ring.map(([x, y]) => [
+      imageWidth ? Number(x) / imageWidth : 0,
+      imageHeight ? Number(y) / imageHeight : 0,
+    ]);
+  }
+  return ring.map(([x, y]) => [Number(x), Number(y)]);
+}
+
+function nichosGetPaqueteKey(feature, zonaFeature = null){
+  const fp = feature?.properties || {};
+  const zp = zonaFeature?.properties || {};
+  return (
+    fp.paquete || fp.paqueteId || fp.package ||
+    zp.paquete || zp.paqueteId || zp.package ||
+    null
+  );
+}
+
 function nichosOpen(zonaFeature){
   if (!nichosUI.$modal) nichosInitDom();
 
@@ -429,7 +475,7 @@ function nichosRender(){
 
     for (const f of rects){
       if (f?.geometry?.type !== 'Polygon') continue;
-      const ring = f.geometry.coordinates?.[0] || [];
+      const ring = nichosRingToImageSpace(f, w, h);
       if (ring.length < 4) continue;
 
       const d = ring.map(([x,y], i) => `${i===0?'M':'L'} ${x} ${y}`).join(' ') + ' Z';
@@ -469,11 +515,29 @@ function nichosRender(){
 function nichosRenderNichoInfo(feature){
   const p = feature?.properties || {};
   const codigo = (p.codigo || p.id || '(sin código)').toString();
+  const estatus = (p.estatus || '').toString().trim() || 'desconocido';
+  const paqueteKey = nichosGetPaqueteKey(feature, nichosUI.zona);
 
   if (nichosUI.$sel) nichosUI.$sel.textContent = codigo;
 
   let html = `<h3 style="margin:0 0 6px 0;">Nicho: ${safe(codigo)}</h3>`;
   html += `<div style="font-size:12px;color:#6b7280;margin-bottom:8px;">Columbario → Cara → Nicho</div>`;
+  html += `<p><b>Estatus:</b> ${safe(estatus)}</p>`;
+
+  html += `<h3 style="margin:14px 0 6px 0;">Paquete</h3>`;
+  if (!paqueteKey){
+    html += `<p><i>Sin paquete asignado.</i></p>`;
+  } else if (!paquetesInfo?.[paqueteKey]){
+    html += `<p><b>${safe(paqueteKey)}</b> (no definido en <code>data/paquetes.json</code>)</p>`;
+  } else {
+    const paquete = paquetesInfo[paqueteKey];
+    html += `<p><b>${safe(paquete.nombre || paqueteKey)}</b></p>`;
+    if (Array.isArray(paquete.items) && paquete.items.length){
+      html += `<ul>${paquete.items.map(it => `<li>${safe(it)}</li>`).join('')}</ul>`;
+    }
+  }
+
+  html += `<h3 style="margin:14px 0 6px 0;">Datos</h3>`;
   html += `<pre style="white-space:pre-wrap;font-size:12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px;">${safe(JSON.stringify(p, null, 2))}</pre>`;
 
   if (nichosUI.$info) nichosUI.$info.innerHTML = html;
@@ -4321,8 +4385,49 @@ function initNichosOverlayEditor(){
     return out;
   }
 
-  function featBox(f){
+  function currentImageWidth(){ return view.imageWidth || $img?.naturalWidth || 1; }
+  function currentImageHeight(){ return view.imageHeight || $img?.naturalHeight || 1; }
+
+  function featureCoordMode(f){
+    const explicit = (f?.properties?.coordMode || f?.properties?.coords || '').toString().trim().toLowerCase();
+    if (explicit === 'normalized' || explicit === 'normalizado' || explicit === 'ratio' || explicit === 'relativo' || explicit === 'norm') return 'normalized';
+    if (explicit === 'pixel' || explicit === 'pixels' || explicit === 'px' || explicit === 'pixeles') return 'pixel';
     const ring = f?.geometry?.coordinates?.[0] || [];
+    let maxAbs = 0;
+    for (const [x, y] of ring){
+      maxAbs = Math.max(maxAbs, Math.abs(Number(x || 0)), Math.abs(Number(y || 0)));
+    }
+    return maxAbs <= 2 ? 'normalized' : 'pixel';
+  }
+
+  function featureRingRaw(f){
+    return ((f?.geometry?.coordinates?.[0] || []).map(([x, y]) => [Number(x), Number(y)]));
+  }
+
+  function imageRingFromFeature(f){
+    const ring = featureRingRaw(f);
+    const iw = currentImageWidth();
+    const ih = currentImageHeight();
+    if (featureCoordMode(f) === 'normalized'){
+      return ring.map(([x, y]) => [x * iw, y * ih]);
+    }
+    return ring;
+  }
+
+  function storeImageRingOnFeature(f, imageRing, preferredMode = null){
+    const mode = preferredMode || featureCoordMode(f) || 'normalized';
+    const iw = currentImageWidth();
+    const ih = currentImageHeight();
+    const rawRing = (mode === 'normalized')
+      ? imageRing.map(([x, y]) => [iw ? x / iw : 0, ih ? y / ih : 0])
+      : imageRing.map(([x, y]) => [x, y]);
+    if (!f.properties) f.properties = {};
+    f.properties.coordMode = mode;
+    f.geometry = { type:'Polygon', coordinates:[rawRing] };
+  }
+
+  function featBox(f){
+    const ring = imageRingFromFeature(f);
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (const pt of ring){
       const x = pt[0], y = pt[1];
@@ -4337,21 +4442,18 @@ function initNichosOverlayEditor(){
   }
 
   function featureRing(f){
-    return ((f?.geometry?.coordinates?.[0] || []).map(([x, y]) => [Number(x), Number(y)]));
+    return imageRingFromFeature(f);
   }
 
   function setFeatBox(f, box){
     const l = box.l, t = box.t, r = box.r, b = box.b;
     const ring = [[l,t],[r,t],[r,b],[l,b],[l,t]];
-    f.geometry = { type:'Polygon', coordinates:[ring] };
+    storeImageRingOnFeature(f, ring);
   }
 
   function translateFeature(f, dx, dy, sourceRing = null){
     const ring = sourceRing || featureRing(f);
-    f.geometry = {
-      type: 'Polygon',
-      coordinates: [[...ring.map(([x, y]) => [x + dx, y + dy])]]
-    };
+    storeImageRingOnFeature(f, ring.map(([x, y]) => [x + dx, y + dy]));
   }
 
   function canResizeFeature(f){
@@ -4515,8 +4617,8 @@ function initNichosOverlayEditor(){
   function makePolygonFeature(zid, cara, codigo, ring){
     return {
       type:'Feature',
-      geometry:{ type:'Polygon', coordinates:[ring] },
-      properties:{ tipo:'nicho', zonaId:zid, cara:cara, codigo: codigo || '' }
+      geometry:{ type:'Polygon', coordinates:[nichosRingFromImageSpace(ring, currentImageWidth(), currentImageHeight(), 'normalized')] },
+      properties:{ tipo:'nicho', zonaId:zid, cara:cara, codigo: codigo || '', coordMode:'normalized' }
     };
   }
 
@@ -4638,7 +4740,7 @@ function initNichosOverlayEditor(){
 
     for (const f of rects){
       if (f?.geometry?.type !== 'Polygon') continue;
-      const ring = f.geometry.coordinates?.[0] || [];
+      const ring = featureRing(f);
       if (ring.length < 4) continue;
       const d = ring.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x} ${y}`).join(' ') + ' Z';
       const codigo = (f?.properties?.codigo || '').toString().trim();

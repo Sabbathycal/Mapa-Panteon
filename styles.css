@@ -455,3 +455,48 @@ body.overlayOnly .panel{ width:100% !important; height: calc(100vh - 52px) !impo
 
 body.overlayOnly .layout{ display:none !important; }
 body.overlayOnly #nichosOverlayRoot{ display:flex !important; position:fixed; left:0; right:0; top:var(--topbar-h); bottom:0; background:#f3f4f6; }
+
+/* ===== Nichos: overrides de alineación y escala ===== */
+#nichosModal .nm-stage{
+  position: relative;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+#nichosModal .nm-canvas{
+  position: absolute;
+  inset: 0;
+  display: block !important;
+  background: #f3f4f6 !important;
+  overflow: hidden !important;
+}
+#nichosModal .nm-viewport,
+#nichosOverlayEditor .noe-viewport{
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: top left;
+  will-change: transform;
+}
+#nichosModal #nmImg,
+#nichosOverlayEditor #noeImg{
+  display: block;
+  max-width: none !important;
+  max-height: none !important;
+  width: auto !important;
+  height: auto !important;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+#nichosModal #nmSvg,
+#nichosOverlayEditor #noeSvg{
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+#nichosModal .nm-info ul{
+  margin: 8px 0 0 18px;
+  padding: 0;
+}
+#nichosOverlayEditor .noe-canvas{
+  background: #f3f4f6;
+}
