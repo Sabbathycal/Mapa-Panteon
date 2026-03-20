@@ -4146,6 +4146,7 @@ async function initNichosOverlayEditorStandalone(){
   initNichosOverlayEditor();
 }
 
+
 function initNichosOverlayEditor(){
   // dataset en memoria (FeatureCollection)
   let nichosOverlayRaw = window.__nichosOverlayGeo;
@@ -4184,26 +4185,44 @@ function initNichosOverlayEditor(){
 
           <label>Código</label>
           <input id="noeCodigo" placeholder="PLN-1-AX" />
+        </div>
 
+        <div class="noe-row noe-actions">
+          <button id="noeEdit" disabled>Editar</button>
+          <button id="noeDuplicate" disabled>Duplicar</button>
+          <button id="noeDelete" disabled>Borrar</button>
+          <button id="noeFit">Ajustar imagen</button>
           <button id="noeCopy">Copiar GeoJSON</button>
           <button id="noeExit">Salir</button>
         </div>
+
         <div id="noeMsg" class="noe-msg"></div>
       </div>
 
       <div class="noe-stage" style="flex:1; min-height:0;">
-        <div class="noe-canvas" style="transform-origin: top left;">
-          <img id="noeImg" alt="nichos" />
-          <svg id="noeSvg"></svg>
+        <div class="noe-canvas" id="noeCanvas">
+          <div class="noe-surface" id="noeSurface">
+            <img id="noeImg" alt="nichos" />
+            <svg id="noeSvg"></svg>
+          </div>
         </div>
 
         <div class="noe-side">
-          <h3 style="margin:0 0 6px 0;">Instrucciones</h3>
-          <div style="font-size:12px;color:#6b7280;">
-            1) Elige <b>Columbario</b> y <b>Cara</b>.<br/>
-            2) Escribe el <b>Código</b> del nicho.<br/>
-            3) Arrastra sobre la imagen para crear el rectángulo.<br/>
-            4) Repite y luego usa <b>Copiar GeoJSON</b> para pegar en <code>data/nichos-overlay.geojson</code>.
+          <div class="noe-side-box">
+            <h3 style="margin:0 0 8px 0;">Selección</h3>
+            <div id="noeSelection" class="noe-selection">(ninguno)</div>
+            <div id="noeSelectionHint" class="noe-side-hint">Haz click en un rectángulo para editarlo.</div>
+          </div>
+
+          <div class="noe-side-box">
+            <h3 style="margin:0 0 8px 0;">Instrucciones</h3>
+            <div style="font-size:12px;color:#6b7280;line-height:1.5;">
+              1) Elige <b>Columbario</b> y <b>Cara</b>.<br/>
+              2) Escribe el <b>Código</b> del nicho.<br/>
+              3) Arrastra sobre la imagen para crear el rectángulo.<br/>
+              4) Para modificar uno existente, haz click sobre él y usa <b>Editar</b>, <b>Borrar</b> o <b>Duplicar</b>.<br/>
+              5) Al terminar usa <b>Copiar GeoJSON</b> para pegar en <code>data/nichos-overlay.geojson</code>.
+            </div>
           </div>
         </div>
       </div>
@@ -4219,11 +4238,21 @@ function initNichosOverlayEditor(){
   const $msg = root.querySelector('#noeMsg');
   const $img = root.querySelector('#noeImg');
   const $svg = root.querySelector('#noeSvg');
-  const $canvas = root.querySelector('.noe-canvas');
+  const $canvas = root.querySelector('#noeCanvas');
+  const $surface = root.querySelector('#noeSurface');
+  const $selection = root.querySelector('#noeSelection');
+  const $selectionHint = root.querySelector('#noeSelectionHint');
+  const $btnEdit = root.querySelector('#noeEdit');
+  const $btnDuplicate = root.querySelector('#noeDuplicate');
+  const $btnDelete = root.querySelector('#noeDelete');
+  const $btnFit = root.querySelector('#noeFit');
 
   // selección + drag
   let selectedFeat = null; // referencia al feature dentro de nichosOverlayRaw.features
   let dragState = null;    // { mode:'move'|'tl'|'tr'|'bl'|'br', start:{x,y}, box:{l,t,r,b} }
+  let drawing = false;
+  let start = null;
+  let fitScale = 1;
 
   function featBox(f){
     const ring = f?.geometry?.coordinates?.[0] || [];
@@ -4246,31 +4275,22 @@ function initNichosOverlayEditor(){
     f.geometry = { type:'Polygon', coordinates:[ring] };
   }
 
-  // zoom-out por default: ajusta para que se vea la imagen completa (fit)
-  function applyFitScale(){
-    if (!$canvas) return;
-    const iw = $img.naturalWidth || 1;
-    const ih = $img.naturalHeight || 1;
-    const aw = $canvas.parentElement?.clientWidth || 1;
-    const ah = $canvas.parentElement?.clientHeight || 1;
-    const s = Math.min(aw/iw, ah/ih);
-    const scale = (isFinite(s) && s > 0) ? Math.min(1, s) : 1;
-    $canvas.style.transformOrigin = 'top left';
-    $canvas.style.transform = `scale(${scale})`;
+  function translateFeatureBox(f, dx, dy){
+    const ring = f?.geometry?.coordinates?.[0] || [];
+    f.geometry = {
+      type: 'Polygon',
+      coordinates: [[...ring.map(([x, y]) => [x + dx, y + dy])]]
+    };
   }
 
-  const zonas = (nichosZonasRaw?.features || []).filter(f => ((f?.properties?.tipo || 'zona').toString().trim().toLowerCase() === 'zona'));
-  $zona.innerHTML = zonas.map(z => {
-    const id = nichosZonaId(z);
-    const name = nichosGetProp(z, 'nombre') || id;
-    return `<option value="${safe(id)}">${safe(id)} — ${safe(name)}</option>`;
-  }).join('');
-
-  function setMsg(t){ $msg.textContent = t || ''; }
   function currentZonaId(){ return ($zona.value || '').toString().trim(); }
-  function currentCara(){ return ($cara.value || 'convexo').toString().trim().toLowerCase(); }
+  function currentCara(){ return ($cara.value || '').toString().trim().toLowerCase(); }
+  function hasLoadedImage(){ return !!($img && $img.complete && $img.naturalWidth && $img.naturalHeight); }
   function _min(a,b){ return a < b ? a : b; }
   function _max(a,b){ return a > b ? a : b; }
+  function normCode(v){ return (v || '').toString().trim().toUpperCase(); }
+
+  function setMsg(t){ $msg.textContent = t || ''; }
 
   function listCurrentRects(zid, cara){
     return (nichosOverlayRaw?.features || []).filter(f => {
@@ -4282,10 +4302,104 @@ function initNichosOverlayEditor(){
     });
   }
 
+  function featureBelongsToCurrentView(f){
+    if (!f) return false;
+    const p = f?.properties || {};
+    const z = (p.zonaId || p.columbarioId || '').toString().trim();
+    const c = (p.cara || '').toString().trim().toLowerCase();
+    return z === currentZonaId() && c === currentCara();
+  }
+
+  function refreshSelectionUI(){
+    const codigo = (selectedFeat?.properties?.codigo || '').toString().trim();
+    const active = !!selectedFeat;
+    if ($selection){
+      $selection.textContent = active ? `${codigo || '(sin código)'} · ${currentZonaId()} · ${currentCara().toUpperCase()}` : '(ninguno)';
+    }
+    if ($selectionHint){
+      $selectionHint.textContent = active
+        ? 'Arrastra dentro del rectángulo para moverlo. Usa las esquinas verdes para escalarlo.'
+        : 'Haz click en un rectángulo para editarlo.';
+    }
+    if ($btnEdit) $btnEdit.disabled = !active;
+    if ($btnDuplicate) $btnDuplicate.disabled = !active;
+    if ($btnDelete) $btnDelete.disabled = !active;
+  }
+
+  function selectFeature(f, syncCode = true){
+    selectedFeat = f || null;
+    if (selectedFeat && syncCode && $codigo){
+      $codigo.value = (selectedFeat?.properties?.codigo || '').toString().trim();
+    }
+    refreshSelectionUI();
+  }
+
+  function clearSelection(resetCode = false){
+    selectedFeat = null;
+    if (resetCode && $codigo) $codigo.value = '';
+    refreshSelectionUI();
+  }
+
+  function makeUniqueCodigo(base, excludeFeat = null){
+    const zid = currentZonaId();
+    const cara = currentCara();
+    const used = new Set(
+      listCurrentRects(zid, cara)
+        .filter(f => f !== excludeFeat)
+        .map(f => normCode(f?.properties?.codigo || ''))
+        .filter(Boolean)
+    );
+
+    let seed = (base || '').toString().trim();
+    if (!seed) seed = 'NICHO';
+
+    let candidate = seed;
+    let i = 2;
+    while (used.has(normCode(candidate))){
+      candidate = `${seed}-${i}`;
+      i += 1;
+    }
+    return candidate;
+  }
+
+  function applyFitScale(){
+    if (!$canvas || !$surface || !$img) return;
+    const iw = $img.naturalWidth || 0;
+    const ih = $img.naturalHeight || 0;
+    const aw = $canvas.clientWidth || 0;
+    const ah = $canvas.clientHeight || 0;
+    if (!iw || !ih || !aw || !ah) return;
+
+    fitScale = Math.min(aw / iw, ah / ih);
+    if (!isFinite(fitScale) || fitScale <= 0) fitScale = 1;
+    fitScale = Math.max(0.25, Math.min(12, fitScale));
+
+    const usedW = iw * fitScale;
+    const usedH = ih * fitScale;
+    const offsetX = Math.max(0, (aw - usedW) / 2);
+    const offsetY = Math.max(0, (ah - usedH) / 2);
+
+    $surface.style.width = `${iw}px`;
+    $surface.style.height = `${ih}px`;
+    $surface.style.transformOrigin = 'top left';
+    $surface.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${fitScale})`;
+  }
+
+  const zonas = (nichosZonasRaw?.features || []).filter(f => ((f?.properties?.tipo || 'zona').toString().trim().toLowerCase() === 'zona'));
+  $zona.innerHTML = zonas.map(z => {
+    const id = nichosZonaId(z);
+    const name = nichosGetProp(z, 'nombre') || id;
+    return `<option value="${safe(id)}">${safe(id)} — ${safe(name)}</option>`;
+  }).join('');
+
   function renderRects(){
     const zid = currentZonaId();
     const cara = currentCara();
     const rects = listCurrentRects(zid, cara);
+
+    if (selectedFeat && !rects.includes(selectedFeat)){
+      clearSelection(false);
+    }
 
     $svg.innerHTML = '';
 
@@ -4294,12 +4408,14 @@ function initNichosOverlayEditor(){
       const ring = f.geometry.coordinates?.[0] || [];
       if (ring.length < 4) continue;
       const d = ring.map(([x,y], i) => `${i===0?'M':'L'} ${x} ${y}`).join(' ') + ' Z';
+      const codigo = (f?.properties?.codigo || '').toString().trim();
+      const isSelected = selectedFeat === f;
+
       const p = document.createElementNS('http://www.w3.org/2000/svg','path');
       p.setAttribute('d', d);
-      p.setAttribute('fill', 'rgba(239,68,68,.10)');
-      p.setAttribute('stroke', 'rgba(239,68,68,.85)');
-      p.setAttribute('stroke-width', '2');
-      const codigo = (f?.properties?.codigo || '').toString().trim();
+      p.setAttribute('fill', isSelected ? 'rgba(16,185,129,.14)' : 'rgba(239,68,68,.10)');
+      p.setAttribute('stroke', isSelected ? 'rgba(16,185,129,.96)' : 'rgba(239,68,68,.85)');
+      p.setAttribute('stroke-width', isSelected ? '3' : '2');
       p.setAttribute('data-codigo', codigo);
       p.style.pointerEvents = 'auto';
       p.style.cursor = 'pointer';
@@ -4307,7 +4423,7 @@ function initNichosOverlayEditor(){
       p.addEventListener('click', (ev) => {
         ev.preventDefault();
         ev.stopPropagation();
-        selectedFeat = f;
+        selectFeature(f, true);
         renderRects();
         setMsg(`Seleccionado: ${codigo || '(sin código)'} (arrastra para mover; esquinas para escalar)`);
       });
@@ -4326,15 +4442,25 @@ function initNichosOverlayEditor(){
       });
 
       $svg.appendChild(p);
+
+      const box = featBox(f);
+      if (box && codigo){
+        const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+        txt.setAttribute('x', String((box.l + box.r) / 2));
+        txt.setAttribute('y', String((box.t + box.b) / 2));
+        txt.setAttribute('text-anchor', 'middle');
+        txt.setAttribute('dominant-baseline', 'middle');
+        txt.setAttribute('font-size', '11');
+        txt.setAttribute('font-weight', '700');
+        txt.setAttribute('fill', isSelected ? '#065f46' : '#7f1d1d');
+        txt.setAttribute('pointer-events', 'none');
+        txt.textContent = codigo;
+        $svg.appendChild(txt);
+      }
     }
 
     // Handles de selección
     if (selectedFeat){
-      const zid2 = currentZonaId();
-      const cara2 = currentCara();
-      const ok = (selectedFeat?.properties?.zonaId || '').toString().trim() === zid2 && (selectedFeat?.properties?.cara || '').toString().trim().toLowerCase() === cara2;
-      if (!ok){ selectedFeat = null; return; }
-
       const box = featBox(selectedFeat);
       if (!box) return;
 
@@ -4436,26 +4562,28 @@ function initNichosOverlayEditor(){
     const cara = currentCara();
     const zonaF = zonas.find(z => nichosZonaId(z) === zid);
 
+    clearSelection(true);
+    $svg.innerHTML = '';
+    if ($surface){
+      $surface.style.transform = 'translate(0px, 0px) scale(1)';
+      $surface.style.width = '0px';
+      $surface.style.height = '0px';
+    }
+
     if (!cara){
-      setMsg('Selecciona una CARA para comenzar a definir nichos.');
       $img.removeAttribute('src');
-      $img.style.display = 'none';
-      $svg.innerHTML = '';
+      setMsg('Selecciona una cara para cargar la imagen del columbario.');
       return;
     }
 
     const url = nichosResolveImageUrl(zonaF, cara);
-
     if (!url){
-      setMsg(`Falta la imagen de la cara ${cara} para ${zid} en data/nichos-zonas.geojson`);
+      setMsg('Falta imagenConvexo/imagenConcavo en data/nichos-zonas.geojson');
       $img.removeAttribute('src');
-      $img.style.display = 'none';
-      $svg.innerHTML = '';
       return;
     }
 
     setMsg(`Imagen: ${url}`);
-    $img.style.display = '';
 
     $img.onload = () => {
       const w = $img.naturalWidth || 1;
@@ -4465,6 +4593,9 @@ function initNichosOverlayEditor(){
       $svg.setAttribute('height', String(h));
       applyFitScale();
       renderRects();
+      if (fitScale > 1){
+        setMsg(`Imagen cargada: ${url} · ampliada automáticamente a ${Math.round(fitScale * 100)}%`);
+      }
     };
 
     $img.onerror = () => {
@@ -4474,10 +4605,6 @@ function initNichosOverlayEditor(){
 
     $img.src = url;
   }
-
-  window.addEventListener('resize', () => {
-    try { applyFitScale(); } catch {}
-  });
 
   function svgPoint(ev){
     const pt = $svg.createSVGPoint();
@@ -4508,12 +4635,70 @@ function initNichosOverlayEditor(){
     };
   }
 
-  let drawing = false;
-  let start = null;
+  function applySelectedCode(){
+    if (!selectedFeat) return;
+    const codigo = ($codigo.value || '').toString().trim();
+    if (!codigo){
+      setMsg('Escribe un CÓDIGO para actualizar el nicho seleccionado.');
+      return;
+    }
+    const duplicate = listCurrentRects(currentZonaId(), currentCara()).some(f => f !== selectedFeat && normCode(f?.properties?.codigo || '') === normCode(codigo));
+    if (duplicate){
+      setMsg(`Ya existe otro nicho con código ${codigo} en esta cara.`);
+      return;
+    }
+    if (!selectedFeat.properties) selectedFeat.properties = {};
+    selectedFeat.properties.codigo = codigo;
+    renderRects();
+    selectFeature(selectedFeat, false);
+    setMsg('Código actualizado (en memoria).');
+  }
+
+  function duplicateSelectedFeature(){
+    if (!selectedFeat) return;
+    const copy = deepCopy(selectedFeat);
+    const currentCode = (selectedFeat?.properties?.codigo || '').toString().trim();
+    const inputCode = ($codigo.value || '').toString().trim();
+    const baseCode = (inputCode && normCode(inputCode) !== normCode(currentCode)) ? inputCode : `${currentCode || 'NICHO'}-COPIA`;
+    const newCode = makeUniqueCodigo(baseCode, null);
+
+    if (!copy.properties) copy.properties = {};
+    copy.properties.codigo = newCode;
+    translateFeatureBox(copy, 16, 16);
+
+    nichosOverlayRaw.features.push(copy);
+    window.__nichosOverlayGeo = nichosOverlayRaw;
+    selectFeature(copy, true);
+    renderRects();
+    setMsg(`Duplicado: ${newCode}.`);
+  }
+
+  function deleteSelectedFeature(){
+    if (!selectedFeat) return;
+    const codigo = (selectedFeat?.properties?.codigo || '').toString().trim() || '(sin código)';
+    if (!confirm(`¿Seguro que quieres borrar el nicho ${codigo}?`)) return;
+    nichosOverlayRaw.features = (nichosOverlayRaw.features || []).filter(f => f !== selectedFeat);
+    window.__nichosOverlayGeo = nichosOverlayRaw;
+    clearSelection(true);
+    renderRects();
+    setMsg(`Nicho borrado: ${codigo}.`);
+  }
 
   $svg.addEventListener('pointerdown', (ev) => {
+    if (ev.button !== 0) return;
+    if (!currentCara()){
+      setMsg('Selecciona una cara antes de dibujar.');
+      return;
+    }
+    if (!hasLoadedImage()) return;
+    if (ev.target && ev.target !== $svg) return;
+
     drawing = true;
     start = svgPoint(ev);
+    if (selectedFeat){
+      clearSelection(false);
+      renderRects();
+    }
   });
 
   window.addEventListener('pointermove', (ev) => {
@@ -4537,6 +4722,7 @@ function initNichosOverlayEditor(){
     path.setAttribute('stroke', 'rgba(16,185,129,.90)');
     path.setAttribute('stroke-width', '2');
     path.setAttribute('data-preview','1');
+    path.setAttribute('pointer-events', 'none');
     $svg.appendChild(path);
   });
 
@@ -4546,12 +4732,12 @@ function initNichosOverlayEditor(){
 
     const zid = currentZonaId();
     const cara = currentCara();
-    const codigo = ($codigo.value || '').toString().trim();
+    const codigoRaw = ($codigo.value || '').toString().trim();
 
     const prev = $svg.querySelector('path[data-preview="1"]');
     if (prev) prev.remove();
 
-    if (!codigo){
+    if (!codigoRaw){
       setMsg('Escribe un CÓDIGO antes de dibujar.');
       start = null;
       renderRects();
@@ -4559,6 +4745,15 @@ function initNichosOverlayEditor(){
     }
 
     const p = svgPoint(ev);
+    const width = Math.abs(p.x - start.x);
+    const height = Math.abs(p.y - start.y);
+    if (width < 4 || height < 4){
+      start = null;
+      renderRects();
+      return;
+    }
+
+    const codigo = makeUniqueCodigo(codigoRaw, null);
     const f = makeRectFeature(zid, cara, codigo, start.x, start.y, p.x, p.y);
 
     if (!nichosOverlayRaw) nichosOverlayRaw = { type:'FeatureCollection', features:[] };
@@ -4567,14 +4762,18 @@ function initNichosOverlayEditor(){
       const pc = (x?.properties?.codigo || x?.properties?.id || '').toString().trim();
       const pz = (x?.properties?.zonaId || x?.properties?.columbarioId || '').toString().trim();
       const pr = (x?.properties?.cara || '').toString().trim().toLowerCase();
-      return !(pc === codigo && pz === zid && pr === cara);
+      return !(normCode(pc) === normCode(codigoRaw) && pz === zid && pr === cara);
     });
 
     nichosOverlayRaw.features.push(f);
+    window.__nichosOverlayGeo = nichosOverlayRaw;
 
     start = null;
+    selectFeature(f, true);
     renderRects();
-    setMsg('Rectángulo guardado en memoria. Usa Copiar GeoJSON para pegar en data/nichos-overlay.geojson');
+    setMsg(codigo !== codigoRaw
+      ? `Rectángulo guardado en memoria con código ${codigo} (el original ya existía).`
+      : 'Rectángulo guardado en memoria. Usa Copiar GeoJSON para pegar en data/nichos-overlay.geojson');
   });
 
   root.querySelector('#noeCopy').onclick = async () => {
@@ -4589,10 +4788,42 @@ function initNichosOverlayEditor(){
   };
 
   root.querySelector('#noeExit').onclick = () => location.href = './';
+  if ($btnFit) $btnFit.onclick = () => { applyFitScale(); renderRects(); };
+  if ($btnEdit) $btnEdit.onclick = applySelectedCode;
+  if ($btnDuplicate) $btnDuplicate.onclick = duplicateSelectedFeature;
+  if ($btnDelete) $btnDelete.onclick = deleteSelectedFeature;
+
+  $codigo.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter' && selectedFeat){
+      ev.preventDefault();
+      applySelectedCode();
+    }
+  });
+
+  window.addEventListener('keydown', (ev) => {
+    if (!featureBelongsToCurrentView(selectedFeat)) return;
+    if ((ev.key === 'Delete' || ev.key === 'Backspace') && selectedFeat){
+      const ae = document.activeElement;
+      const isTyping = ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA');
+      if (isTyping) return;
+      ev.preventDefault();
+      deleteSelectedFeature();
+      return;
+    }
+    if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'd' && selectedFeat){
+      ev.preventDefault();
+      duplicateSelectedFeature();
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    try { applyFitScale(); renderRects(); } catch {}
+  });
 
   $zona.onchange = loadImage;
   $cara.onchange = loadImage;
 
+  refreshSelectionUI();
   loadImage();
 }
 
