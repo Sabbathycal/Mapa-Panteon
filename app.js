@@ -94,6 +94,7 @@ let currentLotesSeccion = null;      // editor LOTES: seccion cargada en memoria
 let currentLotesSourceUrl = null;    // editor LOTES: fuente cargada
 
 let showAllLots = false;
+let hoverNameTooltip = null;
 
 // escala data->imagen cargada (para público)
 let COORD_SCALE_X = 1;
@@ -923,6 +924,49 @@ function centerOnLayerNoZoom(layer, paddingPx = 0){
   } catch {}
 }
 
+function clearHoverNameTooltip(){
+  try {
+    if (hoverNameTooltip && map) map.removeLayer(hoverNameTooltip);
+  } catch {}
+  hoverNameTooltip = null;
+}
+
+function getLayerCenterLatLng(layer){
+  try {
+    if (layer?.getBounds){
+      const b = layer.getBounds();
+      if (b?.isValid ? b.isValid() : true) return b.getCenter();
+    }
+  } catch {}
+  try {
+    if (layer?.getLatLng) return layer.getLatLng();
+  } catch {}
+  return null;
+}
+
+function showHoverNameTooltip(layer, text, kind = ''){
+  clearHoverNameTooltip();
+  const label = (text || '').toString().trim();
+  if (!map || !layer || !label) return;
+
+  const latlng = getLayerCenterLatLng(layer);
+  if (!latlng) return;
+
+  const extraClass = kind ? ` map-hover-center-label-${kind}` : '';
+  hoverNameTooltip = L.tooltip({
+    permanent: false,
+    direction: 'center',
+    opacity: 1,
+    interactive: false,
+    className: `map-hover-center-label${extraClass}`
+  })
+    .setLatLng(latlng)
+    .setContent(`<span>${safe(label)}</span>`);
+
+  try { hoverNameTooltip.addTo(map); }
+  catch { hoverNameTooltip = null; }
+}
+
 function pulseLayer(layer, baseStyle, pulseAdd){
   const ms = pulseAdd?.ms ?? 200;
   const weightAdd = pulseAdd?.weightAdd ?? 2;
@@ -1199,9 +1243,11 @@ function clearLotesLayer(){
   if (lotesLayer){ lotesLayer.remove(); lotesLayer = null; }
 }
 function clearManzanasLayer(){
+  clearHoverNameTooltip();
   if (manzanasLayer){ manzanasLayer.remove(); manzanasLayer = null; }
 }
 function clearSeccionesLayerPublic(){
+  clearHoverNameTooltip();
   if (seccionesLayerPublic){ seccionesLayerPublic.remove(); seccionesLayerPublic = null; }
   pinnedSeccionLayer = null;
 }
@@ -1250,12 +1296,16 @@ function renderSeccionesLayerPublic(){
 
       layer.on("mouseover", () => {
         if (pinnedSeccionLayer !== layer) layer.setStyle(hoverStyle(col));
+        const label = (feature?.properties?.nombre || feature?.properties?.label || getPropSeccion(feature) || '').toString().trim();
+        showHoverNameTooltip(layer, label, 'seccion');
       });
       layer.on("mouseout", () => {
+        clearHoverNameTooltip();
         if (pinnedSeccionLayer !== layer) layer.setStyle({ ...hiddenStyle(), color: col, fillColor: col });
       });
 
       layer.on("click", () => {
+        clearHoverNameTooltip();
         if (pinnedSeccionLayer && pinnedSeccionLayer !== layer){
           const prevCol = getSeccionColor(pinnedSeccionLayer.feature);
           pinnedSeccionLayer.setStyle({ ...hiddenStyle(), color: prevCol, fillColor: prevCol });
@@ -1330,12 +1380,16 @@ function renderManzanasLayer(filteredFeatures, opts){
     onEachFeature: (feature, layer) => {
       layer.on("mouseover", () => {
         if (pinnedManzanaLayer !== layer) layer.setStyle(hoverStyle());
+        const label = (feature?.properties?.nombre || feature?.properties?.label || getPropManzana(feature) || '').toString().trim();
+        showHoverNameTooltip(layer, label, 'manzana');
       });
       layer.on("mouseout", () => {
+        clearHoverNameTooltip();
         if (pinnedManzanaLayer !== layer) layer.setStyle(hiddenStyle());
       });
 
       layer.on("click", async () => {
+        clearHoverNameTooltip();
         if (pinnedManzanaLayer && pinnedManzanaLayer !== layer){
           pinnedManzanaLayer.setStyle(hiddenStyle());
         }

@@ -621,3 +621,33 @@ body.nichos-modal-open{
     user-select:none !important;
   }
 }
+
+
+/* Hover label al centro para SECCIONES y MANZANAS */
+.leaflet-tooltip.map-hover-center-label{
+  background: rgba(255,255,255,0.92);
+  border: 2px solid rgba(17,24,39,0.18);
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  color: #111827;
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 1.1;
+  padding: 10px 16px;
+  white-space: nowrap;
+  text-align: center;
+  pointer-events: none;
+}
+.leaflet-tooltip.map-hover-center-label::before{
+  display:none;
+}
+.leaflet-tooltip.map-hover-center-label span{
+  display:block;
+  letter-spacing: .02em;
+}
+@media (max-width: 900px){
+  .leaflet-tooltip.map-hover-center-label{
+    font-size: 15px;
+    padding: 8px 12px;
+  }
+}
