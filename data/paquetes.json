@@ -3,7 +3,7 @@
     "nombre": "Paquete TOTAL SERVICE PLATINO",
     "items": [
       "DURANTE LA DESPEDIDA SE INCLUYE:",
-      " ",
+      
       "4 eventos de Total Service con;",
       "Servicio de concierge.",
       "Director Funerario.",
@@ -14,13 +14,13 @@
       "50 tarjetas de condolencias.",
       "2 toldos y 50 sillas.",
       "Esquela digital.",
-      " ",
+      
       "PARA HONRAR SU MEMORIA:",
       "30 rosas de la memoria.",
       "Vídeo homenaje póstumo.",
       "Invitación a misa mensual de aniversario luctuoso.",
       "Flores artificiales blancas.",
-      " ",
+      
       "CARACTERiSTlCAS DE LA PROPIEDAD QUE ADQUIERE:",
       "Propiedad en Sector Platino.",
       "Bono de mantenimiento por 10 años.",
@@ -37,7 +37,7 @@
     "nombre": "Paquete TS VIP",
     "items": [ 
       "DURANTE LA DESPEDIDA SE INCLUYE:",
-      " ",
+      
       "4 eventos de Total Service con:",
       "Servicio de concierge.", 
       "Director Funerario.",
@@ -48,13 +48,13 @@
       "50 tarjetas de condolencias.",
       "3 toldos y 50 sillas.",
       "Esquela digital.",
-      " ",
+      
       "PARA HONRAR SU MEMORIA:",
       "30 rosas de la memoria.",
       "Vídeo homenaje póstumo.",
       "Invitación a misa mensual de aniversario luctuoso.",
       "Flores artificiales blancas.",
-      " ",
+      
       "CARACTERISTICAS DE LA PROPIEDAD QUE ADQUIERE:",
       "Propiedad en Sector VIP.",
       "Bono de mantenimiento por 10 anos.",
@@ -70,7 +70,7 @@
     "nombre": "Paquete TS ORO",
     "items": [ 
       "DURANTE LA DESPEDIDA SE INCLUYE:",
-      " ",
+      
       "3 eventos de Total Service con:",
       "Servicio de concierge.",
       "Director funerario.",
@@ -81,13 +81,13 @@
       "40 tarjetas de condolencias.",
       "2 toldos y 40 sillas.",
       "Esquela digital.",
-      " ",
+      
       "PARA HONRAR SU MEMORIA:",
       "24 rosas de la memoria.",
       "Video homenaje póstumo.",
       "Invitacion a misa mensual de aniversario luctuoso.",
       "Flores artificiales blancas.",
-      " ",
+      
       "CARACTERISTICAS DE LA PROPIEDAD QUE ADQUIERE:",
       "Propiedad en Sector ORO.",
       "Bono de mantenimiento por 7 años.",
@@ -103,20 +103,20 @@
     "nombre": "Paquete TS PLATA",
     "items": [ 
       "DURANTE LA DESPEDIDA SE INCLUYE:",
-      " ",
+      
       "2 eventos de Total Service con:",
       "Servicio de concierge.",
       "Director funerario.",
       "Servicio de café hasta para 30 personas.",
       "30 tarjetas de condolencias.",
       "2 toldos y 40 sillas.",
-      " ",
+      
       "PARA HONRAR SU MEMORIA:",
       "18 rosas de la memoria.",
       "Video homenaje póstumo.",
       "Invitacion a misa mensual de aniversario luctuoso.",
       "Flores artificiales blancas.",
-      " ",
+      
       "CARACTERISTICAS DE LA PROPIEDAD QUE ADQUIERE:",
       "Propiedad en Sector PLATA.",
       "Bono de mantenimiento por 5 años.",
@@ -126,6 +126,26 @@
       "4 gavetas y 4 espacios para osarios.",
       "Asignación inmediata.",
       "Seguro de saldo deudor.*"
+      ]
+  },
+    "NICHOS": {
+    "nombre": "Paquete TS nICHOS",
+    "items": [ 
+      "2 eventos de Total Service con:",
+      "Servicio de concierge.",
+      "Director funerario.",
+      "Ceremonia religiosa (exequias),",
+      "Violinista durante eI servicio.",
+      
+      "PARA HONRAR SU MEMORIA:",
+      "30 rosas de la memoria.",
+      "Video homenaje póstumo.",
+      "Invitación a misa mensual de aniversario luctuoso.",
+      "Catering especial hasta para 50 personas,",
+      "Servicio de café hasta para 50 personas.",
+      "50 tarjetas de condolencias.",
+      "2 toldos y 50 sillas.",
+      "Esquela digital."
       ]
   }
 }

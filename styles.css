@@ -501,3 +501,31 @@ body.overlayOnly #nichosOverlayRoot{ display:flex !important; position:fixed; le
 #nichosOverlayEditor .noe-canvas{
   background: #f3f4f6;
 }
+
+
+/* ===== Nichos modal: layout móvil sin afectar desktop ===== */
+@media (max-width: 768px){
+  #nichosModal .nm-card{
+    height: 100%;
+  }
+  #nichosModal .nm-body{
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+  }
+  #nichosModal .nm-side{
+    border-right: none !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    max-height: 240px;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #nichosModal .nm-stage{
+    min-height: calc(100dvh - var(--topbar-h) - 320px);
+    height: calc(100dvh - var(--topbar-h) - 320px);
+    background: #f3f4f6 !important;
+  }
+  #nichosModal .nm-canvas{
+    position: relative;
+    inset: auto;
+  }
+}

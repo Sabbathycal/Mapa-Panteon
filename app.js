@@ -272,6 +272,7 @@ function nichosInitDom(){
       nichosUI.cara = (nichosUI.$cara.value || 'convexo');
       nichosUI.selectedNicho = null;
       nichosRender();
+      nichosFocusStageMobile();
     };
   }
 
@@ -282,6 +283,21 @@ function nichosInitDom(){
 
 function nichosGetProp(f, key){
   return (f?.properties?.[key] ?? '').toString().trim();
+}
+
+function nichosIsMobile(){
+  try { return window.matchMedia('(max-width: 768px)').matches; }
+  catch { return window.innerWidth <= 768; }
+}
+
+function nichosFocusStageMobile(){
+  if (!nichosIsMobile() || !nichosUI.open) return;
+  const stage = document.querySelector('#nichosModal .nm-stage');
+  if (!stage) return;
+  window.requestAnimationFrame(() => {
+    try { stage.scrollIntoView({ behavior:'smooth', block:'start' }); }
+    catch {}
+  });
 }
 
 function nichosZonaId(zona){
@@ -433,6 +449,7 @@ function nichosRender(){
     if (nichosUI.$info) nichosUI.$info.innerHTML = `<p style="color:#b91c1c">Falta imagenConvexo/imagenConcavo para ${cara} en nichos-zonas.geojson</p>`;
     nichosUI.$img.removeAttribute('src');
     nichosUI.$svg.innerHTML = '';
+    nichosFocusStageMobile();
     return;
   }
 
@@ -466,6 +483,7 @@ function nichosRender(){
       nichosUI.$viewport.style.height = h + 'px';
     }
     nichosApplyZoom();
+    nichosFocusStageMobile();
 
     const rects = nichosFilterOverlayFeatures(zid, cara);
     if (rects.length === 0){
@@ -507,6 +525,7 @@ function nichosRender(){
   nichosUI.$img.onerror = () => {
     if (nichosUI.$info) nichosUI.$info.innerHTML = `<p style="color:#b91c1c">No se pudo cargar: ${imgUrl}</p>`;
     nichosUI.$svg.innerHTML = '';
+    nichosFocusStageMobile();
   };
 
   nichosUI.$img.src = imgUrl;
