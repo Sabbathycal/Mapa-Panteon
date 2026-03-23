@@ -203,7 +203,7 @@ function nichosInitDom(){
     };
   }
 
-  // Zoom con rueda del mouse + pan con drag (recomendado)
+  // Zoom con rueda del mouse + pan con drag/toque.
   // Nota: el slider se oculta por CSS, pero lo mantenemos sincronizado.
   if (nichosUI.$canvas){
     nichosUI.$canvas.addEventListener('wheel', (ev) => {
@@ -230,28 +230,51 @@ function nichosInitDom(){
       if (nichosUI.$zoomPct) nichosUI.$zoomPct.textContent = `${Math.round(newS*100)}%`;
     }, { passive:false });
 
+    const PAN_THRESHOLD = 6;
+
     nichosUI.$canvas.addEventListener('pointerdown', (ev) => {
       if (!nichosUI.open) return;
-      const tag = (ev.target?.tagName || '').toLowerCase();
-      if (tag === 'path' || tag === 'rect') return;
-      nichosUI.panning = true;
-      nichosUI.panStart = { x: ev.clientX, y: ev.clientY, panX: nichosUI.panX, panY: nichosUI.panY };
+      if (ev.pointerType === 'mouse' && ev.button !== 0) return;
+      nichosUI.panning = false;
+      nichosUI.panStart = {
+        x: ev.clientX,
+        y: ev.clientY,
+        panX: nichosUI.panX,
+        panY: nichosUI.panY,
+        target: ev.target || null,
+        pointerId: ev.pointerId,
+      };
       try { nichosUI.$canvas.setPointerCapture(ev.pointerId); } catch {}
     });
+
     nichosUI.$canvas.addEventListener('pointermove', (ev) => {
-      if (!nichosUI.panning || !nichosUI.panStart) return;
-      try { ev.preventDefault(); ev.stopPropagation(); } catch {}
+      if (!nichosUI.panStart) return;
       const dx = ev.clientX - nichosUI.panStart.x;
       const dy = ev.clientY - nichosUI.panStart.y;
+      if (!nichosUI.panning && Math.hypot(dx, dy) < PAN_THRESHOLD) return;
+      nichosUI.panning = true;
+      try { ev.preventDefault(); ev.stopPropagation(); } catch {}
       nichosUI.panX = nichosUI.panStart.panX + dx;
       nichosUI.panY = nichosUI.panStart.panY + dy;
       nichosApplyZoom();
     });
+
     const endPan = (ev) => {
-      try { ev.preventDefault(); ev.stopPropagation(); } catch {}
+      const start = nichosUI.panStart;
+      const didPan = !!nichosUI.panning;
+      if (didPan) {
+        try { ev.preventDefault(); ev.stopPropagation(); } catch {}
+        nichosUI.ignoreClickUntil = Date.now() + 250;
+      }
       nichosUI.panning = false;
       nichosUI.panStart = null;
       try { nichosUI.$canvas.releasePointerCapture(ev.pointerId); } catch {}
+
+      if (start && !didPan){
+        const feat = start.target?.__nichoFeature || null;
+        const pathEl = start.target?.closest ? start.target.closest('path') : null;
+        if (feat && pathEl) nichosSelectFeature(feat, pathEl);
+      }
     };
     nichosUI.$canvas.addEventListener('pointerup', endPan);
     nichosUI.$canvas.addEventListener('pointercancel', endPan);
@@ -481,6 +504,22 @@ function nichosApplyZoom(){
   }
 }
 
+function nichosSelectFeature(feature, pathEl){
+  if (!feature) return;
+  nichosUI.selectedNicho = feature;
+  nichosRenderNichoInfo(feature);
+  try {
+    for (const el of nichosUI.$svg.querySelectorAll('path')){
+      el.setAttribute('fill', 'rgba(59,130,246,.16)');
+      el.setAttribute('stroke', 'rgba(59,130,246,.85)');
+    }
+    if (pathEl){
+      pathEl.setAttribute('fill', 'rgba(16,185,129,.18)');
+      pathEl.setAttribute('stroke', 'rgba(16,185,129,.95)');
+    }
+  } catch {}
+}
+
 function nichosRender(){
   const zona = nichosUI.zona;
   if (!zona || !nichosUI.$img || !nichosUI.$svg) return;
@@ -548,18 +587,13 @@ function nichosRender(){
       path.setAttribute('stroke-width', '2');
       path.style.cursor = 'pointer';
 
-      path.addEventListener('click', () => {
-        nichosUI.selectedNicho = f;
-        nichosRenderNichoInfo(f);
-        // resaltar
-        try {
-          for (const el of nichosUI.$svg.querySelectorAll('path')){
-            el.setAttribute('fill', 'rgba(59,130,246,.16)');
-            el.setAttribute('stroke', 'rgba(59,130,246,.85)');
-          }
-          path.setAttribute('fill', 'rgba(16,185,129,.18)');
-          path.setAttribute('stroke', 'rgba(16,185,129,.95)');
-        } catch {}
+      path.__nichoFeature = f;
+      path.addEventListener('click', (ev) => {
+        if ((nichosUI.ignoreClickUntil || 0) > Date.now()) {
+          try { ev.preventDefault(); ev.stopPropagation(); } catch {}
+          return;
+        }
+        nichosSelectFeature(f, path);
       });
 
       nichosUI.$svg.appendChild(path);

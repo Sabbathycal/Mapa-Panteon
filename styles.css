@@ -582,3 +582,42 @@ body.nichos-modal-open{
     overflow: hidden !important;
   }
 }
+
+/* ===== Nichos modal: fix final para móvil ===== */
+#nichosModal #nmImg{
+  display:block !important;
+  max-width:none !important;
+  max-height:none !important;
+  width:auto !important;
+  height:auto !important;
+  object-fit:unset !important;
+}
+
+#nichosModal #nmSvg{
+  position:absolute !important;
+  left:0 !important;
+  top:0 !important;
+  inset:auto !important;
+  width:auto !important;
+  height:auto !important;
+  max-width:none !important;
+  max-height:none !important;
+}
+
+#nichosModal .nm-viewport{
+  display:block !important;
+}
+
+@media (max-width: 768px){
+  #nichosModal .nm-stage{
+    overflow:hidden !important;
+  }
+  #nichosModal .nm-canvas,
+  #nichosModal .nm-viewport,
+  #nichosModal #nmImg,
+  #nichosModal #nmSvg{
+    touch-action:none !important;
+    -webkit-user-select:none !important;
+    user-select:none !important;
+  }
+}
