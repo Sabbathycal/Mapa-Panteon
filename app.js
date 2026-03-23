@@ -537,9 +537,6 @@ function nichosRenderNichoInfo(feature){
     }
   }
 
-  html += `<h3 style="margin:14px 0 6px 0;">Datos</h3>`;
-  html += `<pre style="white-space:pre-wrap;font-size:12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px;">${safe(JSON.stringify(p, null, 2))}</pre>`;
-
   if (nichosUI.$info) nichosUI.$info.innerHTML = html;
 }
 
@@ -4202,6 +4199,14 @@ function initNichosOverlayEditor(){
   let root = document.getElementById('nichosOverlayEditor');
   if (root) root.remove();
 
+  const paqueteKeys = Object.keys(paquetesInfo || {}).sort((a, b) =>
+    a.localeCompare(b, 'es', { sensitivity:'base' })
+  );
+  const paqueteDatalistHtml = paqueteKeys.map(k => {
+    const nombre = paquetesInfo?.[k]?.nombre ? `${k} — ${paquetesInfo[k].nombre}` : k;
+    return `<option value="${safe(k)}">${safe(nombre)}</option>`;
+  }).join('');
+
   setPanel('Edición: NICHOS overlay', `
     <div id="nichosOverlayEditor" style="height: calc(100vh - 52px); display:flex; flex-direction:column;">
       <div class="noe-toolbar">
@@ -4250,6 +4255,27 @@ function initNichosOverlayEditor(){
             <h3 style="margin:0 0 8px 0;">Selección</h3>
             <div id="noeSelection" class="noe-selection">(ninguno)</div>
             <div id="noeSelectionHint" class="noe-side-hint">Haz click en un rectángulo para editarlo.</div>
+          </div>
+
+          <div class="noe-side-box">
+            <h3 style="margin:0 0 8px 0;">Propiedades del nicho</h3>
+            <div class="noe-grid-fields noe-props-fields">
+              <div>
+                <label>Estatus</label>
+                <select id="noeStatus">
+                  <option value="disponible">disponible</option>
+                  <option value="ocupado">ocupado</option>
+                  <option value="por construir">por construir</option>
+                  <option value="desconocido">desconocido</option>
+                </select>
+              </div>
+              <div>
+                <label>Paquete</label>
+                <input id="noePaquete" list="noePaqueteList" placeholder="Sin paquete" />
+                <datalist id="noePaqueteList">${paqueteDatalistHtml}</datalist>
+              </div>
+            </div>
+            <div id="noeMetaHint" class="noe-side-hint">Sin selección, estos valores se usarán como default para nuevos nichos y cuadrículas. Si hay un nicho seleccionado, los cambios se guardan en ese nicho.</div>
           </div>
 
           <div class="noe-side-box">
@@ -4337,6 +4363,9 @@ function initNichosOverlayEditor(){
   const $viewport = root.querySelector('#noeViewport');
   const $selection = root.querySelector('#noeSelection');
   const $selectionHint = root.querySelector('#noeSelectionHint');
+  const $status = root.querySelector('#noeStatus');
+  const $paquete = root.querySelector('#noePaquete');
+  const $metaHint = root.querySelector('#noeMetaHint');
   const $btnToolDraw = root.querySelector('#noeToolDraw');
   const $btnToolPan = root.querySelector('#noeToolPan');
   const $btnEdit = root.querySelector('#noeEdit');
@@ -4364,6 +4393,10 @@ function initNichosOverlayEditor(){
   let start = null;
   let spacePan = false;
   let gridArmed = false;
+  const metaDefaults = {
+    estatus:'disponible',
+    paquete:'',
+  };
 
   function currentZonaId(){ return ($zona.value || '').toString().trim(); }
   function currentCara(){ return ($cara.value || '').toString().trim().toLowerCase(); }
@@ -4488,6 +4521,57 @@ function initNichosOverlayEditor(){
     return z === currentZonaId() && c === currentCara();
   }
 
+  function getSelectedOrDefaultEstatus(){
+    const estatus = (selectedFeat?.properties?.estatus || '').toString().trim();
+    return estatus || metaDefaults.estatus || 'disponible';
+  }
+
+  function getSelectedOrDefaultPaquete(){
+    return (
+      (selectedFeat?.properties?.paquete || selectedFeat?.properties?.paqueteId || selectedFeat?.properties?.package || '').toString().trim() ||
+      metaDefaults.paquete ||
+      ''
+    );
+  }
+
+  function syncMetaInputsFromState(){
+    if ($status){
+      $status.value = getSelectedOrDefaultEstatus();
+    }
+    if ($paquete){
+      $paquete.value = getSelectedOrDefaultPaquete();
+    }
+    if ($metaHint){
+      $metaHint.textContent = selectedFeat
+        ? 'Edita Estatus y Paquete para guardar esos cambios en el nicho seleccionado.'
+        : 'Sin selección, estos valores se usarán como default para nuevos nichos y cuadrículas.';
+    }
+  }
+
+  function applyMetaInputs(targetFeat = null){
+    const feat = targetFeat || selectedFeat;
+    const estatus = ($status?.value || '').toString().trim() || 'desconocido';
+    const paquete = ($paquete?.value || '').toString().trim();
+
+    if (!feat){
+      metaDefaults.estatus = estatus || 'disponible';
+      metaDefaults.paquete = paquete;
+      return;
+    }
+
+    if (!feat.properties) feat.properties = {};
+    feat.properties.estatus = estatus;
+    if (paquete){
+      feat.properties.paquete = paquete;
+      delete feat.properties.paqueteId;
+      delete feat.properties.package;
+    } else {
+      delete feat.properties.paquete;
+      delete feat.properties.paqueteId;
+      delete feat.properties.package;
+    }
+  }
+
   function refreshSelectionUI(){
     const codigo = (selectedFeat?.properties?.codigo || '').toString().trim();
     const active = !!selectedFeat;
@@ -4502,6 +4586,7 @@ function initNichosOverlayEditor(){
     if ($btnEdit) $btnEdit.disabled = !active;
     if ($btnDuplicate) $btnDuplicate.disabled = !active;
     if ($btnDelete) $btnDelete.disabled = !active;
+    syncMetaInputsFromState();
   }
 
   function selectFeature(f, syncCode = true){
@@ -4513,6 +4598,10 @@ function initNichosOverlayEditor(){
   }
 
   function clearSelection(resetCode = false){
+    if (selectedFeat){
+      metaDefaults.estatus = ($status?.value || '').toString().trim() || metaDefaults.estatus || 'disponible';
+      metaDefaults.paquete = ($paquete?.value || '').toString().trim();
+    }
     selectedFeat = null;
     if (resetCode && $codigo) $codigo.value = '';
     refreshSelectionUI();
@@ -4615,10 +4704,20 @@ function initNichosOverlayEditor(){
   }
 
   function makePolygonFeature(zid, cara, codigo, ring){
+    const props = {
+      tipo:'nicho',
+      zonaId:zid,
+      cara:cara,
+      codigo: codigo || '',
+      coordMode:'normalized',
+      estatus: ($status?.value || metaDefaults.estatus || 'disponible').toString().trim() || 'disponible',
+    };
+    const paquete = ($paquete?.value || metaDefaults.paquete || '').toString().trim();
+    if (paquete) props.paquete = paquete;
     return {
       type:'Feature',
       geometry:{ type:'Polygon', coordinates:[nichosRingFromImageSpace(ring, currentImageWidth(), currentImageHeight(), 'normalized')] },
-      properties:{ tipo:'nicho', zonaId:zid, cara:cara, codigo: codigo || '', coordMode:'normalized' }
+      properties: props
     };
   }
 
@@ -5140,6 +5239,30 @@ function initNichosOverlayEditor(){
   if ($btnEdit) $btnEdit.onclick = applySelectedCode;
   if ($btnDuplicate) $btnDuplicate.onclick = duplicateSelectedFeature;
   if ($btnDelete) $btnDelete.onclick = deleteSelectedFeature;
+  if ($status) {
+    $status.addEventListener('change', () => {
+      applyMetaInputs(selectedFeat);
+      if (selectedFeat){
+        const codigo = (selectedFeat?.properties?.codigo || '').toString().trim() || '(sin código)';
+        setMsg(`Propiedades actualizadas para ${codigo}.`);
+      } else {
+        setMsg('Estatus default actualizado para nuevos nichos.');
+      }
+      refreshSelectionUI();
+    });
+  }
+  if ($paquete) {
+    $paquete.addEventListener('change', () => {
+      applyMetaInputs(selectedFeat);
+      if (selectedFeat){
+        const codigo = (selectedFeat?.properties?.codigo || '').toString().trim() || '(sin código)';
+        setMsg(`Propiedades actualizadas para ${codigo}.`);
+      } else {
+        setMsg('Paquete default actualizado para nuevos nichos.');
+      }
+      refreshSelectionUI();
+    });
+  }
 
   $codigo.addEventListener('keydown', (ev) => {
     if (ev.key === 'Enter' && selectedFeat){
@@ -5188,6 +5311,7 @@ function initNichosOverlayEditor(){
 
   refreshSelectionUI();
   setTool('draw');
+  syncMetaInputsFromState();
   loadImage();
 }
 

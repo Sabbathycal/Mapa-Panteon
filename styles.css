@@ -381,7 +381,8 @@ body.fullOverlayEditor .layout{ grid-template-columns: 1fr 420px; height: calc(1
   color: #374151;
   margin-bottom: 4px;
 }
-.noe-grid-fields input{
+.noe-grid-fields input,
+.noe-grid-fields select{
   width: 100%;
   padding: 8px;
   border: 1px solid #d1d5db;
