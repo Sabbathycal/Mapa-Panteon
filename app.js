@@ -292,12 +292,54 @@ function nichosIsMobile(){
 
 function nichosFocusStageMobile(){
   if (!nichosIsMobile() || !nichosUI.open) return;
+  const body = document.querySelector('#nichosModal .nm-body');
   const stage = document.querySelector('#nichosModal .nm-stage');
-  if (!stage) return;
+  if (!body || !stage) return;
   window.requestAnimationFrame(() => {
-    try { stage.scrollIntoView({ behavior:'smooth', block:'start' }); }
-    catch {}
+    const top = Math.max(0, (stage.offsetTop || 0) - 12);
+    try { body.scrollTo({ top, behavior:'smooth' }); }
+    catch { body.scrollTop = top; }
   });
+}
+
+function nichosLockBackgroundScroll(locked){
+  try {
+    const html = document.documentElement;
+    const body = document.body;
+    if (!html || !body) return;
+
+    if (locked){
+      if (body.dataset.nichosScrollLock === '1') return;
+      const y = window.scrollY || window.pageYOffset || 0;
+      body.dataset.nichosScrollLock = '1';
+      body.dataset.nichosScrollY = String(y);
+      html.classList.add('nichos-modal-open');
+      body.classList.add('nichos-modal-open');
+      body.style.position = 'fixed';
+      body.style.top = `-${y}px`;
+      body.style.left = '0';
+      body.style.right = '0';
+      body.style.width = '100%';
+      body.style.overflow = 'hidden';
+      html.style.overflow = 'hidden';
+      return;
+    }
+
+    if (body.dataset.nichosScrollLock !== '1') return;
+    const y = Number(body.dataset.nichosScrollY || 0);
+    delete body.dataset.nichosScrollLock;
+    delete body.dataset.nichosScrollY;
+    html.classList.remove('nichos-modal-open');
+    body.classList.remove('nichos-modal-open');
+    body.style.position = '';
+    body.style.top = '';
+    body.style.left = '';
+    body.style.right = '';
+    body.style.width = '';
+    body.style.overflow = '';
+    html.style.overflow = '';
+    window.scrollTo(0, y);
+  } catch {}
 }
 
 function nichosZonaId(zona){
@@ -395,6 +437,7 @@ function nichosOpen(zonaFeature){
   if (nichosUI.$info) nichosUI.$info.innerHTML = '<p style="color:#6b7280">Paso 1: elige CARA. Paso 2: haz click en un NICHO.</p>';
 
   if (nichosUI.$modal) nichosUI.$modal.style.display = 'flex';
+  nichosLockBackgroundScroll(true);
 
   // evita que el mapa (Leaflet) capture wheel/drag cuando el modal está abierto
   try {
@@ -415,6 +458,7 @@ function nichosClose(){
   nichosUI.selectedNicho = null;
   nichosUI.$modal.style.display = 'none';
   if (nichosUI.$svg) nichosUI.$svg.innerHTML = '';
+  nichosLockBackgroundScroll(false);
 
   // re-activa mapa
   try {
