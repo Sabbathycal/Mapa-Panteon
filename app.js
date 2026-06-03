@@ -18,6 +18,9 @@ const NICHOS_OVERLAY_URL = "./data/nichos-overlay.geojson"; // NICHOS por columb
 const LOTES_INFO_URL    = "./data/lotes.json";
 const PAQUETES_URL      = "./data/paquetes.json";
 
+const INVENTARIO_BASE_URL = "./data/inventario-base.json";
+const INVENTARIO_OVERRIDES_URL = "./data/inventario-overrides.json";
+
 // Edit modes:
 // ?edit=secciones  => EDITOR SECCIONES
 // ?edit=manzanas   => EDITOR MANZANAS
@@ -63,6 +66,9 @@ let map;
 
 let lotesInfo = {};
 let paquetesInfo = {};
+
+let inventarioBase = {};
+let inventarioOverrides = {};
 
 // RAW (coords base.png)
 let seccionesTopRaw = null;   // SECCIONES
@@ -132,6 +138,61 @@ async function loadJson(url){
   if (!r.ok) throw new Error(`No se pudo cargar: ${url}`);
   return await r.json();
 }
+
+function normInv(v){
+  return (v ?? "").toString().trim().toUpperCase();
+}
+
+function normStatus(v){
+  const s = (v ?? "").toString().trim().toLowerCase();
+
+  if (["disponible", "libre"].includes(s)) return "disponible";
+  if (["separado", "separada", "apartado", "apartada"].includes(s)) return "separado";
+  if (["vendido", "vendida"].includes(s)) return "vendido";
+  if (["utilizado", "utilizada", "ocupado", "ocupada", "usado", "usada"].includes(s)) return "utilizado";
+  if (["por construir", "por_construir", "no construida", "no construidas"].includes(s)) return "por_construir";
+
+  return s || "desconocido";
+}
+
+function normCodigoLote(v){
+  const s = normInv(v);
+
+  if (/^\d+$/.test(s)) {
+    return String(Number(s));
+  }
+
+  return s;
+}
+
+function keyLote(seccion, manzana, lote){
+  return `LOTE|${normInv(seccion)}|${normInv(manzana)}|${normCodigoLote(lote)}`;
+}
+
+function keyNicho(zonaId, cara, codigo){
+  return `NICHO|${normInv(zonaId)}|${normInv(cara)}|${normInv(codigo)}`;
+}
+
+function buildInventarioIndex(raw){
+  const index = {};
+
+  for (const item of raw?.items || []){
+    const tipo = (item.tipo || "").toString().trim().toLowerCase();
+
+    if (tipo === "lote"){
+      const k = keyLote(item.seccion, item.manzana, item.codigo);
+      index[k] = item;
+    }
+
+    if (tipo === "nicho"){
+      const k = keyNicho(item.zonaId || item.columbario, item.cara, item.codigo);
+      index[k] = item;
+    }
+  }
+
+  return index;
+}
+
 function deepCopy(obj){ return JSON.parse(JSON.stringify(obj)); }
 
 /* =========================================================
@@ -4093,6 +4154,19 @@ async function main(){
   try { lotesInfo = await loadJson(LOTES_INFO_URL); } catch { lotesInfo = {}; }
   try { paquetesInfo = await loadJson(PAQUETES_URL); } catch { paquetesInfo = {}; }
 
+  try {
+    inventarioBase = buildInventarioIndex(await loadJson(INVENTARIO_BASE_URL));
+  } catch {
+    inventarioBase = {};
+  }
+
+  try {
+    inventarioOverrides = buildInventarioIndex(await loadJson(INVENTARIO_OVERRIDES_URL));
+  } catch {
+    inventarioOverrides = {};
+  }
+
+  
   const img = new Image();
   img.onload = async () => {
     try {
