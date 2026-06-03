@@ -193,6 +193,26 @@ function buildInventarioIndex(raw){
   return index;
 }
 
+function getLoteInventoryItem(feature){
+  const p = feature?.properties || {};
+
+  const seccion = p.seccion || currentSeccion || getPropSeccion(currentManzanaFeature);
+  const manzana = p.manzana || p.manzanaId || getPropManzana(currentManzanaFeature);
+  const lote = p.lote || p.id || p.codigo;
+
+  const k = keyLote(seccion, manzana, lote);
+
+  return inventarioOverrides[k] || inventarioBase[k] || null;
+}
+
+function getLoteStatus(feature){
+  const p = feature?.properties || {};
+  const inv = getLoteInventoryItem(feature);
+
+  return normStatus(inv?.estatus || p.estatus || "desconocido");
+}
+
+
 function deepCopy(obj){ return JSON.parse(JSON.stringify(obj)); }
 
 /* =========================================================
@@ -1083,12 +1103,68 @@ function multiSelectedStyle(){
 }
 
 function styleByStatus(status){
-  const s = (status || "").toLowerCase();
-  if (s === "disponible") return { weight: 1, opacity: 1, fillOpacity: 0.30 };
-  if (s === "ocupado")    return { weight: 1, opacity: 1, fillOpacity: 0.55 };
-  if (s === "por construir") return { weight: 1, opacity: 1, dashArray: "4 4", fillOpacity: 0.20 };
-  return { weight: 1, opacity: 1, fillOpacity: 0.25 };
+  const s = normStatus(status);
+
+  if (s === "disponible") {
+    return {
+      color: "#16a34a",
+      fillColor: "#22c55e",
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.30
+    };
+  }
+
+  if (s === "separado") {
+    return {
+      color: "#ca8a04",
+      fillColor: "#facc15",
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.45
+    };
+  }
+
+  if (s === "vendido") {
+    return {
+      color: "#dc2626",
+      fillColor: "#ef4444",
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.50
+    };
+  }
+
+  if (s === "utilizado") {
+    return {
+      color: "#374151",
+      fillColor: "#111827",
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.60
+    };
+  }
+
+  if (s === "por_construir") {
+    return {
+      color: "#6b7280",
+      fillColor: "#9ca3af",
+      weight: 1,
+      opacity: 1,
+      dashArray: "4 4",
+      fillOpacity: 0.20
+    };
+  }
+
+  return {
+    color: "#2563eb",
+    fillColor: "#60a5fa",
+    weight: 1,
+    opacity: 1,
+    fillOpacity: 0.25
+  };
 }
+
 function lotHiddenStyle(){ return { weight: 1, opacity: 0, fillOpacity: 0 }; }
 function lotBaseStyle(status){ return showAllLots ? styleByStatus(status) : lotHiddenStyle(); }
 function lotPinnedStyle(status){ const s = styleByStatus(status); return { ...s, weight: 2 }; }
@@ -1528,15 +1604,15 @@ async function loadLotesForCurrentManzana(){
   applyCoordScaleToGeoJSON(lotesScaled, COORD_SCALE_X, COORD_SCALE_Y);
 
   lotesLayer = L.geoJSON(lotesScaled, {
-    style: (feature) => lotBaseStyle(feature?.properties?.estatus),
+    style: (feature) => lotBaseStyle(getLoteStatus(feature)),
     pointToLayer: (feature, latlng) => {
       const layer = featureToLayerCircleAware(feature, latlng);
-      const st = feature?.properties?.estatus;
+      const st = getLoteStatus(feature);
       try { layer.setStyle(lotBaseStyle(st)); } catch {}
       return layer;
     },
     onEachFeature: (feature, layer) => {
-      const st = feature?.properties?.estatus;
+      const st = getLoteStatus(feature);
 
       layer.on("mouseover", () => {
         if (pinnedLotLayer !== layer) layer.setStyle(styleByStatus(st));
@@ -1547,7 +1623,7 @@ async function loadLotesForCurrentManzana(){
 
       layer.on("click", () => {
         if (pinnedLotLayer && pinnedLotLayer !== layer){
-          const prev = pinnedLotLayer.feature?.properties?.estatus;
+          const prev = getLoteStatus(pinnedLotLayer.feature);
           pinnedLotLayer.setStyle(lotBaseStyle(prev));
         }
         pinnedLotLayer = layer;
@@ -1579,7 +1655,8 @@ async function loadLotesForCurrentManzana(){
 function showLoteInfo(feature){
   const props = feature?.properties || {};
   const loteVal = (props.lote || props.id || "").toString();
-  const status = (props.estatus || "").toString() || (lotesInfo[loteVal]?.estatus) || "desconocido";
+  const inv = getLoteInventoryItem(feature);
+  const status = getLoteStatus(feature);
   const paqueteKey = (props.paquete || currentManzanaFeature?.properties?.paquete || null);
 
   let html = `
@@ -1587,6 +1664,7 @@ function showLoteInfo(feature){
     <p><b>MANZANA:</b> ${safe(getPropManzana(currentManzanaFeature))}</p>
     <p><b>LOTE:</b> ${safe(loteVal)}</p>
     <p><b>Estatus:</b> ${safe(status)}</p>
+    ${inv ? `<p style="font-size:12px;color:#6b7280;"><b>Fuente:</b> inventario</p>` : `<p style="font-size:12px;color:#6b7280;"><b>Fuente:</b> GeoJSON actual</p>`}
   `;
 
   if (String(status).toLowerCase() === "disponible"){
@@ -1600,7 +1678,7 @@ function showLoteInfo(feature){
       html += `<p><b>${safe(p.nombre)}</b></p>`;
       html += `<ul>${(p.items||[]).map(it => `<li>${safe(it)}</li>`).join("")}</ul>`;
     }
-  } else if (String(status).toLowerCase() === "ocupado"){
+  } else if (["vendido", "utilizado", "ocupado"].includes(String(status).toLowerCase())){
     html += `
       <button id="moreBtn" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;cursor:pointer;">
         Más información
@@ -1626,10 +1704,9 @@ function findLotLayerByInput(loteInput){
 
   let found = null;
   lotesLayer.eachLayer(layer => {
-    const p = layer.feature?.properties || {};
-    const v1 = (p.lote || "").toString().trim().toLowerCase();
-    const v2 = (p.id || "").toString().trim().toLowerCase();
-    if (v1 === target || v2 === target) found = layer;
+    const st = getLoteStatus(layer.feature);
+    if (pinnedLotLayer === layer) layer.setStyle(lotPinnedStyle(st));
+    else layer.setStyle(lotBaseStyle(st));
   });
   return found;
 }
@@ -1681,7 +1758,7 @@ function setupSearch(){
     if (isCircleFeature(currentManzanaFeature)) centerOnLayerNoZoom(layer, 120);
     else flyToBoundsSmooth(layer.getBounds().pad(0.35), 0.45);
 
-    const st = layer.feature?.properties?.estatus;
+    const st = getLoteStatus(layer.feature);
     const base = lotPinnedStyle(st);
     layer.setStyle(base);
     pulseLayer(layer, base, { ms: 200 });
@@ -4166,7 +4243,7 @@ async function main(){
     inventarioOverrides = {};
   }
 
-  
+
   const img = new Image();
   img.onload = async () => {
     try {
