@@ -1,15 +1,5 @@
 {
   "source": "manual",
-  "updatedAt": "2026-06-03",
-  "items": [
-    {
-      "tipo": "lote",
-      "seccion": "PLATINO",
-      "manzana": "A",
-      "codigo": "001",
-      "estatus": "separado",
-      "usuario": "prueba",
-      "observaciones": "Prueba manual desde inventario-overrides.json"
-    }
-  ]
+  "updatedAt": "",
+  "items": []
 }
