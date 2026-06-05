@@ -20,6 +20,7 @@ const PAQUETES_URL      = "./data/paquetes.json";
 
 const INVENTARIO_BASE_URL = "./data/inventario-base.json";
 const INVENTARIO_OVERRIDES_URL = "./data/inventario-overrides.json";
+const CATALOGO_PROPIEDADES_URL = "./data/catalogo-propiedades.json";
 
 // Edit modes:
 // ?edit=secciones  => EDITOR SECCIONES
@@ -69,6 +70,10 @@ let paquetesInfo = {};
 
 let inventarioBase = {};
 let inventarioOverrides = {};
+
+let catalogoPropiedades = [];
+let catalogoById = {};
+let catalogoSearch = [];
 
 // RAW (coords base.png)
 let seccionesTopRaw = null;   // SECCIONES
@@ -191,6 +196,61 @@ function buildInventarioIndex(raw){
   }
 
   return index;
+}
+
+function normalizeCatalogSearchText(value){
+  return (value ?? "")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toUpperCase();
+}
+
+function buildCatalogoPropiedades(raw){
+  const items = Array.isArray(raw?.items) ? raw.items : [];
+
+  catalogoPropiedades = items;
+  catalogoById = {};
+  catalogoSearch = [];
+
+  for (const item of items){
+    if (!item || !item.id) continue;
+
+    const id = item.id.toString().trim();
+
+    catalogoById[id] = item;
+
+    catalogoSearch.push({
+      id,
+      tipo: item.tipo || "",
+      seccion: item.seccion || "",
+      manzana: item.manzana || "",
+      codigo: item.codigo || "",
+      estatus: item.estatus || "",
+      referencia_procap: item.referencia_procap || "",
+      displayName: item.displayName || "",
+      searchText: normalizeCatalogSearchText(item.searchText || "")
+    });
+  }
+}
+
+function findCatalogoById(id){
+  const key = (id ?? "").toString().trim();
+
+  if (!key) return null;
+
+  return catalogoById[key] || null;
+}
+
+function searchCatalogoPropiedades(query, limit = 20){
+  const q = normalizeCatalogSearchText(query);
+
+  if (!q) return [];
+
+  return catalogoSearch
+    .filter(item => item.searchText.includes(q))
+    .slice(0, limit);
 }
 
 function getLoteInventoryItem(feature){
@@ -4359,6 +4419,16 @@ async function main(){
     inventarioOverrides = {};
   }
 
+  try {
+    const catalogoRaw = await loadJson(CATALOGO_PROPIEDADES_URL);
+    buildCatalogoPropiedades(catalogoRaw);
+  } catch {
+    catalogoPropiedades = [];
+    catalogoById = {};
+    catalogoSearch = [];
+  }
+
+  console.log("Catálogo de propiedades cargado:", catalogoPropiedades.length);
 
   const img = new Image();
   img.onload = async () => {
