@@ -2124,6 +2124,49 @@ function setFeatureId(f, newId){
   f.properties.id = newId;
   if (f.properties.lote !== undefined) f.properties.lote = newId;
 }
+
+function stripDupSuffix(value){
+  return (value ?? "")
+    .toString()
+    .trim()
+    .replace(/__DUP\d+$/i, "");
+}
+
+function getEditorDisplayId(f){
+  if (isEditManzanas){
+    return (
+      f?.properties?.manzana ||
+      stripDupSuffix(f?.properties?.id) ||
+      ""
+    ).toString().trim();
+  }
+
+  return getFeatureId(f);
+}
+
+function setManzanaDisplayId(f, newManzana){
+  if (!f?.properties) f.properties = {};
+
+  const p = f.properties;
+  const manzana = (newManzana || "").toString().trim().toUpperCase();
+
+  if (!manzana) return;
+
+  const seccion = (p.seccion || getSelectedSeccion() || "")
+    .toString()
+    .trim()
+    .toUpperCase();
+
+  const currentId = (p.id || "").toString().trim();
+  const dupMatch = currentId.match(/__DUP\d+$/i);
+  const dupSuffix = dupMatch ? dupMatch[0] : "";
+
+  p.seccion = seccion;
+  p.manzana = manzana;
+  p.nombre = seccion ? `${seccion} - ${manzana}` : manzana;
+  p.id = seccion ? `${seccion}-${manzana}${dupSuffix}` : `${manzana}${dupSuffix}`;
+}
+
 function ensureUniqueId(feature, arr){
   const base = getFeatureId(feature) || "item";
   const exists = (id) => arr.some(x => getFeatureId(x) === id);
@@ -2600,6 +2643,7 @@ function renderEditSelectedPanel(){
   const ds = getEditDataset();
   const kind = ds?.label || "ITEM";
   const currentId = getFeatureId(editor.selectedFeature) || "(sin id)";
+  const currentDisplayId = getEditorDisplayId(editor.selectedFeature) || "(sin id)";
   const showColor = isEditSecciones && editor.selectedFeature?.properties;
   const currentColor = showColor ? (editor.selectedFeature.properties.color || DEFAULT_SECCION_COLOR) : DEFAULT_SECCION_COLOR;
 
@@ -2656,7 +2700,7 @@ function renderEditSelectedPanel(){
 
   const modeLabel = (editor.editSubmode === "vertices") ? "Edición de puntos" : "Mover/Escalar";
 
-  setPanel(`Editar ${kind}: ${safe(currentId)}`, `
+  setPanel(`Editar ${kind}: ${safe(currentDisplayId)}`, `
     <p><b>Modo:</b> ${safe(modeLabel)}</p>
     <p><b>Tipo:</b> ${editor.selectedIsCircle ? "Círculo" : "Polígono"}</p>
     <p style="font-size:12px;color:#666;">Destino: <b>${safe(ds?.dest || "")}</b></p>
@@ -2665,8 +2709,8 @@ function renderEditSelectedPanel(){
     </p>
 
     <hr/>
-    <label><b>Nombre / ID</b></label><br/>
-    <input id="editIdInput" value="${safe(getFeatureId(editor.selectedFeature))}"
+    <label><b>${isEditManzanas ? "Manzana" : "Nombre / ID"}</b></label><br/>
+    <input id="editIdInput" value="${safe(currentDisplayId)}"
       style="width:100%;padding:8px;margin:6px 0;border:1px solid #ccc;border-radius:8px;" />
 
     ${manzanaOptionsHtml}
@@ -2736,8 +2780,14 @@ function renderEditSelectedPanel(){
     $idInput.oninput = () => {
       const newId = ($idInput.value || "").trim();
       if (!newId) return;
-      setFeatureId(editor.selectedFeature, newId);
-      $title.textContent = `Editar ${kind}: ${newId}`;
+
+      if (isEditManzanas){
+        setManzanaDisplayId(editor.selectedFeature, newId);
+        $title.textContent = `Editar ${kind}: ${newId.toUpperCase()}`;
+      } else {
+        setFeatureId(editor.selectedFeature, newId);
+        $title.textContent = `Editar ${kind}: ${newId}`;
+      }
     };
   }
 
