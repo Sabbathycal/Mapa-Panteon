@@ -1,0 +1,8 @@
+Reporte de generación de catálogo de propiedades
+================================================
+
+Registros leídos desde inventario-base: 6738
+Registros escritos en catálogo: 6738
+IDs duplicados detectados: 0
+Registros con datos faltantes: 0
+
