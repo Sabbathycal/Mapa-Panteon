@@ -1228,12 +1228,73 @@ function buildSeccionesList(features){
   return Array.from(set).sort((a,b) => a.localeCompare(b, "es", { sensitivity:"base" }));
 }
 
-function buildManzanasListBySeccion(features, seccion){
-  const out = [];
-  for (const f of features){
-    if (getPropSeccion(f) === seccion){ out.push(f); }
+function normalizeManzanaLabel(v){
+  return (v ?? "").toString().trim().toUpperCase();
+}
+
+function manzanaToOrderValue(value){
+  const m = normalizeManzanaLabel(value);
+
+  if (!m) return 999999;
+
+  // Si es número: 1, 2, 3...
+  if (/^\d+$/.test(m)) {
+    return Number(m);
   }
-  out.sort((fa, fb) => getPropManzana(fa).localeCompare(getPropManzana(fb), "es", { sensitivity:"base" }));
+
+  // Si es letra: A, B, C... Z, AA, AB, AC...
+  if (/^[A-Z]+$/.test(m)) {
+    let n = 0;
+
+    for (const ch of m) {
+      n = n * 26 + (ch.charCodeAt(0) - 64);
+    }
+
+    return n;
+  }
+
+  // Si es algo mixto, lo manda al final
+  return 999999;
+}
+
+function compareManzanasLabel(a, b){
+  const av = manzanaToOrderValue(a);
+  const bv = manzanaToOrderValue(b);
+
+  if (av !== bv) return av - bv;
+
+  return normalizeManzanaLabel(a).localeCompare(
+    normalizeManzanaLabel(b),
+    "es",
+    { sensitivity: "base" }
+  );
+}
+
+function buildManzanasListBySeccion(features, seccion){
+  const byManzana = new Map();
+  const seccionActual = (seccion || "").toString().trim().toUpperCase();
+
+  for (const f of features){
+    const sec = getPropSeccion(f).toString().trim().toUpperCase();
+    const man = getPropManzana(f).toString().trim();
+
+    if (sec !== seccionActual) continue;
+    if (!man) continue;
+
+    const key = normalizeManzanaLabel(man);
+
+    // Si ya existe esta manzana, no la vuelve a agregar
+    if (!byManzana.has(key)){
+      byManzana.set(key, f);
+    }
+  }
+
+  const out = Array.from(byManzana.values());
+
+  out.sort((fa, fb) => {
+    return compareManzanasLabel(getPropManzana(fa), getPropManzana(fb));
+  });
+
   return out;
 }
 
@@ -1248,13 +1309,16 @@ function fillSeccionSelect(secciones){
 }
 
 function fillManzanaSelect(manzanaFeatures){
-  $manzanaSelect.innerHTML = `<option value="">MANZANA...</option>`;
+  $manzanaSelect.innerHTML = `<option value="">(Todas las manzanas)</option>`;
+
   for (const f of manzanaFeatures){
     const m = getPropManzana(f);
-    const n = getPropNombre(f);
+
+    if (!m) continue;
+
     const opt = document.createElement("option");
     opt.value = m;
-    opt.textContent = `${m} — ${n}`;
+    opt.textContent = m;
     $manzanaSelect.appendChild(opt);
   }
 }
