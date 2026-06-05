@@ -1853,24 +1853,24 @@
         "coordinates": [
           [
             [
-              4751.942053227084,
-              4925.94001897905
+              4750.8665428659915,
+              4927.522734204646
             ],
             [
-              5017.84014654038,
-              4879.055011008979
+              5016.764636179288,
+              4880.637726234575
             ],
             [
-              5053.958967495101,
-              5083.895023635519
+              5052.8834571340085,
+              5085.477738861115
             ],
             [
-              4788.060874181805,
-              5130.78003160559
+              4786.985363820712,
+              5132.362746831186
             ],
             [
-              4751.942053227084,
-              4925.94001897905
+              4750.8665428659915,
+              4927.522734204646
             ]
           ]
         ]
@@ -2371,24 +2371,24 @@
         "coordinates": [
           [
             [
-              4433.317053227084,
-              4980.94001897905
+              4432.2415428659915,
+              4982.522734204646
             ],
             [
-              4699.21514654038,
-              4934.055011008979
+              4698.139636179288,
+              4935.637726234575
             ],
             [
-              4735.333967495101,
-              5138.895023635519
+              4734.2584571340085,
+              5140.477738861115
             ],
             [
-              4469.435874181805,
-              5185.78003160559
+              4468.360363820712,
+              5187.362746831186
             ],
             [
-              4433.317053227084,
-              4980.94001897905
+              4432.2415428659915,
+              4982.522734204646
             ]
           ]
         ]
@@ -2519,24 +2519,24 @@
         "coordinates": [
           [
             [
-              4141.942053227084,
-              5032.44001897905
+              4140.8665428659915,
+              5034.022734204646
             ],
             [
-              4407.84014654038,
-              4985.555011008979
+              4406.764636179288,
+              4987.137726234575
             ],
             [
-              4443.958967495101,
-              5190.395023635519
+              4442.8834571340085,
+              5191.977738861115
             ],
             [
-              4178.060874181805,
-              5237.28003160559
+              4176.985363820712,
+              5238.862746831186
             ],
             [
-              4141.942053227084,
-              5032.44001897905
+              4140.8665428659915,
+              5034.022734204646
             ]
           ]
         ]
@@ -2579,7 +2579,7 @@
         ]
       },
       "properties": {
-        "id": "ORO-W",
+        "id": "ORO-W__DUP2",
         "seccion": "ORO",
         "manzana": "W",
         "nombre": "ORO - W",
@@ -2667,24 +2667,24 @@
         "coordinates": [
           [
             [
-              3850.1920532270838,
-              5082.94001897905
+              3849.116542865991,
+              5084.522734204646
             ],
             [
-              4116.09014654038,
-              5036.055011008979
+              4115.014636179288,
+              5037.637726234575
             ],
             [
-              4152.208967495101,
-              5240.895023635519
+              4151.1334571340085,
+              5242.477738861115
             ],
             [
-              3886.3108741818055,
-              5287.78003160559
+              3885.235363820713,
+              5289.362746831186
             ],
             [
-              3850.1920532270838,
-              5082.94001897905
+              3849.116542865991,
+              5084.522734204646
             ]
           ]
         ]
@@ -2727,7 +2727,7 @@
         ]
       },
       "properties": {
-        "id": "ORO-W",
+        "id": "ORO-W__DUP3",
         "seccion": "ORO",
         "manzana": "W",
         "nombre": "ORO - W",
@@ -2875,7 +2875,7 @@
         ]
       },
       "properties": {
-        "id": "ORO-W",
+        "id": "ORO-W__DUP4",
         "seccion": "ORO",
         "manzana": "W",
         "nombre": "ORO - W",
@@ -2986,7 +2986,7 @@
         ]
       },
       "properties": {
-        "id": "ORO-W",
+        "id": "ORO-W__DUP5",
         "seccion": "ORO",
         "manzana": "W",
         "nombre": "ORO - W",
@@ -3097,7 +3097,7 @@
         ]
       },
       "properties": {
-        "id": "PLATA-A",
+        "id": "PLATA-A__DUP2",
         "seccion": "PLATA",
         "manzana": "A",
         "nombre": "PLATA - A",
@@ -3134,7 +3134,7 @@
         ]
       },
       "properties": {
-        "id": "PLATA-B",
+        "id": "PLATA-B__DUP2",
         "seccion": "PLATA",
         "manzana": "B",
         "nombre": "PLATA - B",
@@ -3171,7 +3171,7 @@
         ]
       },
       "properties": {
-        "id": "PLATA-C",
+        "id": "PLATA-C__DUP2",
         "seccion": "PLATA",
         "manzana": "C",
         "nombre": "PLATA - C",
@@ -3208,7 +3208,7 @@
         ]
       },
       "properties": {
-        "id": "PLATA-D",
+        "id": "PLATA-D__DUP2",
         "seccion": "PLATA",
         "manzana": "D",
         "nombre": "PLATA - D",
@@ -3245,7 +3245,7 @@
         ]
       },
       "properties": {
-        "id": "PLATA-A",
+        "id": "PLATA-A__DUP3",
         "seccion": "PLATA",
         "manzana": "A",
         "nombre": "PLATA - A",
@@ -3282,7 +3282,7 @@
         ]
       },
       "properties": {
-        "id": "PLATA-B",
+        "id": "PLATA-B__DUP3",
         "seccion": "PLATA",
         "manzana": "B",
         "nombre": "PLATA - B",
@@ -3319,7 +3319,7 @@
         ]
       },
       "properties": {
-        "id": "PLATA-C",
+        "id": "PLATA-C__DUP3",
         "seccion": "PLATA",
         "manzana": "C",
         "nombre": "PLATA - C",
@@ -3356,7 +3356,7 @@
         ]
       },
       "properties": {
-        "id": "PLATA-D",
+        "id": "PLATA-D__DUP3",
         "seccion": "PLATA",
         "manzana": "D",
         "nombre": "PLATA - D",
@@ -3393,7 +3393,7 @@
         ]
       },
       "properties": {
-        "id": "PLATA-A",
+        "id": "PLATA-A__DUP4",
         "seccion": "PLATA",
         "manzana": "A",
         "nombre": "PLATA - A",
@@ -3430,7 +3430,7 @@
         ]
       },
       "properties": {
-        "id": "PLATA-B",
+        "id": "PLATA-B__DUP4",
         "seccion": "PLATA",
         "manzana": "B",
         "nombre": "PLATA - B",
@@ -3467,7 +3467,7 @@
         ]
       },
       "properties": {
-        "id": "PLATA-C",
+        "id": "PLATA-C__DUP4",
         "seccion": "PLATA",
         "manzana": "C",
         "nombre": "PLATA - C",
@@ -3504,7 +3504,7 @@
         ]
       },
       "properties": {
-        "id": "PLATA-D",
+        "id": "PLATA-D__DUP4",
         "seccion": "PLATA",
         "manzana": "D",
         "nombre": "PLATA - D",
@@ -4448,11 +4448,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-A",
+        "id": "PLATA-A__DUP5",
         "seccion": "PLATA",
         "manzana": "A",
-        "nombre": "PLATA - A",
-        "paquete": "PLATA"
+        "nombre": "PLATA - A"
       }
     },
     {
@@ -4485,11 +4484,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-A",
+        "id": "PLATA-A__DUP6",
         "seccion": "PLATA",
         "manzana": "A",
-        "nombre": "PLATA - A",
-        "paquete": "PLATA"
+        "nombre": "PLATA - A"
       }
     },
     {
@@ -4522,11 +4520,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-B",
+        "id": "PLATA-B__DUP5",
         "seccion": "PLATA",
         "manzana": "B",
-        "nombre": "PLATA - B",
-        "paquete": "PLATA"
+        "nombre": "PLATA - B"
       }
     },
     {
@@ -4559,11 +4556,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-C",
+        "id": "PLATA-C__DUP5",
         "seccion": "PLATA",
         "manzana": "C",
-        "nombre": "PLATA - C",
-        "paquete": "PLATA"
+        "nombre": "PLATA - C"
       }
     },
     {
@@ -4596,11 +4592,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-A",
+        "id": "PLATA-A__DUP7",
         "seccion": "PLATA",
         "manzana": "A",
-        "nombre": "PLATA - A",
-        "paquete": "PLATA"
+        "nombre": "PLATA - A"
       }
     },
     {
@@ -4633,11 +4628,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-B",
+        "id": "PLATA-B__DUP6",
         "seccion": "PLATA",
         "manzana": "B",
-        "nombre": "PLATA - B",
-        "paquete": "PLATA"
+        "nombre": "PLATA - B"
       }
     },
     {
@@ -4670,11 +4664,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-C",
+        "id": "PLATA-C__DUP6",
         "seccion": "PLATA",
         "manzana": "C",
-        "nombre": "PLATA - C",
-        "paquete": "PLATA"
+        "nombre": "PLATA - C"
       }
     },
     {
@@ -4707,11 +4700,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-D",
+        "id": "PLATA-D__DUP5",
         "seccion": "PLATA",
         "manzana": "D",
-        "nombre": "PLATA - D",
-        "paquete": "PLATA"
+        "nombre": "PLATA - D"
       }
     },
     {
@@ -4744,11 +4736,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-A",
+        "id": "PLATA-A__DUP8",
         "seccion": "PLATA",
         "manzana": "A",
-        "nombre": "PLATA - A",
-        "paquete": "PLATA"
+        "nombre": "PLATA - A"
       }
     },
     {
@@ -4781,11 +4772,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-B",
+        "id": "PLATA-B__DUP7",
         "seccion": "PLATA",
         "manzana": "B",
-        "nombre": "PLATA - B",
-        "paquete": "PLATA"
+        "nombre": "PLATA - B"
       }
     },
     {
@@ -4818,11 +4808,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-C",
+        "id": "PLATA-C__DUP7",
         "seccion": "PLATA",
         "manzana": "C",
-        "nombre": "PLATA - C",
-        "paquete": "PLATA"
+        "nombre": "PLATA - C"
       }
     },
     {
@@ -4855,11 +4844,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-A",
+        "id": "PLATA-A__DUP9",
         "seccion": "PLATA",
         "manzana": "A",
-        "nombre": "PLATA - A",
-        "paquete": "PLATA"
+        "nombre": "PLATA - A"
       }
     },
     {
@@ -4892,11 +4880,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-B",
+        "id": "PLATA-B__DUP8",
         "seccion": "PLATA",
         "manzana": "B",
-        "nombre": "PLATA - B",
-        "paquete": "PLATA"
+        "nombre": "PLATA - B"
       }
     },
     {
@@ -4929,11 +4916,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-C",
+        "id": "PLATA-C__DUP8",
         "seccion": "PLATA",
         "manzana": "C",
-        "nombre": "PLATA - C",
-        "paquete": "PLATA"
+        "nombre": "PLATA - C"
       }
     },
     {
@@ -4966,11 +4952,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-A",
+        "id": "PLATA-A__DUP10",
         "seccion": "PLATA",
         "manzana": "A",
-        "nombre": "PLATA - A",
-        "paquete": "PLATA"
+        "nombre": "PLATA - A"
       }
     },
     {
@@ -5003,11 +4988,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-B",
+        "id": "PLATA-B__DUP9",
         "seccion": "PLATA",
         "manzana": "B",
-        "nombre": "PLATA - B",
-        "paquete": "PLATA"
+        "nombre": "PLATA - B"
       }
     },
     {
@@ -5040,11 +5024,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-C",
+        "id": "PLATA-C__DUP9",
         "seccion": "PLATA",
         "manzana": "C",
-        "nombre": "PLATA - C",
-        "paquete": "PLATA"
+        "nombre": "PLATA - C"
       }
     },
     {
@@ -5077,11 +5060,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-A",
+        "id": "PLATA-A__DUP11",
         "seccion": "PLATA",
         "manzana": "A",
-        "nombre": "PLATA - A",
-        "paquete": "PLATA"
+        "nombre": "PLATA - A"
       }
     },
     {
@@ -5114,11 +5096,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-B",
+        "id": "PLATA-B__DUP10",
         "seccion": "PLATA",
         "manzana": "B",
-        "nombre": "PLATA - B",
-        "paquete": "PLATA"
+        "nombre": "PLATA - B"
       }
     },
     {
@@ -5151,11 +5132,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-C",
+        "id": "PLATA-C__DUP10",
         "seccion": "PLATA",
         "manzana": "C",
-        "nombre": "PLATA - C",
-        "paquete": "PLATA"
+        "nombre": "PLATA - C"
       }
     },
     {
@@ -5188,11 +5168,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-D",
+        "id": "PLATA-D__DUP6",
         "seccion": "PLATA",
         "manzana": "D",
-        "nombre": "PLATA - D",
-        "paquete": "PLATA"
+        "nombre": "PLATA - D"
       }
     },
     {
@@ -5225,11 +5204,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-A",
+        "id": "PLATA-A__DUP12",
         "seccion": "PLATA",
         "manzana": "A",
-        "nombre": "PLATA - A",
-        "paquete": "PLATA"
+        "nombre": "PLATA - A"
       }
     },
     {
@@ -5262,11 +5240,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-B",
+        "id": "PLATA-B__DUP11",
         "seccion": "PLATA",
         "manzana": "B",
-        "nombre": "PLATA - B",
-        "paquete": "PLATA"
+        "nombre": "PLATA - B"
       }
     },
     {
@@ -5299,11 +5276,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-A",
+        "id": "PLATA-A__DUP13",
         "seccion": "PLATA",
         "manzana": "A",
-        "nombre": "PLATA - A",
-        "paquete": "PLATA"
+        "nombre": "PLATA - A"
       }
     },
     {
@@ -5336,11 +5312,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-B",
+        "id": "PLATA-B__DUP12",
         "seccion": "PLATA",
         "manzana": "B",
-        "nombre": "PLATA - B",
-        "paquete": "PLATA"
+        "nombre": "PLATA - B"
       }
     },
     {
@@ -5373,11 +5348,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-A",
+        "id": "PLATA-A__DUP14",
         "seccion": "PLATA",
         "manzana": "A",
-        "nombre": "PLATA - A",
-        "paquete": "PLATA"
+        "nombre": "PLATA - A"
       }
     }
   ]
