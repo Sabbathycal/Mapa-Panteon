@@ -430,7 +430,7 @@
         ]
       },
       "properties": {
-        "id": "B",
+        "id": "PLATINO-B",
         "seccion": "PLATINO",
         "manzana": "B",
         "nombre": "PLATINO - B",
@@ -467,7 +467,7 @@
         ]
       },
       "properties": {
-        "id": "C",
+        "id": "PLATINO-C",
         "seccion": "PLATINO",
         "manzana": "C",
         "nombre": "PLATINO - C",
@@ -504,7 +504,7 @@
         ]
       },
       "properties": {
-        "id": "N",
+        "id": "PLATINO-D",
         "seccion": "PLATINO",
         "manzana": "D",
         "nombre": "PLATINO - D",
@@ -541,7 +541,7 @@
         ]
       },
       "properties": {
-        "id": "G",
+        "id": "PLATINO-E",
         "seccion": "PLATINO",
         "manzana": "E",
         "nombre": "PLATINO - E",
@@ -578,7 +578,7 @@
         ]
       },
       "properties": {
-        "id": "M",
+        "id": "PLATINO-F",
         "seccion": "PLATINO",
         "manzana": "F",
         "nombre": "PLATINO - F",
@@ -615,7 +615,7 @@
         ]
       },
       "properties": {
-        "id": "F",
+        "id": "PLATINO-G",
         "seccion": "PLATINO",
         "manzana": "G",
         "nombre": "PLATINO - G",
@@ -652,7 +652,7 @@
         ]
       },
       "properties": {
-        "id": "L",
+        "id": "PLATINO-H",
         "seccion": "PLATINO",
         "manzana": "H",
         "nombre": "PLATINO - H",
@@ -689,7 +689,7 @@
         ]
       },
       "properties": {
-        "id": "E",
+        "id": "PLATINO-I",
         "seccion": "PLATINO",
         "manzana": "I",
         "nombre": "PLATINO - I",
@@ -726,7 +726,7 @@
         ]
       },
       "properties": {
-        "id": "K",
+        "id": "PLATINO-J",
         "seccion": "PLATINO",
         "manzana": "J",
         "nombre": "PLATINO - J",
@@ -763,7 +763,7 @@
         ]
       },
       "properties": {
-        "id": "D",
+        "id": "PLATINO-K",
         "seccion": "PLATINO",
         "manzana": "K",
         "nombre": "PLATINO - K",
@@ -800,7 +800,7 @@
         ]
       },
       "properties": {
-        "id": "J",
+        "id": "PLATINO-H",
         "seccion": "PLATINO",
         "manzana": "H",
         "nombre": "PLATINO - H",
@@ -837,7 +837,7 @@
         ]
       },
       "properties": {
-        "id": "I",
+        "id": "PLATINO-I",
         "seccion": "PLATINO",
         "manzana": "I",
         "nombre": "PLATINO - I",
@@ -874,7 +874,7 @@
         ]
       },
       "properties": {
-        "id": "H",
+        "id": "PLATINO-J",
         "seccion": "PLATINO",
         "manzana": "J",
         "nombre": "PLATINO - J",
@@ -911,7 +911,7 @@
         ]
       },
       "properties": {
-        "id": "AA",
+        "id": "PLATINO-O",
         "seccion": "PLATINO",
         "manzana": "O",
         "nombre": "PLATINO - O",
@@ -948,7 +948,7 @@
         ]
       },
       "properties": {
-        "id": "R",
+        "id": "PLATINO-P",
         "seccion": "PLATINO",
         "manzana": "P",
         "nombre": "PLATINO - P",
@@ -985,7 +985,7 @@
         ]
       },
       "properties": {
-        "id": "Z",
+        "id": "PLATINO-Q",
         "seccion": "PLATINO",
         "manzana": "Q",
         "nombre": "PLATINO - Q",
@@ -1022,7 +1022,7 @@
         ]
       },
       "properties": {
-        "id": "Q",
+        "id": "PLATINO-R",
         "seccion": "PLATINO",
         "manzana": "R",
         "nombre": "PLATINO - R",
@@ -1059,7 +1059,7 @@
         ]
       },
       "properties": {
-        "id": "Y",
+        "id": "PLATINO-S",
         "seccion": "PLATINO",
         "manzana": "S",
         "nombre": "PLATINO - S",
@@ -1096,7 +1096,7 @@
         ]
       },
       "properties": {
-        "id": "P",
+        "id": "PLATINO-T",
         "seccion": "PLATINO",
         "manzana": "T",
         "nombre": "PLATINO - T",
@@ -1133,7 +1133,7 @@
         ]
       },
       "properties": {
-        "id": "X",
+        "id": "PLATINO-U",
         "seccion": "PLATINO",
         "manzana": "U",
         "nombre": "PLATINO - U",
@@ -1170,7 +1170,7 @@
         ]
       },
       "properties": {
-        "id": "O",
+        "id": "PLATINO-V",
         "seccion": "PLATINO",
         "manzana": "V",
         "nombre": "PLATINO - V",
@@ -1207,7 +1207,7 @@
         ]
       },
       "properties": {
-        "id": "AE",
+        "id": "PLATINO-S",
         "seccion": "PLATINO",
         "manzana": "S",
         "nombre": "PLATINO - S",
@@ -1244,7 +1244,7 @@
         ]
       },
       "properties": {
-        "id": "V",
+        "id": "PLATINO-T",
         "seccion": "PLATINO",
         "manzana": "T",
         "nombre": "PLATINO - T",
@@ -1281,7 +1281,7 @@
         ]
       },
       "properties": {
-        "id": "AD",
+        "id": "PLATINO-U",
         "seccion": "PLATINO",
         "manzana": "U",
         "nombre": "PLATINO - U",
@@ -1318,7 +1318,7 @@
         ]
       },
       "properties": {
-        "id": "U",
+        "id": "PLATINO-V",
         "seccion": "PLATINO",
         "manzana": "V",
         "nombre": "PLATINO - V",
@@ -1355,7 +1355,7 @@
         ]
       },
       "properties": {
-        "id": "AC",
+        "id": "PLATINO-W",
         "seccion": "PLATINO",
         "manzana": "W",
         "nombre": "PLATINO - W",
@@ -1392,7 +1392,7 @@
         ]
       },
       "properties": {
-        "id": "T",
+        "id": "PLATINO-X",
         "seccion": "PLATINO",
         "manzana": "X",
         "nombre": "PLATINO - X",
@@ -1429,7 +1429,7 @@
         ]
       },
       "properties": {
-        "id": "AB",
+        "id": "PLATINO-Y",
         "seccion": "PLATINO",
         "manzana": "Y",
         "nombre": "PLATINO - Y",
@@ -1466,7 +1466,7 @@
         ]
       },
       "properties": {
-        "id": "S",
+        "id": "PLATINO-Z",
         "seccion": "PLATINO",
         "manzana": "Z",
         "nombre": "PLATINO - Z",
@@ -1503,7 +1503,7 @@
         ]
       },
       "properties": {
-        "id": "AF",
+        "id": "PLATINO-AF",
         "seccion": "PLATINO",
         "manzana": "AF",
         "nombre": "PLATINO - AF",
@@ -1540,7 +1540,7 @@
         ]
       },
       "properties": {
-        "id": "W",
+        "id": "PLATINO-AG",
         "seccion": "PLATINO",
         "manzana": "AG",
         "nombre": "PLATINO - AG",
@@ -1577,7 +1577,7 @@
         ]
       },
       "properties": {
-        "id": "AG",
+        "id": "PLATINO-AG",
         "seccion": "PLATINO",
         "manzana": "AG",
         "nombre": "PLATINO - AG",
@@ -1614,7 +1614,7 @@
         ]
       },
       "properties": {
-        "id": "A",
+        "id": "PLATINO-A",
         "seccion": "PLATINO",
         "manzana": "A",
         "nombre": "PLATINO - A",
@@ -5339,7 +5339,7 @@
         "id": "PLATA-B",
         "seccion": "PLATA",
         "manzana": "B",
-        "nombre": "B",
+        "nombre": "PLATA - B",
         "paquete": "PLATA"
       }
     },
@@ -5376,7 +5376,7 @@
         "id": "PLATA-A",
         "seccion": "PLATA",
         "manzana": "A",
-        "nombre": "A",
+        "nombre": "PLATA - A",
         "paquete": "PLATA"
       }
     }
