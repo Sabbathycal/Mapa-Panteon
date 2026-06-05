@@ -4021,7 +4021,9 @@ function attachEditorMapClick(){
           const localX = c * (cfg.w + cfg.gapX);
           const localY = r * (cfg.h + cfg.gapY);
 
-          const loteId = nextPaddedNumber(cfg.start, (r*cfg.cols + c), cfg.inc);
+          const orderIndex = ((cfg.cols - 1 - c) * cfg.rows) + r;
+          const loteId = nextPaddedNumber(cfg.start, orderIndex, cfg.inc);
+          
           const corners = makeRotatedRect(x0, y0, localX, localY, cfg.w, cfg.h, cfg.rot);
 
           const feature = {
