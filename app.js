@@ -2615,7 +2615,7 @@ function renderEditSelectedPanel(){
       ...list.map(f => {
         const m = getPropManzana(f);
         const sel = (m && curMan && m.toUpperCase() === curMan.toUpperCase()) ? "selected" : "";
-        return `<option value="${safe(m)}" ${sel}>${safe(m)} — ${safe(getPropNombre(f))}</option>`;
+        return `<option value="${safe(m)}" ${sel}>${safe(m)}</option>`;
       })
     ].join("");
 
@@ -4404,11 +4404,12 @@ async function main(){
           $manzanaSelect.innerHTML = `<option value="">(Todas las manzanas)</option>`;
           for (const f of list){
             const m = getPropManzana(f);
-            const n = getPropNombre(f);
+
             const opt = document.createElement('option');
             opt.value = m;
-            opt.textContent = `${m} — ${n}`;
+            opt.textContent = m;
             $manzanaSelect.appendChild(opt);
+          
           }
 
           rerenderLotes_Edit();
