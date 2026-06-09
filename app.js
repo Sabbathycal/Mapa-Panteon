@@ -130,6 +130,93 @@ function setPanel(title, html){
   $title.textContent = title;
   $body.innerHTML = html;
 }
+
+function closeModal(){
+  const existing = document.getElementById("propertyModalOverlay");
+  if (existing) existing.remove();
+}
+
+function showModal(title, html){
+  closeModal();
+
+  const overlay = document.createElement("div");
+  overlay.id = "propertyModalOverlay";
+  overlay.style.position = "fixed";
+  overlay.style.inset = "0";
+  overlay.style.background = "rgba(0,0,0,0.45)";
+  overlay.style.zIndex = "9999";
+  overlay.style.display = "flex";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+  overlay.style.padding = "20px";
+
+  overlay.innerHTML = `
+    <div
+      id="propertyModalBox"
+      style="
+        width:min(720px, 95vw);
+        max-height:85vh;
+        overflow:auto;
+        background:#fff8e8;
+        border-radius:14px;
+        box-shadow:0 20px 60px rgba(0,0,0,0.35);
+        border:1px solid #d1d5db;
+      "
+    >
+      <div
+        style="
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:12px;
+          padding:16px 18px;
+          border-bottom:1px solid #d1d5db;
+          background:#fff3d5;
+          position:sticky;
+          top:0;
+          z-index:1;
+        "
+      >
+        <h2 style="margin:0;font-size:20px;">${safe(title)}</h2>
+        <button
+          id="propertyModalClose"
+          style="
+            border:1px solid #d1d5db;
+            background:white;
+            border-radius:8px;
+            padding:6px 10px;
+            cursor:pointer;
+            font-weight:700;
+          "
+        >
+          Cerrar
+        </button>
+      </div>
+
+      <div style="padding:18px;">
+        ${html}
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const closeBtn = document.getElementById("propertyModalClose");
+  if (closeBtn) closeBtn.onclick = closeModal;
+
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) {
+      closeModal();
+    }
+  });
+}
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeModal();
+  }
+});
+
 function safe(v){ return (v === null || v === undefined) ? "" : String(v); }
 
 function clamp(v, a, b){
@@ -207,6 +294,83 @@ function normalizeCatalogSearchText(value){
     .toUpperCase();
 }
 
+function normalizeSearchWords(value){
+  return (value ?? "")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Z0-9]+/gi, " ")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, " ");
+}
+
+function removeLeadingZerosFromSearchWords(value){
+  return normalizeSearchWords(value)
+    .split(" ")
+    .map(part => {
+      if (/^\d+$/.test(part)) {
+        return String(Number(part));
+      }
+
+      return part;
+    })
+    .join(" ");
+}
+
+function compactSearchValue(value){
+  return normalizeSearchWords(value).replace(/\s+/g, "");
+}
+
+function buildCatalogSearchVariants(item){
+  const values = [
+    item.id,
+    item.displayName,
+    item.tipo,
+    item.seccion,
+    item.manzana,
+    item.zonaId,
+    item.cara,
+    item.codigo,
+    item.estatus,
+    item.referencia_procap,
+    item.observaciones,
+    item.searchText
+  ];
+
+  if (item.tipo === "lote"){
+    const codigoSinCeros = removeLeadingZerosFromSearchWords(item.codigo);
+
+    values.push(`${item.seccion} ${item.codigo} ${item.manzana}`);
+    values.push(`${item.seccion}-${item.codigo}-${item.manzana}`);
+    values.push(`${item.seccion}${item.codigo}${item.manzana}`);
+
+    values.push(`${item.seccion} ${codigoSinCeros} ${item.manzana}`);
+    values.push(`${item.seccion}-${codigoSinCeros}-${item.manzana}`);
+    values.push(`${item.seccion}${codigoSinCeros}${item.manzana}`);
+
+    values.push(`${item.seccion} ${item.manzana} ${item.codigo}`);
+    values.push(`${item.seccion}-${item.manzana}-${item.codigo}`);
+    values.push(`${item.seccion}${item.manzana}${item.codigo}`);
+
+    values.push(`${item.seccion} ${item.manzana} ${codigoSinCeros}`);
+    values.push(`${item.seccion}-${item.manzana}-${codigoSinCeros}`);
+    values.push(`${item.seccion}${item.manzana}${codigoSinCeros}`);
+  }
+
+  const raw = values.filter(Boolean).join(" ");
+
+  const words = normalizeSearchWords(raw);
+  const wordsNoZeros = removeLeadingZerosFromSearchWords(raw);
+
+  return {
+    words,
+    wordsNoZeros,
+    compact: compactSearchValue(words),
+    compactNoZeros: compactSearchValue(wordsNoZeros)
+  };
+}
+
 function buildCatalogoPropiedades(raw){
   const items = Array.isArray(raw?.items) ? raw.items : [];
 
@@ -221,6 +385,8 @@ function buildCatalogoPropiedades(raw){
 
     catalogoById[id] = item;
 
+const variants = buildCatalogSearchVariants(item);
+
     catalogoSearch.push({
       id,
       tipo: item.tipo || "",
@@ -230,7 +396,11 @@ function buildCatalogoPropiedades(raw){
       estatus: item.estatus || "",
       referencia_procap: item.referencia_procap || "",
       displayName: item.displayName || "",
-      searchText: normalizeCatalogSearchText(item.searchText || "")
+      searchText: normalizeCatalogSearchText(item.searchText || ""),
+      searchWords: variants.words,
+      searchWordsNoZeros: variants.wordsNoZeros,
+      searchCompact: variants.compact,
+      searchCompactNoZeros: variants.compactNoZeros
     });
   }
 }
@@ -280,12 +450,22 @@ function getCatalogoItemForLoteFeature(feature){
 }
 
 function searchCatalogoPropiedades(query, limit = 20){
-  const q = normalizeCatalogSearchText(query);
+  const qWords = normalizeSearchWords(query);
+  const qWordsNoZeros = removeLeadingZerosFromSearchWords(query);
+  const qCompact = compactSearchValue(qWords);
+  const qCompactNoZeros = compactSearchValue(qWordsNoZeros);
 
-  if (!q) return [];
+  if (!qWords && !qCompact) return [];
 
   return catalogoSearch
-    .filter(item => item.searchText.includes(q))
+    .filter(item => {
+      return (
+        item.searchWords?.includes(qWords) ||
+        item.searchWordsNoZeros?.includes(qWordsNoZeros) ||
+        item.searchCompact?.includes(qCompact) ||
+        item.searchCompactNoZeros?.includes(qCompactNoZeros)
+      );
+    })
     .slice(0, limit);
 }
 
@@ -345,7 +525,7 @@ function renderCatalogoSearchResults(results, originalQuery){
     setPanel("Sin resultados", `
       <p>No encontré propiedades relacionadas con:</p>
       <p><b>${safe(originalQuery)}</b></p>
-      <p style="font-size:12px;color:#6b7280;">
+      <p style="margin:2px 0;font-size:12px;color:#6b7280;">
         Puedes intentar con una referencia como <b>PLATINO - 011 - B</b>,
         o con sección, manzana y lote.
       </p>
@@ -399,7 +579,7 @@ async function openCatalogoItem(item){
       <p><b>Tipo:</b> ${safe(item.tipo)}</p>
       <p><b>Estatus:</b> ${safe(item.estatus)}</p>
       <p><b>Referencia ProcaP:</b> ${safe(item.referencia_procap)}</p>
-      <p style="font-size:12px;color:#6b7280;">
+      <p style="margin:2px 0;font-size:12px;color:#6b7280;">
         La navegación automática para nichos la agregaremos en un paso posterior.
       </p>
     `);
@@ -434,7 +614,7 @@ async function openCatalogoItem(item){
       <p><b>${safe(item.displayName || item.id)}</b></p>
       <p><b>Estatus:</b> ${safe(item.estatus)}</p>
       <p><b>Referencia ProCaP:</b> ${safe(item.referencia_procap)}</p>
-      <p style="font-size:12px;color:#6b7280;">
+      <p style="margin:2px 0;font-size:12px;color:#6b7280;">
         Esto normalmente significa que el lote existe en Excel/Inventario, pero el polígono del mapa no tiene el mismo lote, sección o manzana.
       </p>
     `);
@@ -1987,11 +2167,9 @@ function showFichaPropiedad(catalogItem, feature){
     return;
   }
 
-  const p = feature?.properties || {};
-  const inv = feature ? getLoteInventoryItem(feature) : null;
 
   const html = `
-    <div style="display:flex;flex-direction:column;gap:10px;">
+    <div style="display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.25;">
       <div>
         <h3 style="margin:0 0 4px 0;">${safe(catalogItem.displayName || catalogItem.id)}</h3>
         <p style="margin:0;font-size:12px;color:#6b7280;">
@@ -2001,48 +2179,32 @@ function showFichaPropiedad(catalogItem, feature){
 
       <hr/>
 
-      <p><b>Tipo:</b> ${safe(catalogItem.tipo)}</p>
-      <p><b>Sección:</b> ${safe(catalogItem.seccion)}</p>
-      <p><b>Manzana:</b> ${safe(catalogItem.manzana)}</p>
-      <p><b>Código:</b> ${safe(catalogItem.codigo)}</p>
-      <p><b>Estatus:</b> ${safe(catalogItem.estatus)}</p>
-      <p><b>Referencia ProcaP:</b> ${safe(catalogItem.referencia_procap || "Sin referencia")}</p>
+      <p style="margin:2px 0;"><b>Tipo:</b> ${safe(catalogItem.tipo)}</p>
+      <p style="margin:2px 0;"><b>Sección:</b> ${safe(catalogItem.seccion)}</p>
+      <p style="margin:2px 0;"><b>Manzana:</b> ${safe(catalogItem.manzana)}</p>
+      <p style="margin:2px 0;"><b>Código:</b> ${safe(catalogItem.codigo)}</p>
+      <p style="margin:2px 0;"><b>Estatus:</b> ${safe(catalogItem.estatus)}</p>
+      <p style="margin:2px 0;"><b>Referencia ProcaP:</b> ${safe(catalogItem.referencia_procap || "Sin referencia")}</p>
 
       ${catalogItem.observaciones ? `
         <p><b>Observaciones:</b><br/>${safe(catalogItem.observaciones)}</p>
       ` : ""}
 
-      <hr/>
 
-      <p style="font-size:12px;color:#6b7280;">
-        <b>Fuente catálogo:</b> ${safe(catalogItem.source || "catalogo-propiedades")}
-      </p>
-
-      ${inv ? `
-        <p style="font-size:12px;color:#6b7280;">
-          <b>Fuente inventario:</b> inventario
-        </p>
-      ` : `
-        <p style="font-size:12px;color:#6b7280;">
-          <b>Fuente inventario:</b> GeoJSON actual
-        </p>
-      `}
-
-      <p style="font-size:12px;color:#6b7280;">
-        <b>ID en GeoJSON:</b> ${safe(p.id || p.lote || p.codigo || "")}
-      </p>
-
-      <button id="backToLoteInfoBtn" style="margin-top:8px;padding:8px 10px;border-radius:8px;border:1px solid #d1d5db;background:white;cursor:pointer;">
+      <button id="backToLoteInfoBtn" style="margin-top:6px;padding:6px 10px;border-radius:8px;border:1px solid #d1d5db;background:white;cursor:pointer;">
         Volver al resumen
       </button>
     </div>
   `;
 
-  setPanel("Ficha de propiedad", html);
+  showModal("Ficha de propiedad", html);
 
   const backBtn = document.getElementById("backToLoteInfoBtn");
   if (backBtn && feature){
-    backBtn.onclick = () => showLoteInfo(feature);
+    backBtn.onclick = () => {
+      closeModal();
+      showLoteInfo(feature);
+    };
   }
 }
 
@@ -2065,10 +2227,10 @@ function showLoteInfo(feature){
     ` : ""}
 
     ${catalogItem?.id ? `
-      <p style="font-size:12px;color:#6b7280;"><b>ID:</b> ${safe(catalogItem.id)}</p>
+      <p style="margin:2px 0;font-size:12px;color:#6b7280;"><b>ID:</b> ${safe(catalogItem.id)}</p>
     ` : ""}
 
-    ${inv ? `<p style="font-size:12px;color:#6b7280;"><b>Fuente:</b> inventario</p>` : `<p style="font-size:12px;color:#6b7280;"><b>Fuente:</b> GeoJSON actual</p>`}
+    ${inv ? `<p style="margin:2px 0;font-size:12px;color:#6b7280;"><b>Fuente:</b> inventario</p>` : `<p style="margin:2px 0;font-size:12px;color:#6b7280;"><b>Fuente:</b> GeoJSON actual</p>`}
   `;
 
   if (String(status).toLowerCase() === "disponible"){
@@ -2103,7 +2265,7 @@ function showLoteInfo(feature){
       } else {
         setPanel("Ficha no disponible", `
           <p>Este lote aún no tiene ficha completa en el catálogo.</p>
-          <p style="font-size:12px;color:#6b7280;">
+          <p style="margin:2px 0;font-size:12px;color:#6b7280;">
             Revisa que exista en <code>data/catalogo-propiedades.json</code>.
           </p>
         `);
@@ -2240,7 +2402,7 @@ function setupSearch(){
     if (sec && man){
       setPanel("Lote no encontrado", `
         <p>No encontré el lote <b>${safe(query)}</b> en <b>${safe(sec)} - ${safe(man)}</b>.</p>
-        <p style="font-size:12px;color:#6b7280;">
+        <p style="margin:2px 0;font-size:12px;color:#6b7280;">
           También busqué en el catálogo global y no hubo coincidencias.
         </p>
       `);
@@ -2250,7 +2412,7 @@ function setupSearch(){
     setPanel("Sin resultados", `
       <p>No encontré ninguna propiedad relacionada con:</p>
       <p><b>${safe(query)}</b></p>
-      <p style="font-size:12px;color:#6b7280;">
+      <p style="margin:2px 0;font-size:12px;color:#6b7280;">
         Prueba buscando por referencia ProcaP, por ejemplo:
         <b>PLATINO - 011 - B</b>
       </p>
@@ -3457,7 +3619,7 @@ function renderEditSeccionesPanel(){
 
   setPanel("Edición: SECCIONES", `
     <p>Editor de <b>SECCIONES</b>.</p>
-    <p style="font-size:12px;color:#6b7280;">
+    <p style="margin:2px 0;font-size:12px;color:#6b7280;">
       Click normal: selecciona y permite <b>mover/escalar</b>.<br/>
       Botón “Editar puntos” para modificar vértices.<br/>
       Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click (mover/escalar en grupo).
@@ -3578,7 +3740,7 @@ function renderEditManzanasPanel(){
 
   setPanel("Edición: MANZANAS", `
     <p>Editor de <b>MANZANAS</b> (IDs: A, B, C...).</p>
-    <p style="font-size:12px;color:#6b7280;">
+    <p style="margin:2px 0;font-size:12px;color:#6b7280;">
       Click normal: selecciona y permite <b>mover/escalar</b>. “Editar puntos” para vértices.<br/>
       Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click.
     </p>
@@ -3808,7 +3970,7 @@ function renderEditLotesPanel(){
   setPanel('Edición: LOTES', `
     <p><b>SECCIÓN</b>: ${safe(sec || '(elige SECCIÓN arriba)')}</p>
     <p><b>Filtro MANZANA</b>: ${safe(filterMan || '(todas)')}</p>
-    <p style="font-size:12px;color:#6b7280;">
+    <p style="margin:2px 0;font-size:12px;color:#6b7280;">
       • El archivo de lotes es <b>por SECCIÓN</b> (no se borra al cambiar de manzana).<br/>
       • La manzana solo filtra lo que ves. Para asignar manzana a un lote: selecciónalo y usa el selector en el panel.
     </p>
@@ -4368,7 +4530,7 @@ function renderEditNichosPanel(){
 
   setPanel('Edición: NICHOS (COLUMBARIOS)', `
     <p>Editor de <b>Columbarios</b> (zonas) en <code>${safe(NICHOS_ZONAS_URL)}</code>.</p>
-    <p style="font-size:12px;color:#6b7280;">
+    <p style="margin:2px 0;font-size:12px;color:#6b7280;">
       Click normal: selecciona y permite <b>mover/escalar</b>. Usa “Editar puntos” para vértices.<br/>
       Multi-select: <b>Ctrl/Cmd</b> o <b>Shift</b> + click.
     </p>
