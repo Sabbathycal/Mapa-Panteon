@@ -699,7 +699,38 @@ function applyFiltroEstatusToLotes(){
   });
 }
 
+function getLotesStatusCounts(){
+  const counts = {
+    total: 0,
+    disponible: 0,
+    separado: 0,
+    vendido: 0,
+    utilizado: 0,
+    suspendido: 0,
+    por_construir: 0,
+    desconocido: 0
+  };
+
+  if (!lotesLayer) return counts;
+
+  lotesLayer.eachLayer(layer => {
+    const status = normStatus(getLoteStatus(layer.feature));
+
+    counts.total += 1;
+
+    if (counts[status] === undefined) {
+      counts.desconocido += 1;
+    } else {
+      counts[status] += 1;
+    }
+  });
+
+  return counts;
+}
+
 function getFiltroEstatusHtml(){
+  const counts = getLotesStatusCounts();
+  
   const btnBase = `
     padding:6px 10px;
     border-radius:8px;
@@ -756,18 +787,32 @@ function getFiltroEstatusHtml(){
     <h4 style="margin:8px 0 6px 0;">Filtrar lotes por estatus</h4>
 
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
-      ${btn("Todos", "todos")}
-      ${btn("Disponible", "disponible")}
-      ${btn("Separado", "separado")}
-      ${btn("Vendido", "vendido")}
-      ${btn("Utilizado", "utilizado")}
-      ${btn("Suspendido", "suspendido")}
-      ${btn("Por construir", "por_construir")}
+      ${btn(`Todos (${counts.total})`, "todos")}
+      ${btn(`Disponible (${counts.disponible})`, "disponible")}
+      ${btn(`Separado (${counts.separado})`, "separado")}
+      ${btn(`Vendido (${counts.vendido})`, "vendido")}
+      ${btn(`Utilizado (${counts.utilizado})`, "utilizado")}
+      ${btn(`Suspendido (${counts.suspendido})`, "suspendido")}
+      ${btn(`Por construir (${counts.por_construir})`, "por_construir")}
     </div>
 
     <p style="margin:2px 0;font-size:12px;color:#6b7280;">
       Filtro actual: <b>${safe(filtroEstatusActual)}</b>
     </p>
+
+    <div style="margin-top:8px;padding:8px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;">
+      <p style="margin:2px 0;font-size:12px;"><b>Resumen de manzana</b></p>
+      <p style="margin:2px 0;font-size:12px;">Total: <b>${safe(counts.total)}</b></p>
+      <p style="margin:2px 0;font-size:12px;">Disponible: <b>${safe(counts.disponible)}</b></p>
+      <p style="margin:2px 0;font-size:12px;">Separado: <b>${safe(counts.separado)}</b></p>
+      <p style="margin:2px 0;font-size:12px;">Vendido: <b>${safe(counts.vendido)}</b></p>
+      <p style="margin:2px 0;font-size:12px;">Utilizado: <b>${safe(counts.utilizado)}</b></p>
+      <p style="margin:2px 0;font-size:12px;">Suspendido: <b>${safe(counts.suspendido)}</b></p>
+      <p style="margin:2px 0;font-size:12px;">Por construir: <b>${safe(counts.por_construir)}</b></p>
+      ${counts.desconocido ? `
+        <p style="margin:2px 0;font-size:12px;">Desconocido: <b>${safe(counts.desconocido)}</b></p>
+      ` : ""}
+    </div>
   `;
 }
 
