@@ -74,6 +74,7 @@ let inventarioOverrides = {};
 let catalogoPropiedades = [];
 let catalogoById = {};
 let catalogoSearch = [];
+let filtroEstatusActual = "todos";
 
 // RAW (coords base.png)
 let seccionesTopRaw = null;   // SECCIONES
@@ -240,6 +241,7 @@ function normStatus(v){
 
   if (["disponible", "libre"].includes(s)) return "disponible";
   if (["separado", "separada", "apartado", "apartada"].includes(s)) return "separado";
+  if (["suspendido", "suspendida"].includes(s)) return "suspendido";
   if (["vendido", "vendida"].includes(s)) return "vendido";
   if (["utilizado", "utilizada", "ocupado", "ocupada", "usado", "usada"].includes(s)) return "utilizado";
   if (["por construir", "por_construir", "no construida", "no construidas"].includes(s)) return "por_construir";
@@ -655,6 +657,156 @@ function getLoteStatus(feature){
   return normStatus(inv?.estatus || p.estatus || "desconocido");
 }
 
+function shouldShowLoteByFiltro(feature){
+  if (filtroEstatusActual === "todos") return true;
+
+  const status = normStatus(getLoteStatus(feature));
+
+  return status === filtroEstatusActual;
+}
+
+function applyFiltroEstatusToLotes(){
+  if (!lotesLayer) return;
+
+  lotesLayer.eachLayer(layer => {
+    const visible = shouldShowLoteByFiltro(layer.feature);
+
+    if (visible){
+      const st = getLoteStatus(layer.feature);
+
+      if (pinnedLotLayer === layer) {
+        layer.setStyle(lotPinnedStyle(st));
+      } else {
+        layer.setStyle(lotBaseStyle(st));
+      }
+
+      if (layer.getElement) {
+        const el = layer.getElement();
+        if (el) el.style.display = "";
+      }
+    } else {
+      if (layer.getElement) {
+        const el = layer.getElement();
+        if (el) el.style.display = "none";
+      } else {
+        layer.setStyle({
+          opacity: 0,
+          fillOpacity: 0,
+          interactive: false
+        });
+      }
+    }
+  });
+}
+
+function getFiltroEstatusHtml(){
+  const btnBase = `
+    padding:6px 10px;
+    border-radius:8px;
+    border:1px solid #d1d5db;
+    background:white;
+    cursor:pointer;
+    font-size:12px;
+  `;
+
+  const btnActive = `
+    padding:6px 10px;
+    border-radius:8px;
+    border:1px solid #111827;
+    background:#111827;
+    color:white;
+    cursor:pointer;
+    font-size:12px;
+  `;
+
+  function btn(label, status){
+    const active = filtroEstatusActual === status;
+    return `
+      <button
+        class="statusFilterBtn"
+        data-status="${safe(status)}"
+        style="${active ? btnActive : btnBase}"
+      >
+        ${safe(label)}
+      </button>
+    `;
+  }
+
+  return `
+    <hr/>
+    <h4 style="margin:8px 0 6px 0;">Visualización de lotes</h4>
+
+    <button
+      id="panelToggleLotsBtn"
+      style="
+        width:100%;
+        padding:8px 10px;
+        border-radius:8px;
+        border:1px solid #111827;
+        background:${showAllLots ? "#111827" : "white"};
+        color:${showAllLots ? "white" : "#111827"};
+        cursor:pointer;
+        font-weight:700;
+        margin-bottom:10px;
+      "
+    >
+      ${showAllLots ? "Ocultar lotes" : "Mostrar lotes"}
+    </button>
+
+    <h4 style="margin:8px 0 6px 0;">Filtrar lotes por estatus</h4>
+
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+      ${btn("Todos", "todos")}
+      ${btn("Disponible", "disponible")}
+      ${btn("Separado", "separado")}
+      ${btn("Vendido", "vendido")}
+      ${btn("Utilizado", "utilizado")}
+      ${btn("Suspendido", "suspendido")}
+      ${btn("Por construir", "por_construir")}
+    </div>
+
+    <p style="margin:2px 0;font-size:12px;color:#6b7280;">
+      Filtro actual: <b>${safe(filtroEstatusActual)}</b>
+    </p>
+  `;
+}
+
+function refreshManzanaPanel(){
+  if (!currentManzanaFeature) return;
+
+  const sec = currentSeccion || getPropSeccion(currentManzanaFeature);
+  const man = getPropManzana(currentManzanaFeature);
+  const manzanaPkg = currentManzanaFeature?.properties?.paquete || null;
+
+  setPanel(`SECCIÓN ${safe(sec)} — MANZANA ${safe(man)}`, `
+    <p><b>Paquete (manzana):</b> ${manzanaPkg ? safe(manzanaPkg) : "<i>Sin paquete asignado</i>"}</p>
+    <p>Selecciona un lote o usa <b>Mostrar lotes</b>.</p>
+    ${getFiltroEstatusHtml()}
+  `);
+
+  bindFiltroEstatusButtons();
+}
+
+function bindFiltroEstatusButtons(){
+  const panelToggleBtn = document.getElementById("panelToggleLotsBtn");
+
+  if (panelToggleBtn){
+    panelToggleBtn.onclick = () => {
+      showAllLots = !showAllLots;
+      updateToggleLotsButton();
+      applyFiltroEstatusToLotes();
+      refreshManzanaPanel();
+    };
+  }
+
+  document.querySelectorAll(".statusFilterBtn").forEach(btn => {
+    btn.onclick = () => {
+      filtroEstatusActual = btn.getAttribute("data-status") || "todos";
+      applyFiltroEstatusToLotes();
+      refreshManzanaPanel();
+    };
+  });
+}
 
 function deepCopy(obj){ return JSON.parse(JSON.stringify(obj)); }
 
@@ -1568,6 +1720,16 @@ function styleByStatus(status){
     };
   }
 
+  if (s === "suspendido") {
+    return {
+      color: "#7c3aed",
+      fillColor: "#a78bfa",
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.45
+    };
+  }
+
   if (s === "vendido") {
     return {
       color: "#dc2626",
@@ -1614,9 +1776,16 @@ function lotPinnedStyle(status){ const s = styleByStatus(status); return { ...s,
 
 function updateToggleLotsButton(){
   if (!$toggleLotsBtn) return;
+
   const enabled = !!currentManzanaFeature && !(isEditSecciones || isEditManzanas || isEditLotes);
+
   $toggleLotsBtn.disabled = !enabled;
   $toggleLotsBtn.textContent = showAllLots ? "Ocultar lotes" : "Mostrar lotes";
+
+  // Oculta el botón superior en modo público porque ahora vive dentro del panel.
+  if (!IS_EDIT){
+    $toggleLotsBtn.style.display = "none";
+  }
 }
 
 /* =========================================================
@@ -2153,10 +2322,8 @@ async function loadLotesForCurrentManzana(){
   const man = getPropManzana(currentManzanaFeature);
   const manzanaPkg = currentManzanaFeature?.properties?.paquete || null;
 
-  setPanel(`SECCIÓN ${safe(sec)} — MANZANA ${safe(man)}`, `
-    <p><b>Paquete (manzana):</b> ${manzanaPkg ? safe(manzanaPkg) : "<i>Sin paquete asignado</i>"}</p>
-    <p>Selecciona un lote o usa <b>Mostrar lotes</b>.</p>
-  `);
+  refreshManzanaPanel();
+  applyFiltroEstatusToLotes();
 }
 
 function showFichaPropiedad(catalogItem, feature){
@@ -2497,12 +2664,11 @@ function setupButtons(){
     $toggleLotsBtn.onclick = () => {
       showAllLots = !showAllLots;
       updateToggleLotsButton();
+
       if (!lotesLayer) return;
-      lotesLayer.eachLayer(layer => {
-        const st = layer.feature?.properties?.estatus;
-        if (pinnedLotLayer === layer) layer.setStyle(lotPinnedStyle(st));
-        else layer.setStyle(lotBaseStyle(st));
-      });
+
+      applyFiltroEstatusToLotes();
+      refreshManzanaPanel();
     };
   }
 }
