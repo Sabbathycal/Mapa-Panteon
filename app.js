@@ -243,6 +243,42 @@ function findCatalogoById(id){
   return catalogoById[key] || null;
 }
 
+function slugCatalogValue(value){
+  return (value ?? "")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function makeCatalogLoteId(seccion, manzana, codigo){
+  const sec = slugCatalogValue(seccion);
+  const man = slugCatalogValue(manzana) || "SIN-MANZANA";
+  const cod = slugCatalogValue(normalizeCodigoBusqueda(codigo));
+
+  if (!sec || !cod) return "";
+
+  return `LOTE-${sec}-${man}-${cod}`;
+}
+
+function getCatalogoItemForLoteFeature(feature){
+  const p = feature?.properties || {};
+
+  const seccion = p.seccion || currentSeccion || getPropSeccion(currentManzanaFeature);
+  const manzana = p.manzana || p.manzanaId || getPropManzana(currentManzanaFeature);
+  const lote = p.lote || p.id || p.codigo;
+
+  const catalogId = makeCatalogLoteId(seccion, manzana, lote);
+
+  if (!catalogId) return null;
+
+  return findCatalogoById(catalogId);
+}
+
 function searchCatalogoPropiedades(query, limit = 20){
   const q = normalizeCatalogSearchText(query);
 
@@ -1943,11 +1979,79 @@ async function loadLotesForCurrentManzana(){
   `);
 }
 
+function showFichaPropiedad(catalogItem, feature){
+  if (!catalogItem){
+    setPanel("Ficha no encontrada", `
+      <p>No encontré una ficha completa para esta propiedad en el catálogo.</p>
+    `);
+    return;
+  }
+
+  const p = feature?.properties || {};
+  const inv = feature ? getLoteInventoryItem(feature) : null;
+
+  const html = `
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div>
+        <h3 style="margin:0 0 4px 0;">${safe(catalogItem.displayName || catalogItem.id)}</h3>
+        <p style="margin:0;font-size:12px;color:#6b7280;">
+          ${safe(catalogItem.id)}
+        </p>
+      </div>
+
+      <hr/>
+
+      <p><b>Tipo:</b> ${safe(catalogItem.tipo)}</p>
+      <p><b>Sección:</b> ${safe(catalogItem.seccion)}</p>
+      <p><b>Manzana:</b> ${safe(catalogItem.manzana)}</p>
+      <p><b>Código:</b> ${safe(catalogItem.codigo)}</p>
+      <p><b>Estatus:</b> ${safe(catalogItem.estatus)}</p>
+      <p><b>Referencia ProcaP:</b> ${safe(catalogItem.referencia_procap || "Sin referencia")}</p>
+
+      ${catalogItem.observaciones ? `
+        <p><b>Observaciones:</b><br/>${safe(catalogItem.observaciones)}</p>
+      ` : ""}
+
+      <hr/>
+
+      <p style="font-size:12px;color:#6b7280;">
+        <b>Fuente catálogo:</b> ${safe(catalogItem.source || "catalogo-propiedades")}
+      </p>
+
+      ${inv ? `
+        <p style="font-size:12px;color:#6b7280;">
+          <b>Fuente inventario:</b> inventario
+        </p>
+      ` : `
+        <p style="font-size:12px;color:#6b7280;">
+          <b>Fuente inventario:</b> GeoJSON actual
+        </p>
+      `}
+
+      <p style="font-size:12px;color:#6b7280;">
+        <b>ID en GeoJSON:</b> ${safe(p.id || p.lote || p.codigo || "")}
+      </p>
+
+      <button id="backToLoteInfoBtn" style="margin-top:8px;padding:8px 10px;border-radius:8px;border:1px solid #d1d5db;background:white;cursor:pointer;">
+        Volver al resumen
+      </button>
+    </div>
+  `;
+
+  setPanel("Ficha de propiedad", html);
+
+  const backBtn = document.getElementById("backToLoteInfoBtn");
+  if (backBtn && feature){
+    backBtn.onclick = () => showLoteInfo(feature);
+  }
+}
+
 function showLoteInfo(feature){
   const props = feature?.properties || {};
   const loteVal = (props.lote || props.id || "").toString();
   const inv = getLoteInventoryItem(feature);
   const status = getLoteStatus(feature);
+  const catalogItem = getCatalogoItemForLoteFeature(feature);
   const paqueteKey = (props.paquete || currentManzanaFeature?.properties?.paquete || null);
 
   let html = `
@@ -1955,6 +2059,15 @@ function showLoteInfo(feature){
     <p><b>MANZANA:</b> ${safe(getPropManzana(currentManzanaFeature))}</p>
     <p><b>LOTE:</b> ${safe(loteVal)}</p>
     <p><b>Estatus:</b> ${safe(status)}</p>
+
+    ${catalogItem?.referencia_procap ? `
+      <p><b>Referencia ProcaP:</b> ${safe(catalogItem.referencia_procap)}</p>
+    ` : ""}
+
+    ${catalogItem?.id ? `
+      <p style="font-size:12px;color:#6b7280;"><b>ID:</b> ${safe(catalogItem.id)}</p>
+    ` : ""}
+
     ${inv ? `<p style="font-size:12px;color:#6b7280;"><b>Fuente:</b> inventario</p>` : `<p style="font-size:12px;color:#6b7280;"><b>Fuente:</b> GeoJSON actual</p>`}
   `;
 
@@ -1981,8 +2094,22 @@ function showLoteInfo(feature){
   }
 
   setPanel("Lote", html);
+
   const btn = document.getElementById("moreBtn");
-  if (btn) btn.onclick = () => notify("Aquí irá el login + consulta segura del saldo.", 2200);
+  if (btn){
+    btn.onclick = () => {
+      if (catalogItem){
+        showFichaPropiedad(catalogItem, feature);
+      } else {
+        setPanel("Ficha no disponible", `
+          <p>Este lote aún no tiene ficha completa en el catálogo.</p>
+          <p style="font-size:12px;color:#6b7280;">
+            Revisa que exista en <code>data/catalogo-propiedades.json</code>.
+          </p>
+        `);
+      }
+    };
+  }
 }
 
 /* =========================================================
