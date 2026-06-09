@@ -253,6 +253,173 @@ function searchCatalogoPropiedades(query, limit = 20){
     .slice(0, limit);
 }
 
+function normalizeLooseSearch(value){
+  return (value ?? "")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Z0-9]+/gi, " ")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, " ");
+}
+
+function normalizeCodigoBusqueda(value){
+  const raw = (value ?? "").toString().trim().toUpperCase();
+
+  if (!raw) return "";
+
+  if (/^\d+$/.test(raw)) {
+    return raw.padStart(3, "0");
+  }
+
+  return raw;
+}
+
+function findBestCatalogoMatch(query){
+  const q = normalizeLooseSearch(query);
+
+  if (!q) return null;
+
+  const directResults = searchCatalogoPropiedades(q, 10);
+
+  if (directResults.length === 1) {
+    return catalogoById[directResults[0].id] || null;
+  }
+
+  if (directResults.length > 1) {
+    const exact = directResults.find(r => {
+      return normalizeLooseSearch(r.id) === q ||
+             normalizeLooseSearch(r.referencia_procap) === q ||
+             normalizeLooseSearch(r.displayName) === q;
+    });
+
+    if (exact) {
+      return catalogoById[exact.id] || null;
+    }
+
+    return null;
+  }
+
+  return null;
+}
+
+function renderCatalogoSearchResults(results, originalQuery){
+  if (!results.length){
+    setPanel("Sin resultados", `
+      <p>No encontré propiedades relacionadas con:</p>
+      <p><b>${safe(originalQuery)}</b></p>
+      <p style="font-size:12px;color:#6b7280;">
+        Puedes intentar con una referencia como <b>PLATINO - 011 - B</b>,
+        o con sección, manzana y lote.
+      </p>
+    `);
+    return;
+  }
+
+  const html = `
+    <p>Encontré varias coincidencias para:</p>
+    <p><b>${safe(originalQuery)}</b></p>
+
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+      ${results.slice(0, 15).map(r => `
+        <button
+          class="catalogResultBtn"
+          data-id="${safe(r.id)}"
+          style="text-align:left;padding:10px;border-radius:8px;border:1px solid #d1d5db;background:#fff;cursor:pointer;"
+        >
+          <b>${safe(r.displayName || r.id)}</b><br/>
+          <span style="font-size:12px;color:#6b7280;">
+            ${safe(r.estatus)} · ${safe(r.referencia_procap || r.id)}
+          </span>
+        </button>
+      `).join("")}
+    </div>
+  `;
+
+  setPanel("Resultados de búsqueda", html);
+
+  document.querySelectorAll(".catalogResultBtn").forEach(btn => {
+    btn.onclick = async () => {
+      const id = btn.getAttribute("data-id");
+      const item = findCatalogoById(id);
+
+      if (item) {
+        await openCatalogoItem(item);
+      }
+    };
+  });
+}
+
+async function openCatalogoItem(item){
+  if (!item){
+    setPanel("No encontrada", `<p>No se encontró la propiedad seleccionada.</p>`);
+    return;
+  }
+
+  if (item.tipo !== "lote"){
+    setPanel("Propiedad encontrada", `
+      <p><b>${safe(item.displayName || item.id)}</b></p>
+      <p><b>Tipo:</b> ${safe(item.tipo)}</p>
+      <p><b>Estatus:</b> ${safe(item.estatus)}</p>
+      <p><b>Referencia ProcaP:</b> ${safe(item.referencia_procap)}</p>
+      <p style="font-size:12px;color:#6b7280;">
+        La navegación automática para nichos la agregaremos en un paso posterior.
+      </p>
+    `);
+    return;
+  }
+
+  const sec = item.seccion;
+  const man = item.manzana;
+  const lote = item.codigo;
+
+  if (!sec || !man || !lote){
+    setPanel("Datos incompletos", `
+      <p>La propiedad existe en el catálogo, pero no tiene sección, manzana o lote completo.</p>
+      <p><b>ID:</b> ${safe(item.id)}</p>
+      <p><b>Referencia:</b> ${safe(item.referencia_procap)}</p>
+    `);
+    return;
+  }
+
+  $seccionSelect.value = sec;
+
+  await ensureManzanaSelected(sec, man);
+
+  $manzanaSelect.value = man;
+  $loteInput.value = lote;
+
+  const layer = findLotLayerByInput(lote);
+
+  if (!layer){
+    setPanel("Propiedad en catálogo", `
+      <p>Encontré la propiedad en el catálogo, pero todavía no encontré su dibujo en el GeoJSON.</p>
+      <p><b>${safe(item.displayName || item.id)}</b></p>
+      <p><b>Estatus:</b> ${safe(item.estatus)}</p>
+      <p><b>Referencia ProCaP:</b> ${safe(item.referencia_procap)}</p>
+      <p style="font-size:12px;color:#6b7280;">
+        Esto normalmente significa que el lote existe en Excel/Inventario, pero el polígono del mapa no tiene el mismo lote, sección o manzana.
+      </p>
+    `);
+    return;
+  }
+
+  if (isCircleFeature(currentManzanaFeature)) {
+    centerOnLayerNoZoom(layer, 120);
+  } else {
+    flyToBoundsSmooth(layer.getBounds().pad(0.35), 0.45);
+  }
+
+  const st = getLoteStatus(layer.feature);
+  const base = lotPinnedStyle(st);
+
+  layer.setStyle(base);
+  pulseLayer(layer, base, { ms: 200 });
+
+  showLoteInfo(layer.feature);
+}
+
 function getLoteInventoryItem(feature){
   const p = feature?.properties || {};
 
@@ -1823,15 +1990,39 @@ function showLoteInfo(feature){
    ========================================================= */
 function findLotLayerByInput(loteInput){
   if (!lotesLayer) return null;
-  const target = (loteInput || "").toString().trim().toLowerCase();
-  if (!target) return null;
+
+  const targetRaw = (loteInput || "").toString().trim().toUpperCase();
+  const targetCodigo = normalizeCodigoBusqueda(targetRaw);
+
+  if (!targetRaw) return null;
 
   let found = null;
+
   lotesLayer.eachLayer(layer => {
-    const st = getLoteStatus(layer.feature);
-    if (pinnedLotLayer === layer) layer.setStyle(lotPinnedStyle(st));
-    else layer.setStyle(lotBaseStyle(st));
+    if (found) return;
+
+    const p = layer.feature?.properties || {};
+
+    const candidates = [
+      p.lote,
+      p.id,
+      p.codigo,
+      p.name,
+      p.nombre
+    ].map(v => (v ?? "").toString().trim().toUpperCase())
+     .filter(Boolean);
+
+    const normalizedCandidates = candidates.map(v => normalizeCodigoBusqueda(v));
+
+    const match =
+      candidates.includes(targetRaw) ||
+      normalizedCandidates.includes(targetCodigo);
+
+    if (match) {
+      found = layer;
+    }
   });
+
   return found;
 }
 
@@ -1864,34 +2055,86 @@ function setupSearch(){
   const run = async () => {
     const sec = ($seccionSelect.value || "").trim();
     const man = ($manzanaSelect.value || "").trim();
-    const lote = ($loteInput.value || "").trim();
+    const query = ($loteInput.value || "").trim();
 
-    if (!sec){ setPanel("Falta SECCIÓN", `<p>Primero elige una <b>SECCIÓN</b>.</p>`); return; }
-    if (!man){ setPanel("Falta MANZANA", `<p>Ahora elige una <b>MANZANA</b> dentro de <b>${safe(sec)}</b>.</p>`); return; }
-
-    await ensureManzanaSelected(sec, man);
-
-    if (!lote) return;
-
-    const layer = findLotLayerByInput(lote);
-    if (!layer){
-      setPanel("Lote no encontrado", `<p>No encontré el lote <b>${safe(lote)}</b> en <b>${safe(sec)} - ${safe(man)}</b>.</p>`);
+    if (!query){
+      setPanel("Buscar propiedad", `
+        <p>Escribe una referencia, lote o clave de propiedad.</p>
+        <p>Ejemplos:</p>
+        <ul>
+          <li><b>PLATINO - 011 - B</b></li>
+          <li><b>LOTE-PLATINO-B-011</b></li>
+          <li><b>PLATINO B 011</b></li>
+          <li><b>011</b></li>
+        </ul>
+      `);
       return;
     }
 
-    if (isCircleFeature(currentManzanaFeature)) centerOnLayerNoZoom(layer, 120);
-    else flyToBoundsSmooth(layer.getBounds().pad(0.35), 0.45);
+    // 1. Si hay sección y manzana seleccionadas, intenta primero búsqueda directa en la manzana actual.
+    if (sec && man){
+      await ensureManzanaSelected(sec, man);
 
-    const st = getLoteStatus(layer.feature);
-    const base = lotPinnedStyle(st);
-    layer.setStyle(base);
-    pulseLayer(layer, base, { ms: 200 });
+      const layer = findLotLayerByInput(query);
 
-    showLoteInfo(layer.feature);
+      if (layer){
+        if (isCircleFeature(currentManzanaFeature)) {
+          centerOnLayerNoZoom(layer, 120);
+        } else {
+          flyToBoundsSmooth(layer.getBounds().pad(0.35), 0.45);
+        }
+
+        const st = getLoteStatus(layer.feature);
+        const base = lotPinnedStyle(st);
+
+        layer.setStyle(base);
+        pulseLayer(layer, base, { ms: 200 });
+
+        showLoteInfo(layer.feature);
+        return;
+      }
+    }
+
+    // 2. Si no lo encontró directamente, busca en el catálogo global.
+    const catalogResults = searchCatalogoPropiedades(query, 20);
+
+    if (catalogResults.length === 1){
+      const item = findCatalogoById(catalogResults[0].id);
+      await openCatalogoItem(item);
+      return;
+    }
+
+    if (catalogResults.length > 1){
+      renderCatalogoSearchResults(catalogResults, query);
+      return;
+    }
+
+    // 3. Intento adicional: si el usuario escribió solo un lote y tiene sección/manzana seleccionadas.
+    if (sec && man){
+      setPanel("Lote no encontrado", `
+        <p>No encontré el lote <b>${safe(query)}</b> en <b>${safe(sec)} - ${safe(man)}</b>.</p>
+        <p style="font-size:12px;color:#6b7280;">
+          También busqué en el catálogo global y no hubo coincidencias.
+        </p>
+      `);
+      return;
+    }
+
+    setPanel("Sin resultados", `
+      <p>No encontré ninguna propiedad relacionada con:</p>
+      <p><b>${safe(query)}</b></p>
+      <p style="font-size:12px;color:#6b7280;">
+        Prueba buscando por referencia ProcaP, por ejemplo:
+        <b>PLATINO - 011 - B</b>
+      </p>
+    `);
   };
 
   $searchBtn.onclick = run;
-  $loteInput.addEventListener("keydown", (e) => { if (e.key === "Enter") run(); });
+
+  $loteInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") run();
+  });
 }
 
 /* =========================================================
