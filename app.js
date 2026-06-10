@@ -651,10 +651,11 @@ function getLoteInventoryItem(feature){
 }
 
 function getLoteStatus(feature){
-  const p = feature?.properties || {};
   const inv = getLoteInventoryItem(feature);
 
-  return normStatus(inv?.estatus || p.estatus || "desconocido");
+  if (!inv) return "sin_inventario";
+
+  return normStatus(inv.estatus || "desconocido");
 }
 
 function shouldShowLoteByFiltro(feature){
@@ -708,7 +709,8 @@ function getLotesStatusCounts(){
     utilizado: 0,
     suspendido: 0,
     por_construir: 0,
-    desconocido: 0
+    desconocido: 0,
+    sin_inventario: 0
   };
 
   if (!lotesLayer) return counts;
@@ -794,6 +796,7 @@ function getFiltroEstatusHtml(){
       ${btn(`Utilizado (${counts.utilizado})`, "utilizado")}
       ${btn(`Suspendido (${counts.suspendido})`, "suspendido")}
       ${btn(`Por construir (${counts.por_construir})`, "por_construir")}
+      ${btn(`Sin inventario (${counts.sin_inventario})`, "sin_inventario")}
     </div>
 
     <p style="margin:2px 0;font-size:12px;color:#6b7280;">
@@ -809,6 +812,7 @@ function getFiltroEstatusHtml(){
       <p style="margin:2px 0;font-size:12px;">Utilizado: <b>${safe(counts.utilizado)}</b></p>
       <p style="margin:2px 0;font-size:12px;">Suspendido: <b>${safe(counts.suspendido)}</b></p>
       <p style="margin:2px 0;font-size:12px;">Por construir: <b>${safe(counts.por_construir)}</b></p>
+      <p style="margin:2px 0;font-size:12px;">Sin inventario: <b>${safe(counts.sin_inventario)}</b></p>
       ${counts.desconocido ? `
         <p style="margin:2px 0;font-size:12px;">Desconocido: <b>${safe(counts.desconocido)}</b></p>
       ` : ""}
@@ -1803,6 +1807,17 @@ function styleByStatus(status){
       opacity: 1,
       dashArray: "4 4",
       fillOpacity: 0.20
+    };
+  }
+
+  if (s === "sin_inventario") {
+    return {
+      color: "#9333ea",
+      fillColor: "#c084fc",
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.35,
+      dashArray: "3 3"
     };
   }
 
