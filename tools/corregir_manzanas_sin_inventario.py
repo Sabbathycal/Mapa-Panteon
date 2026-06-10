@@ -14,6 +14,17 @@ REPORT_FILE = Path("data/reporte-manzanas-sin-inventario.txt")
 def norm(value):
     return str(value or "").strip().upper()
 
+def norm_seccion(value):
+    s = norm(value)
+
+    aliases = {
+        "SJV": "SAN JUAN VIP",
+        "SMV": "SAN MATEO VIP",
+        "SPV": "SAN PEDRO VIP",
+    }
+
+    return aliases.get(s, s)
+
 
 def norm_code(value):
     s = str(value or "").strip().upper()
@@ -125,7 +136,7 @@ def main():
         if norm(item.get("tipo")).lower() != "lote":
             continue
 
-        seccion = norm(item.get("seccion"))
+        seccion = norm_seccion(item.get("seccion"))
         manzana = norm(item.get("manzana"))
         codigo = norm_code(item.get("codigo"))
 
@@ -145,7 +156,7 @@ def main():
         for feature in data.get("features", []):
             props = feature.get("properties") or {}
 
-            seccion = norm(props.get("seccion"))
+            seccion = norm_seccion(props.get("seccion"))
             manzana = norm(props.get("manzana") or props.get("manzanaId"))
             codigo = norm_code(get_lote_code(props))
 
@@ -271,7 +282,7 @@ def main():
         for feature in changed_files[path].get("features", []):
             props = feature.get("properties") or {}
 
-            f_sec = norm(props.get("seccion"))
+            f_sec = norm_seccion(props.get("seccion"))
             f_man = norm(props.get("manzana") or props.get("manzanaId"))
 
             if f_sec != seccion or f_man != manzana:

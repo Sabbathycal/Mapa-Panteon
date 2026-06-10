@@ -124,12 +124,125 @@ const $searchBtn      = document.getElementById("searchBtn");
 const $backBtn        = document.getElementById("backBtn");
 const $toggleLotsBtn  = document.getElementById("toggleLotsBtn");
 
+const $sidePanel =
+  $title?.closest("aside, .sidebar, .side-panel, .right-panel, .panel, #sidePanel, #infoPanel, #panel, .info-panel") ||
+  document.getElementById("sidePanel") ||
+  document.getElementById("infoPanel") ||
+  document.getElementById("panel");
+
+if ($sidePanel) {
+  $sidePanel.classList.add("jp-side-panel");
+}
+
+document.body.classList.toggle("public-map", !IS_EDIT);
+document.body.classList.toggle("edit-map", IS_EDIT);
+
+function forceInitialPublicMapResize() {
+  if (IS_EDIT) return;
+
+  applyPublicLayoutMode(false);
+
+  const runResize = () => {
+    try {
+      if (map) map.invalidateSize(true);
+    } catch {}
+  };
+
+  requestAnimationFrame(runResize);
+  setTimeout(runResize, 120);
+  setTimeout(runResize, 300);
+  setTimeout(runResize, 600);
+}
+
 /* =========================================================
    HELPERS
    ========================================================= */
 function setPanel(title, html){
   $title.textContent = title;
   $body.innerHTML = html;
+}
+
+function refreshMapSizeSoon(){
+  window.setTimeout(() => {
+    try {
+      if (map) map.invalidateSize(true);
+    } catch {}
+  }, 80);
+}
+
+function applyPublicLayoutMode(isPanelOpen){
+  if (IS_EDIT) return;
+
+  const layout = document.querySelector(".layout");
+  const mapEl = document.getElementById("map");
+
+  if (isPanelOpen) {
+    document.body.classList.add("has-section-selected");
+
+    if (layout) {
+      layout.style.display = "grid";
+      layout.style.gridTemplateColumns = "minmax(0, 1fr) 420px";
+      layout.style.gridTemplateRows = "1fr";
+      layout.style.height = "calc(100vh - var(--topbar-h, 52px))";
+      layout.style.overflow = "hidden";
+    }
+
+    if ($sidePanel) {
+      $sidePanel.style.display = "block";
+      $sidePanel.style.width = "420px";
+      $sidePanel.style.minWidth = "420px";
+      $sidePanel.style.maxWidth = "420px";
+      $sidePanel.style.padding = "18px";
+      $sidePanel.style.borderLeft = "1px solid #eadcc6";
+      $sidePanel.style.overflowY = "auto";
+    }
+
+    if (mapEl) {
+      mapEl.style.width = "100%";
+      mapEl.style.height = "100%";
+    }
+  } else {
+    document.body.classList.remove("has-section-selected");
+
+    if (layout) {
+      layout.style.display = "grid";
+      layout.style.gridTemplateColumns = "minmax(0, 1fr)";
+      layout.style.gridTemplateRows = "1fr";
+      layout.style.height = "calc(100vh - var(--topbar-h, 52px))";
+      layout.style.overflow = "hidden";
+    }
+
+    if ($sidePanel) {
+      $sidePanel.style.display = "none";
+      $sidePanel.style.width = "0";
+      $sidePanel.style.minWidth = "0";
+      $sidePanel.style.maxWidth = "0";
+      $sidePanel.style.padding = "0";
+      $sidePanel.style.borderLeft = "0";
+      $sidePanel.style.overflow = "hidden";
+    }
+
+    if (mapEl) {
+      mapEl.style.width = "100%";
+      mapEl.style.height = "100%";
+    }
+  }
+
+  refreshMapSizeSoon();
+
+  setTimeout(() => {
+    try {
+      if (map) map.invalidateSize(true);
+    } catch {}
+  }, 200);
+}
+
+function openPublicSidePanel(){
+  applyPublicLayoutMode(true);
+}
+
+function closePublicSidePanel(){
+  applyPublicLayoutMode(false);
 }
 
 function closeModal(){
@@ -232,6 +345,18 @@ async function loadJson(url){
   return await r.json();
 }
 
+function normSeccionInv(v){
+  const s = (v ?? "").toString().trim().toUpperCase();
+
+  const aliases = {
+    "SJV": "SAN JUAN VIP",
+    "SMV": "SAN MATEO VIP",
+    "SPV": "SAN PEDRO VIP"
+  };
+
+  return aliases[s] || s;
+}
+
 function normInv(v){
   return (v ?? "").toString().trim().toUpperCase();
 }
@@ -260,7 +385,7 @@ function normCodigoLote(v){
 }
 
 function keyLote(seccion, manzana, lote){
-  return `LOTE|${normInv(seccion)}|${normInv(manzana)}|${normCodigoLote(lote)}`;
+  return `LOTE|${normSeccionInv(seccion)}|${normInv(manzana)}|${normCodigoLote(lote)}`;
 }
 
 function keyNicho(zonaId, cara, codigo){
@@ -2126,6 +2251,8 @@ function clearSeccionesLayerPublic(){
 }
 
 function showPublicLevelSecciones(){
+  closePublicSidePanel();
+
   currentSeccion = null;
   currentSeccionFeature = null;
   currentManzanaFeature = null;
@@ -2206,6 +2333,8 @@ function selectSeccionPublic(feature, layer){
   currentSeccion = sec;
   currentSeccionFeature = feature;
 
+  openPublicSidePanel();
+
   $seccionSelect.value = sec;
   $manzanaSelect.value = "";
   $loteInput.value = "";
@@ -2215,6 +2344,8 @@ function selectSeccionPublic(feature, layer){
 }
 
 function showPublicLevelManzanas(seccion){
+  openPublicSidePanel();
+
   currentSeccion = seccion;
   currentManzanaFeature = null;
   showAllLots = false;
@@ -2289,6 +2420,8 @@ function renderManzanasLayer(filteredFeatures, opts){
 }
 
 async function selectManzana(feature, layer){
+  openPublicSidePanel();
+
   currentManzanaFeature = feature;
   $manzanaSelect.value = getPropManzana(feature);
   flyToManzanaFeature(feature, layer);
@@ -2569,6 +2702,7 @@ async function ensureManzanaSelected(sec, man){
 
 function setupSearch(){
   const run = async () => {
+    openPublicSidePanel();
     const sec = ($seccionSelect.value || "").trim();
     const man = ($manzanaSelect.value || "").trim();
     const query = ($loteInput.value || "").trim();
@@ -2667,20 +2801,33 @@ function setupDropdowns(){
     updateToggleLotsButton();
 
     if (!sec){
+      closePublicSidePanel();
       showPublicLevelSecciones();
+      forceInitialPublicMapResize();
       renderNichosZonasLayerPublic();
       bringNichosZonasToFront();
       return;
     }
 
+    openPublicSidePanel();
     showPublicLevelManzanas(sec);
   };
 
   $manzanaSelect.onchange = async () => {
     const sec = ($seccionSelect.value || "").trim();
     const man = ($manzanaSelect.value || "").trim();
+
     $loteInput.value = "";
-    if (!sec || !man) return;
+
+    if (!sec){
+      closePublicSidePanel();
+      return;
+    }
+
+    openPublicSidePanel();
+
+    if (!man) return;
+
     await ensureManzanaSelected(sec, man);
   };
 }
@@ -5373,6 +5520,7 @@ async function main(){
       $manzanaSelect.innerHTML = `<option value="">MANZANA...</option>`;
 
       showPublicLevelSecciones();
+      forceInitialPublicMapResize();
       renderNichosZonasLayerPublic();
       bringNichosZonasToFront();
       setupDropdowns();
