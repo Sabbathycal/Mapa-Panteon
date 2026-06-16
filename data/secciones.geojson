@@ -3245,10 +3245,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-A__DUP3",
+        "id": "PLATA-M__DUP3",
         "seccion": "PLATA",
-        "manzana": "A",
-        "nombre": "PLATA - A",
+        "manzana": "M",
+        "nombre": "PLATA - M",
         "paquete": "PLATA"
       }
     },
@@ -3282,10 +3282,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-B__DUP3",
+        "id": "PLATA-L__DUP3",
         "seccion": "PLATA",
-        "manzana": "B",
-        "nombre": "PLATA - B",
+        "manzana": "L",
+        "nombre": "PLATA - L",
         "paquete": "PLATA"
       }
     },
@@ -3319,10 +3319,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-C__DUP3",
+        "id": "PLATA-K__DUP3",
         "seccion": "PLATA",
-        "manzana": "C",
-        "nombre": "PLATA - C",
+        "manzana": "K",
+        "nombre": "PLATA - K",
         "paquete": "PLATA"
       }
     },
@@ -3356,10 +3356,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-D__DUP3",
+        "id": "PLATA-J__DUP3",
         "seccion": "PLATA",
-        "manzana": "D",
-        "nombre": "PLATA - D",
+        "manzana": "J",
+        "nombre": "PLATA - J",
         "paquete": "PLATA"
       }
     },
@@ -3393,10 +3393,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-A__DUP4",
+        "id": "PLATA-I__DUP4",
         "seccion": "PLATA",
-        "manzana": "A",
-        "nombre": "PLATA - A",
+        "manzana": "I",
+        "nombre": "PLATA - I",
         "paquete": "PLATA"
       }
     },
@@ -3430,10 +3430,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-B__DUP4",
+        "id": "PLATA-H__DUP4",
         "seccion": "PLATA",
-        "manzana": "B",
-        "nombre": "PLATA - B",
+        "manzana": "H",
+        "nombre": "PLATA - H",
         "paquete": "PLATA"
       }
     },
@@ -3467,10 +3467,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-C__DUP4",
+        "id": "PLATA-G__DUP4",
         "seccion": "PLATA",
-        "manzana": "C",
-        "nombre": "PLATA - C",
+        "manzana": "G",
+        "nombre": "PLATA - G",
         "paquete": "PLATA"
       }
     },
@@ -3504,10 +3504,10 @@
         ]
       },
       "properties": {
-        "id": "PLATA-D__DUP4",
+        "id": "PLATA-F__DUP4",
         "seccion": "PLATA",
-        "manzana": "D",
-        "nombre": "PLATA - D",
+        "manzana": "F",
+        "nombre": "PLATA - F",
         "paquete": "PLATA"
       }
     },
