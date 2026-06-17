@@ -2727,10 +2727,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-W__DUP3",
+        "id": "ORO-AD__DUP3",
         "seccion": "ORO",
-        "manzana": "W",
-        "nombre": "ORO - W",
+        "manzana": "AD",
+        "nombre": "ORO - AD",
         "paquete": "ORO"
       }
     },
@@ -2764,10 +2764,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-X",
+        "id": "ORO-AC",
         "seccion": "ORO",
-        "manzana": "X",
-        "nombre": "ORO - X",
+        "manzana": "AC",
+        "nombre": "ORO - AC",
         "paquete": "ORO"
       }
     },
@@ -2801,10 +2801,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-Y",
+        "id": "ORO-AB",
         "seccion": "ORO",
-        "manzana": "Y",
-        "nombre": "ORO - Y",
+        "manzana": "AB",
+        "nombre": "ORO - AB",
         "paquete": "ORO"
       }
     },
@@ -2838,10 +2838,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-Z",
+        "id": "ORO-AA",
         "seccion": "ORO",
-        "manzana": "Z",
-        "nombre": "ORO - Z",
+        "manzana": "AA",
+        "nombre": "ORO - AA",
         "paquete": "ORO"
       }
     },
@@ -2875,10 +2875,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-W__DUP4",
+        "id": "ORO-AG__DUP4",
         "seccion": "ORO",
-        "manzana": "W",
-        "nombre": "ORO - W",
+        "manzana": "AG",
+        "nombre": "ORO - AG",
         "paquete": "ORO"
       }
     },
@@ -2912,10 +2912,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-X",
+        "id": "ORO-AF",
         "seccion": "ORO",
-        "manzana": "X",
-        "nombre": "ORO - X",
+        "manzana": "AF",
+        "nombre": "ORO - AF",
         "paquete": "ORO"
       }
     },
@@ -2949,10 +2949,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-Y",
+        "id": "ORO-AE",
         "seccion": "ORO",
-        "manzana": "Y",
-        "nombre": "ORO - Y",
+        "manzana": "AE",
+        "nombre": "ORO - AE",
         "paquete": "ORO"
       }
     },
@@ -2986,10 +2986,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-W__DUP5",
+        "id": "ORO-AI__DUP5",
         "seccion": "ORO",
-        "manzana": "W",
-        "nombre": "ORO - W",
+        "manzana": "AI",
+        "nombre": "ORO - AI",
         "paquete": "ORO"
       }
     },
@@ -3023,10 +3023,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-X",
+        "id": "ORO-AH",
         "seccion": "ORO",
-        "manzana": "X",
-        "nombre": "ORO - X",
+        "manzana": "AH",
+        "nombre": "ORO - AH",
         "paquete": "ORO"
       }
     },
