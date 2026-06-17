@@ -1765,10 +1765,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-A",
+        "id": "ORO-D",
         "seccion": "ORO",
-        "manzana": "A",
-        "nombre": "ORO - A",
+        "manzana": "D",
+        "nombre": "ORO - D",
         "paquete": "ORO"
       }
     },
@@ -1802,10 +1802,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-B",
+        "id": "ORO-C",
         "seccion": "ORO",
-        "manzana": "B",
-        "nombre": "ORO - B",
+        "manzana": "C",
+        "nombre": "ORO - C",
         "paquete": "ORO"
       }
     },
@@ -1839,10 +1839,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-C",
+        "id": "ORO-B",
         "seccion": "ORO",
-        "manzana": "C",
-        "nombre": "ORO - C",
+        "manzana": "B",
+        "nombre": "ORO - B",
         "paquete": "ORO"
       }
     },
@@ -1876,10 +1876,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-D",
+        "id": "ORO-A",
         "seccion": "ORO",
-        "manzana": "D",
-        "nombre": "ORO - D",
+        "manzana": "A",
+        "nombre": "ORO - A",
         "paquete": "ORO"
       }
     },
@@ -1913,10 +1913,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-E",
+        "id": "ORO-I",
         "seccion": "ORO",
-        "manzana": "E",
-        "nombre": "ORO - E",
+        "manzana": "I",
+        "nombre": "ORO - I",
         "paquete": "ORO"
       }
     },
@@ -1950,10 +1950,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-F",
+        "id": "ORO-H",
         "seccion": "ORO",
-        "manzana": "F",
-        "nombre": "ORO - F",
+        "manzana": "H",
+        "nombre": "ORO - H",
         "paquete": "ORO"
       }
     },
@@ -2024,10 +2024,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-H",
+        "id": "ORO-F",
         "seccion": "ORO",
-        "manzana": "H",
-        "nombre": "ORO - H",
+        "manzana": "F",
+        "nombre": "ORO - F",
         "paquete": "ORO"
       }
     },
@@ -2061,10 +2061,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-I",
+        "id": "ORO-E",
         "seccion": "ORO",
-        "manzana": "I",
-        "nombre": "ORO - I",
+        "manzana": "E",
+        "nombre": "ORO - E",
         "paquete": "ORO"
       }
     },
@@ -2098,10 +2098,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-J",
+        "id": "ORO-R",
         "seccion": "ORO",
-        "manzana": "J",
-        "nombre": "ORO - J",
+        "manzana": "R",
+        "nombre": "ORO - R",
         "paquete": "ORO"
       }
     },
@@ -2135,10 +2135,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-K",
+        "id": "ORO-Q",
         "seccion": "ORO",
-        "manzana": "K",
-        "nombre": "ORO - K",
+        "manzana": "Q",
+        "nombre": "ORO - Q",
         "paquete": "ORO"
       }
     },
@@ -2172,10 +2172,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-L",
+        "id": "ORO-P",
         "seccion": "ORO",
-        "manzana": "L",
-        "nombre": "ORO - L",
+        "manzana": "P",
+        "nombre": "ORO - P",
         "paquete": "ORO"
       }
     },
@@ -2209,10 +2209,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-M",
+        "id": "ORO-O",
         "seccion": "ORO",
-        "manzana": "M",
-        "nombre": "ORO - M",
+        "manzana": "O",
+        "nombre": "ORO - O",
         "paquete": "ORO"
       }
     },
@@ -2283,10 +2283,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-O",
+        "id": "ORO-M",
         "seccion": "ORO",
-        "manzana": "O",
-        "nombre": "ORO - O",
+        "manzana": "M",
+        "nombre": "ORO - M",
         "paquete": "ORO"
       }
     },
@@ -2320,10 +2320,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-P",
+        "id": "ORO-L",
         "seccion": "ORO",
-        "manzana": "P",
-        "nombre": "ORO - P",
+        "manzana": "L",
+        "nombre": "ORO - L",
         "paquete": "ORO"
       }
     },
@@ -2357,10 +2357,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-Q",
+        "id": "ORO-K",
         "seccion": "ORO",
-        "manzana": "Q",
-        "nombre": "ORO - Q",
+        "manzana": "K",
+        "nombre": "ORO - K",
         "paquete": "ORO"
       }
     },
@@ -2394,10 +2394,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-R",
+        "id": "ORO-J",
         "seccion": "ORO",
-        "manzana": "R",
-        "nombre": "ORO - R",
+        "manzana": "J",
+        "nombre": "ORO - J",
         "paquete": "ORO"
       }
     },
@@ -2431,10 +2431,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-S",
+        "id": "ORO-V",
         "seccion": "ORO",
-        "manzana": "S",
-        "nombre": "ORO - S",
+        "manzana": "V",
+        "nombre": "ORO - V",
         "paquete": "ORO"
       }
     },
@@ -2468,10 +2468,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-T",
+        "id": "ORO-U",
         "seccion": "ORO",
-        "manzana": "T",
-        "nombre": "ORO - T",
+        "manzana": "U",
+        "nombre": "ORO - U",
         "paquete": "ORO"
       }
     },
@@ -2505,10 +2505,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-U",
+        "id": "ORO-T",
         "seccion": "ORO",
-        "manzana": "U",
-        "nombre": "ORO - U",
+        "manzana": "T",
+        "nombre": "ORO - T",
         "paquete": "ORO"
       }
     },
@@ -2542,10 +2542,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-V",
+        "id": "ORO-S",
         "seccion": "ORO",
-        "manzana": "V",
-        "nombre": "ORO - V",
+        "manzana": "S",
+        "nombre": "ORO - S",
         "paquete": "ORO"
       }
     },
@@ -2579,10 +2579,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-W__DUP2",
+        "id": "ORO-AD__DUP2",
         "seccion": "ORO",
-        "manzana": "W",
-        "nombre": "ORO - W",
+        "manzana": "AD",
+        "nombre": "ORO - AD",
         "paquete": "ORO"
       }
     },
@@ -2616,10 +2616,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-X",
+        "id": "ORO-AC",
         "seccion": "ORO",
-        "manzana": "X",
-        "nombre": "ORO - X",
+        "manzana": "AC",
+        "nombre": "ORO - AC",
         "paquete": "ORO"
       }
     },
@@ -2653,10 +2653,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-Y",
+        "id": "ORO-AB",
         "seccion": "ORO",
-        "manzana": "Y",
-        "nombre": "ORO - Y",
+        "manzana": "AB",
+        "nombre": "ORO - AB",
         "paquete": "ORO"
       }
     },
@@ -2690,10 +2690,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-Z",
+        "id": "ORO-AA",
         "seccion": "ORO",
-        "manzana": "Z",
-        "nombre": "ORO - Z",
+        "manzana": "AA",
+        "nombre": "ORO - AA",
         "paquete": "ORO"
       }
     },
@@ -2727,10 +2727,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-AD__DUP3",
+        "id": "ORO-Z__DUP3",
         "seccion": "ORO",
-        "manzana": "AD",
-        "nombre": "ORO - AD",
+        "manzana": "Z",
+        "nombre": "ORO - Z",
         "paquete": "ORO"
       }
     },
@@ -2764,10 +2764,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-AC",
+        "id": "ORO-Y",
         "seccion": "ORO",
-        "manzana": "AC",
-        "nombre": "ORO - AC",
+        "manzana": "Y",
+        "nombre": "ORO - Y",
         "paquete": "ORO"
       }
     },
@@ -2801,10 +2801,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-AB",
+        "id": "ORO-X",
         "seccion": "ORO",
-        "manzana": "AB",
-        "nombre": "ORO - AB",
+        "manzana": "X",
+        "nombre": "ORO - X",
         "paquete": "ORO"
       }
     },
@@ -2838,10 +2838,10 @@
         ]
       },
       "properties": {
-        "id": "ORO-AA",
+        "id": "ORO-W",
         "seccion": "ORO",
-        "manzana": "AA",
-        "nombre": "ORO - AA",
+        "manzana": "W",
+        "nombre": "ORO - W",
         "paquete": "ORO"
       }
     },
