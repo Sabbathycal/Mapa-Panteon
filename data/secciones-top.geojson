@@ -2870,7 +2870,7 @@
         "seccion": "PLATA 2",
         "nombre": "PLATA",
         "id": "PLATA 2",
-        "color": "#26c7c9"
+        "color": "#ff8800"
       }
     },
     {
@@ -3065,8 +3065,8 @@
       "properties": {
         "seccion": "PLATA 2",
         "nombre": "PLATA 2",
-        "id": "PLATA 2",
-        "color": "#e18800"
+        "id": "BRONCE",
+        "color": "#26c7c9"
       }
     },
     {
