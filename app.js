@@ -361,6 +361,29 @@ function normInv(v){
   return (v ?? "").toString().trim().toUpperCase();
 }
 
+const SECCIONES_OCULTAS_DROPDOWN = new Set([
+  "ESTACIONAMIENTO",
+  "CAPILLA AGUA FRÍA",
+  "OFICINAS PANTEÓN",
+  "ENTRADA",
+  "SALIDA",
+  "IGLESIA",
+  "AFECTACION",
+  "COMA",
+  "M.",
+  "P B",
+  "A APODACA",
+  "A CARRETERA ZUAZUA-NUEVO LAREDO"
+]);
+
+function isSeccionVisibleEnDropdown(seccion) {
+  const s = (seccion ?? "").toString().trim().toUpperCase();
+
+  if (!s) return false;
+
+  return !SECCIONES_OCULTAS_DROPDOWN.has(s);
+}
+
 function normStatus(v){
   const s = (v ?? "").toString().trim().toLowerCase();
 
@@ -2021,8 +2044,18 @@ function normalizeLotesContext(fc){
 
 function buildSeccionesList(features){
   const set = new Set();
-  for (const f of features){ set.add(getPropSeccion(f)); }
-  return Array.from(set).sort((a,b) => a.localeCompare(b, "es", { sensitivity:"base" }));
+
+  for (const f of features){
+    const sec = getPropSeccion(f);
+
+    if (!isSeccionVisibleEnDropdown(sec)) continue;
+
+    set.add(sec);
+  }
+
+  return Array.from(set).sort((a,b) =>
+    a.localeCompare(b, "es", { sensitivity:"base" })
+  );
 }
 
 function normalizeManzanaLabel(v){
@@ -2097,7 +2130,10 @@ function buildManzanasListBySeccion(features, seccion){
 
 function fillSeccionSelect(secciones){
   $seccionSelect.innerHTML = `<option value="">SECCIÓN...</option>`;
+
   for (const s of secciones){
+    if (!isSeccionVisibleEnDropdown(s)) continue;
+
     const opt = document.createElement("option");
     opt.value = s;
     opt.textContent = s;
@@ -2305,11 +2341,31 @@ function renderSeccionesLayerPublic(){
       });
 
       layer.on("click", () => {
+        const sec = getPropSeccion(feature);
+
+        // Las secciones visuales sí tienen hover, pero no se pueden seleccionar.
+        if (!isSeccionVisibleEnDropdown(sec)) {
+          clearHoverNameTooltip();
+
+          try {
+            layer.setStyle(hoverStyle(col));
+            setTimeout(() => {
+              if (pinnedSeccionLayer !== layer) {
+                layer.setStyle({ ...hiddenStyle(), color: col, fillColor: col });
+              }
+            }, 180);
+          } catch {}
+
+          return;
+        }
+
         clearHoverNameTooltip();
+
         if (pinnedSeccionLayer && pinnedSeccionLayer !== layer){
           const prevCol = getSeccionColor(pinnedSeccionLayer.feature);
           pinnedSeccionLayer.setStyle({ ...hiddenStyle(), color: prevCol, fillColor: prevCol });
         }
+
         pinnedSeccionLayer = layer;
 
         const base = pinnedStyle(col);
