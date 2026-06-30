@@ -215,8 +215,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          7606.875,
-          3757.625
+          7585,
+          3764.5041874715807
         ]
       },
       "properties": {
@@ -234,8 +234,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          7652.75,
-          4008.375
+          7677,
+          4236.0616156532615
         ]
       },
       "properties": {
@@ -253,8 +253,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          7675.25,
-          4236.9375
+          7655,
+          4008.9551342330615
         ]
       },
       "properties": {
@@ -272,8 +272,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          7717.875,
-          4490.5
+          7430.5,
+          3991.0164507812106
         ]
       },
       "properties": {
@@ -291,8 +291,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          7429.5,
-          3990.75
+          7720,
+          4490.502392840904
         ]
       },
       "properties": {
@@ -310,8 +310,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          7454.237271819492,
-          4313.2075805382065
+          7437.5,
+          4293.488334900596
         ]
       },
       "properties": {
@@ -329,8 +329,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          7499,
-          4573.5
+          7224.5,
+          4145.500897315339
         ]
       },
       "properties": {
@@ -348,8 +348,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          7222.75,
-          4147.125
+          7435.5,
+          4549.949451235916
         ]
       },
       "properties": {
@@ -367,8 +367,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          7284.875,
-          4489.5
+          7142,
+          4399.446161079674
         ]
       },
       "properties": {
@@ -376,25 +376,6 @@
         "manzana": "M",
         "nombre": "SAN JUAN VIP - M",
         "id": "SAN JUAN VIP-M",
-        "shape": "circle",
-        "radius": 99.75858588186408,
-        "paquete": "VIP"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          7078.375,
-          4362.625
-        ]
-      },
-      "properties": {
-        "seccion": "SAN JUAN VIP",
-        "manzana": "N",
-        "nombre": "SAN JUAN VIP - N",
-        "id": "SAN JUAN VIP-N",
         "shape": "circle",
         "radius": 99.75858588186408,
         "paquete": "VIP"
