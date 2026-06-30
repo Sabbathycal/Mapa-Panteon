@@ -31,9 +31,9 @@
       },
       "properties": {
         "seccion": "SAN PEDRO VIP",
-        "manzana": "B",
-        "nombre": "SAN PEDRO VIP - B",
-        "id": "SAN PEDRO VIP-B",
+        "manzana": "C",
+        "nombre": "SAN PEDRO VIP - C",
+        "id": "SAN PEDRO VIP-C",
         "shape": "circle",
         "radius": 99.75858588186408,
         "paquete": "VIP"
@@ -50,9 +50,9 @@
       },
       "properties": {
         "seccion": "SAN PEDRO VIP",
-        "manzana": "C",
-        "nombre": "SAN PEDRO VIP - C",
-        "id": "SAN PEDRO VIP-C",
+        "manzana": "B",
+        "nombre": "SAN PEDRO VIP - B",
+        "id": "SAN PEDRO VIP-B",
         "shape": "circle",
         "radius": 99.75858588186408,
         "paquete": "VIP"
