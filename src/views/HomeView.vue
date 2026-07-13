@@ -1,3 +1,3 @@
 <template>
-  <h1>Mapa Panteón V2</h1>
+  <h3>Aqui estara el mapa</h3>
 </template>
