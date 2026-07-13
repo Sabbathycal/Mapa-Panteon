@@ -1,3 +1,8 @@
+<script setup>
+import LeafletMap from '@/components/map/LeafletMap.vue'
+</script>
+
+
 <template>
-  <h3>Aqui estara el mapa</h3>
+  <LeafletMap />
 </template>
