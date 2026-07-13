@@ -10,25 +10,53 @@ const mapContainer = ref(null)
 
 const mapInstance = ref(null)
 
-onMounted(() => {
+function loadImageDimensions(imageSource) {
+    return new Promise((resolve,reject) => {
+        const image = new Image()
+
+        image.onload = () => {
+            resolve({
+                width: image.naturalWidth,
+                height: image.naturalHeight,
+            })
+        }
+
+        image.onerror = () => {
+            reject(new Error('No fue posible cargar la imagen base del mapa.'))
+        }
+
+        image.src = imageSource
+    })
+}
+
+onMounted(async() => {
     if (!mapContainer.value) return
 
 
     mapInstance.value = Leaf.map(mapContainer.value, {
         crs: Leaf.CRS.Simple,
-        minZoom: -2,
+        minZoom: -3, // Que tanto zoom out se puede hacer en el mapa, se quedara asi
+                    // esto para que se pueda visualizar gran parte del mapa, menos abrumante
         maxZoom: 4,
         attributionControl: false,
     })
 
+    try {
+        const {width, height} = await loadImageDimensions(mapImage)
+    
+
     const imageBounds = [
         [0, 0],
-        [1000, 1000], 
+        [height, width], 
     ]
 
     Leaf.imageOverlay(mapImage, imageBounds).addTo(mapInstance.value)
 
     mapInstance.value.fitBounds(imageBounds)
+    mapInstance.value.setMaxBounds(imageBounds)
+    } catch (error) {
+        console.error(error)
+    }
 })
 
 onBeforeUnmount(() => {
