@@ -4,12 +4,15 @@ import Leaf from 'leaflet'
 
 import 'leaflet/dist/leaflet.css'
 
+import mapImage from '@/assets/images/map/base.png'
+
 const mapContainer = ref(null)
 
 const mapInstance = ref(null)
 
 onMounted(() => {
     if (!mapContainer.value) return
+
 
     mapInstance.value = Leaf.map(mapContainer.value, {
         crs: Leaf.CRS.Simple,
@@ -18,7 +21,14 @@ onMounted(() => {
         attributionControl: false,
     })
 
-    mapInstance.value.setView([0, 0], 0)
+    const imageBounds = [
+        [0, 0],
+        [1000, 1000], 
+    ]
+
+    Leaf.imageOverlay(mapImage, imageBounds).addTo(mapInstance.value)
+
+    mapInstance.value.fitBounds(imageBounds)
 })
 
 onBeforeUnmount(() => {
@@ -35,7 +45,6 @@ onBeforeUnmount(() => {
 .leaflet-map {
     width: 100%;
     height: 100%;
-    min-height: 500px;
     background-color: var(--color-background);
 }
 </style>

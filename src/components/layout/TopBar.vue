@@ -6,7 +6,7 @@
 
 <style scoped>
 .top-bar {
-    padding: 1rem;
+    
     border-bottom: 1px solid var(--color-border);
     background-color: var(--color-primary);
 }
