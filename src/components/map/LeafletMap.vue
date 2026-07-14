@@ -7,6 +7,7 @@ import 'leaflet/dist/leaflet.css'
 import mapImage from '@/assets/images/map/base.png'
 
 import {GeometryService} from '@/services/geometry/GeometryService'
+import {createSectionLayer} from '@/components/map/layers/SectionLayer'
 
 const mapContainer = ref(null)
 
@@ -43,9 +44,6 @@ onMounted(async() => {
         attributionControl: false,
     })
 
-    const sections = await GeometryService.getSections()
-    console.log('Secciones cargadas:', sections)
-
     try {
         const {width, height} = await loadImageDimensions(mapImage)
     
@@ -62,6 +60,11 @@ onMounted(async() => {
     } catch (error) {
         console.error(error)
     }
+    
+    const sections = await GeometryService.getSections()
+    const sectionLayer = createSectionLayer(sections, 'var(--color-section-outline)')
+    sectionLayer.addTo(mapInstance.value)
+
 })
 
 onBeforeUnmount(() => {
