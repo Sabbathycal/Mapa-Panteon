@@ -1,7 +1,8 @@
 import sectionURL from '@/assets/data/secciones.geojson?url';
 import blocksURL from '@/assets/data/manzanas.geojson?url';
 
-
+//Cada funcion obtiene la geometria de las secciones y manzanas del panteon 
+//desde un archivo geojson y lo retorna en formato json
 async function getSections() {
     const response = await fetch(sectionURL);
 

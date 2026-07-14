@@ -12,14 +12,21 @@ import {GeometryService} from '@/services/geometry/GeometryService'
 import {createSectionLayer} from '@/components/map/layers/SectionLayer'
 import {createBlockLayer} from '@/components/map/layers/BlockLayer'
 
+
+//Estas constantes son para poder manipular el mapa y sus elementos
 const mapContainer = ref(null)
 
 const mapInstance = ref(null)
 
+
+// Esta funcion es para poder obtener las dimensiones de la imagen del
+// mapa base
 function loadImageDimensions(imageSource) {
     return new Promise((resolve,reject) => {
         const image = new Image()
 
+        // Cuando la imagen se carga, se resuelve la promesa 
+        // con sus dimensiones
         image.onload = () => {
             resolve({
                 width: image.naturalWidth,
@@ -27,6 +34,8 @@ function loadImageDimensions(imageSource) {
             })
         }
 
+        // Si hay un error al cargar la imagen, se rechaza 
+        // la promesa con un error
         image.onerror = () => {
             reject(new Error('No fue posible cargar la imagen base del mapa.'))
         }
@@ -35,18 +44,26 @@ function loadImageDimensions(imageSource) {
     })
 }
 
+// Esta funcion se ejecuta cuando el componente se monta, y es 
+// la que inicializa el mapa
 onMounted(async() => {
     if (!mapContainer.value) return
 
-
+    // Se crea la instancia del mapa con las opciones necesarias
     mapInstance.value = Leaf.map(mapContainer.value, {
         crs: Leaf.CRS.Simple,
-        minZoom: -3, // Que tanto zoom out se puede hacer en el mapa, se quedara asi
-                    // esto para que se pueda visualizar gran parte del mapa, menos abrumante
-        maxZoom: 4,
+        minZoom: -3,    // Que tanto zoom out se puede hacer en 
+                        // el mapa, se quedara asi.
+                        // Esto para que se pueda visualizar gran
+                        // parte del mapa, menos abrumante
+
+        maxZoom: 1,     // Que tanto zoom in se puede hacer en el mapa
         attributionControl: false,
     })
 
+
+    // Se cargan las dimensiones de la imagen del mapa base y 
+    // se crean los bounds
     try {
         const {width, height} = await loadImageDimensions(mapImage)
     
@@ -56,14 +73,22 @@ onMounted(async() => {
         [height, width], 
     ]
 
+    // Se agrega la imagen del mapa base al mapa y se 
+    // ajusta el zoom y los bounds.
     Leaf.imageOverlay(mapImage, imageBounds).addTo(mapInstance.value)
 
+    // Se ajusta el zoom y los bounds del mapa para que se 
+    // vea la imagen completa y no se pueda hacer zoom fuera 
+    // de los bounds.
     mapInstance.value.fitBounds(imageBounds)
     mapInstance.value.setMaxBounds(imageBounds)
     } catch (error) {
         console.error(error)
     }
     
+    // Estas constantes son para poder agregar las geometrías 
+    // de secciones y bloques al mapa.
+    // -----------------------------------------------------
     const sections = await GeometryService.getSections()
     const sectionLayer = createSectionLayer(sections, 'var(--color-section-outline)')
     sectionLayer.addTo(mapInstance.value)
@@ -72,8 +97,13 @@ onMounted(async() => {
     const blockLayer = createBlockLayer(blocks, 'var(--color-block-outline)', mapInstance.value)
     blockLayer.addTo(mapInstance.value)
 
+    // -----------------------------------------------------
+
 })
 
+
+// Esta funcion se ejecuta cuando el componente se desmonta, y es
+// la que elimina la instancia del mapa y libera los recursos.
 onBeforeUnmount(() => {
     mapInstance.value?.remove()
     mapInstance.value = null  
