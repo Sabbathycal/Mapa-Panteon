@@ -6,6 +6,8 @@ import 'leaflet/dist/leaflet.css'
 
 import mapImage from '@/assets/images/map/base.png'
 
+import {GeometryService} from '@/services/geometry/GeometryService'
+
 const mapContainer = ref(null)
 
 const mapInstance = ref(null)
@@ -40,6 +42,9 @@ onMounted(async() => {
         maxZoom: 4,
         attributionControl: false,
     })
+
+    const sections = await GeometryService.getSections()
+    console.log('Secciones cargadas:', sections)
 
     try {
         const {width, height} = await loadImageDimensions(mapImage)
