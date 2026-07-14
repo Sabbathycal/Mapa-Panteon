@@ -1,13 +1,12 @@
 :root {
 
+/* Colores para la pagina del mapa del panteon  */
 --color-primary: #061e43;
-
 --color-sidebar: #ebf2b5;
-
 --color-border: #d1d5db;
-
 --color-background: #ffffff;
 
-
+/* Colores para las geometrias del mapa del panteon  */
 --color-section-outline: #6ec1eb;
+--color-block-outline: #f46d61;
 }

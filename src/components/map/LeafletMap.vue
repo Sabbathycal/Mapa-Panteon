@@ -4,10 +4,13 @@ import Leaf from 'leaflet'
 
 import 'leaflet/dist/leaflet.css'
 
+//imagen del mapa base del panteon
 import mapImage from '@/assets/images/map/base.png'
 
+//Geometria para mapa del panteon
 import {GeometryService} from '@/services/geometry/GeometryService'
 import {createSectionLayer} from '@/components/map/layers/SectionLayer'
+import {createBlockLayer} from '@/components/map/layers/BlockLayer'
 
 const mapContainer = ref(null)
 
@@ -64,6 +67,10 @@ onMounted(async() => {
     const sections = await GeometryService.getSections()
     const sectionLayer = createSectionLayer(sections, 'var(--color-section-outline)')
     sectionLayer.addTo(mapInstance.value)
+
+    const blocks = await GeometryService.getBlocks()
+    const blockLayer = createBlockLayer(blocks, 'var(--color-block-outline)', mapInstance.value)
+    blockLayer.addTo(mapInstance.value)
 
 })
 

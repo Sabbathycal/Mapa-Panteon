@@ -6,6 +6,6 @@ export function createSectionLayer(sections, sectionColor) {
             color: sectionColor,
             weight: 2,
             fill: false,
-        }
+        },
     })
 }
