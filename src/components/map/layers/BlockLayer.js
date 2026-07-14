@@ -1,6 +1,6 @@
 import Leaf from 'leaflet'
 
-
+//-------------------------------------------------------------------------
 //Esta función calcula el radio en metros a partir de un radio en píxeles, 
 // dado un mapa y una ubicación (latlng).
 function getMapRadiusFromPixels(mapInstance, latlng, pixelRadius) {
@@ -11,7 +11,11 @@ function getMapRadiusFromPixels(mapInstance, latlng, pixelRadius) {
 
     return mapInstance.distance(latlng, edgeLatLng)
 }
+// RAZON DE FUNCION:
+// Las manzanas VIP están almacenadas como Point en el GeoJSON.
+// Se convierten en Circle para que escalen con el mapa como los poligonos.
 
+//-------------------------------------------------------------------------
 
 // Esta función crea una capa de bloques a partir de un objeto GeoJSON,
 // un color para los bloques y una instancia del mapa en LeafletMap.

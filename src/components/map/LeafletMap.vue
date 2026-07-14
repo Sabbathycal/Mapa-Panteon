@@ -15,7 +15,6 @@ import {createBlockLayer} from '@/components/map/layers/BlockLayer'
 
 //Estas constantes son para poder manipular el mapa y sus elementos
 const mapContainer = ref(null)
-
 const mapInstance = ref(null)
 
 
@@ -52,7 +51,8 @@ onMounted(async() => {
     // Se crea la instancia del mapa con las opciones necesarias
     mapInstance.value = Leaf.map(mapContainer.value, {
         crs: Leaf.CRS.Simple,
-        minZoom: -3,    // Que tanto zoom out se puede hacer en 
+        minZoom: -3,    //NO MODIFICAR 
+                        // Que tanto zoom out se puede hacer en 
                         // el mapa, se quedara asi.
                         // Esto para que se pueda visualizar gran
                         // parte del mapa, menos abrumante
@@ -96,6 +96,9 @@ onMounted(async() => {
     const blocks = await GeometryService.getBlocks()
     const blockLayer = createBlockLayer(blocks, 'var(--color-block-outline)', mapInstance.value)
     blockLayer.addTo(mapInstance.value)
+
+    const lots = await GeometryService.getLots()
+    console.log('Lotes cargados:', lots.features.length)
 
     // -----------------------------------------------------
 
