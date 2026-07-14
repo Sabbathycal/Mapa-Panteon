@@ -11,6 +11,7 @@ import mapImage from '@/assets/images/map/base.png'
 import {GeometryService} from '@/services/geometry/GeometryService'
 import {createSectionLayer} from '@/components/map/layers/SectionLayer'
 import {createBlockLayer} from '@/components/map/layers/BlockLayer'
+import {createLotLayer} from '@/components/map/layers/LotLayer'
 
 
 //Estas constantes son para poder manipular el mapa y sus elementos
@@ -98,7 +99,8 @@ onMounted(async() => {
     blockLayer.addTo(mapInstance.value)
 
     const lots = await GeometryService.getLots()
-    console.log('Lotes cargados:', lots.features.length)
+    const lotLayer = createLotLayer(lots, 'var(--color-lot-outline)')
+    lotLayer.addTo(mapInstance.value)
 
     // -----------------------------------------------------
 
