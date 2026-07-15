@@ -26,4 +26,13 @@ const selectionStore = useSelectionStore()
     background-color: var(--color-sidebar);
     
 }
+
+.back-button {
+    background-color: var(--color-backbutton);
+    color: white;
+    font-size: medium;
+    font-weight: bold;
+    padding: 5px;
+    border-radius: 15%;
+}
 </style>
