@@ -48,6 +48,14 @@ function loadImageDimensions(imageSource) {
 
 // Esta funcion se ejecuta cuando el componente se monta, y es 
 // la que inicializa el mapa
+const sections = ref(null)
+const blocks = ref(null)
+const lots = ref(null)
+
+const sectionLayer = ref(null)
+const blockLayer = ref(null)
+const lotLayer = ref(null)
+
 onMounted(async() => {
     if (!mapContainer.value) return
 
@@ -89,27 +97,50 @@ onMounted(async() => {
         console.error(error)
     }
     
-    // Estas constantes son para poder agregar las geometrías 
-    // de secciones y bloques al mapa.
+    // Se cargan las geometrías de las secciones, bloques y lotes
+    // dinamicamente desde el servicio GeometryService y se crean 
+    // las capas correspondientes.
     // -----------------------------------------------------
-    const sections = await GeometryService.getSections()
-    const sectionLayer = createSectionLayer(
-        sections, 
+    sections.value = await GeometryService.getSections()
+    blocks.value = await GeometryService.getBlocks()
+    lots.value = await GeometryService.getLots()
+
+    lotLayer.value = createLotLayer(lots.value, 'var(--color-lot-outline)')
+
+
+    sectionLayer.value = createSectionLayer(
+        sections.value, 
         'var(--color-section-outline)',
         (sectionId) => {
             selectionStore.selectSection(sectionId)
+
+            const filteredBlocks = {
+                type: 'FeatureCollection',
+                features: blocks.value.features.filter(
+                    (block) => block.properties.seccion === sectionId
+                )
+            }
+
+            sectionLayer.value.remove()
+            
+            blockLayer.value = createBlockLayer(
+                filteredBlocks, 
+                'var(--color-block-outline)', 
+                mapInstance.value
+            )
+            blockLayer.value.addTo(mapInstance.value)
+
             console.log(`Seccion seleccionada: ${sectionId}`)
         }
     )
-    sectionLayer.addTo(mapInstance.value)
+    sectionLayer.value.addTo(mapInstance.value)
 
-    const blocks = await GeometryService.getBlocks()
-    const blockLayer = createBlockLayer(blocks, 'var(--color-block-outline)', mapInstance.value)
-    blockLayer.addTo(mapInstance.value)
+    
+    
 
-    const lots = await GeometryService.getLots()
-    const lotLayer = createLotLayer(lots, 'var(--color-lot-outline)')
-    lotLayer.addTo(mapInstance.value)
+    
+    
+    
 
     // -----------------------------------------------------
 
