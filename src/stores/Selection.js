@@ -1,5 +1,6 @@
 import {defineStore} from 'pinia'
-import {ref} from 'vue'
+import {computed, ref} from 'vue'
+
 
 export const useSelectionStore = defineStore('selection',() =>{
     const selectedSectionId = ref(null)
@@ -27,14 +28,30 @@ export const useSelectionStore = defineStore('selection',() =>{
         selectedLotId.value = null
     }
 
+    const canGoBack = computed(() => selectedSectionId.value !== null)
+
+    function goBack() {
+    if (selectedBlockId.value !== null) {
+        selectedBlockId.value = null
+        selectedLotId.value = null
+        return
+    }
+
+    clearSelection()
+
+}
+
     return {
         selectedSectionId,
         selectedBlockId,
         selectedLotId,
+        canGoBack,
+        //-----------------
         selectSection,
         selectBlock,
         selectLot,
-        clearSelection
+        clearSelection,
+        goBack
     }
 
 })

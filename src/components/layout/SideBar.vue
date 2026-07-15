@@ -1,5 +1,19 @@
+<script setup>
+import { useSelectionStore } from '@/stores/Selection';
+
+const selectionStore = useSelectionStore()
+</script>
+
 <template>
     <aside class="sidebar">
+        <button
+            v-if="selectionStore.canGoBack"
+            type="button"
+            class="back-button"
+            @click="selectionStore.goBack"
+        >
+        ← Volver
+        </button>
         <p>Selecciona un elemento del mapa.</p>
     </aside>
 </template>

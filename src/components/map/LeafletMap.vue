@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import Leaf from 'leaflet'
 
 import 'leaflet/dist/leaflet.css'
@@ -46,8 +46,8 @@ function loadImageDimensions(imageSource) {
     })
 }
 
-// Esta funcion se ejecuta cuando el componente se monta, y es 
-// la que inicializa el mapa
+// Constantes que se usan dentro de onMount para cambiar los valores
+// que se usan dentro del mapa.
 const sections = ref(null)
 const blocks = ref(null)
 const lots = ref(null)
@@ -56,6 +56,36 @@ const sectionLayer = ref(null)
 const blockLayer = ref(null)
 const lotLayer = ref(null)
 
+
+// Funcion que nos permite llevar el hilo que cual bloque (manzana)
+// se debe usar al momento de usar el boton de Volver dentro del
+//  mapa se usa en ambos onMount() y watch().
+function handleBlockSelected(blockId) {
+    selectionStore.selectBlock(blockId)
+
+    const filteredLots = {
+        type: 'FeatureCollection',
+        features: lots.value.features.filter(
+            (lot) => 
+                lot.properties.seccion === selectionStore.selectedSectionId &&
+                lot.properties.manzana === blockId, 
+        ),
+    }
+
+    blockLayer.value?.remove()
+
+    lotLayer.value = createLotLayer(
+        filteredLots,
+        'var(--color-lot-outline)',
+    )
+
+    lotLayer.value.addTo(mapInstance.value)
+
+}
+
+
+// Esta funcion se ejecuta cuando el componente se monta, y es 
+// la que inicializa el mapa.
 onMounted(async() => {
     if (!mapContainer.value) return
 
@@ -64,9 +94,8 @@ onMounted(async() => {
         crs: Leaf.CRS.Simple,
         minZoom: -3,    //NO MODIFICAR 
                         // Que tanto zoom out se puede hacer en 
-                        // el mapa, se quedara asi.
-                        // Esto para que se pueda visualizar gran
-                        // parte del mapa, menos abrumante
+                        // el mapa. Esto para que se pueda visualizar 
+                        // gran parte del mapa, menos abrumante.
 
         maxZoom: 1,     // Que tanto zoom in se puede hacer en el mapa
         attributionControl: false,
@@ -124,28 +153,7 @@ onMounted(async() => {
                 filteredBlocks, 
                 'var(--color-block-outline)', 
                 mapInstance.value,
-                (blockId) => {
-                    selectionStore.selectBlock(blockId)
-
-                    const filteredLots = {
-                        type: 'FeatureCollection',
-                        features: lots.value.features.filter(
-                            (lot) => 
-                                lot.properties.seccion === selectionStore.selectedSectionId &&
-                                lot.properties.manzana === blockId,
-                        ),
-                    }
-
-                    blockLayer.value.remove()
-
-                    lotLayer.value = createLotLayer(
-                        filteredLots,
-                        'var(--color-lot-outline)',
-                    )
-
-                    lotLayer.value.addTo(mapInstance.value)
-
-                }
+                handleBlockSelected,
             )
             blockLayer.value.addTo(mapInstance.value)
 
@@ -165,6 +173,42 @@ onMounted(async() => {
 
 })
 
+watch(
+    () => [
+        selectionStore.selectedSectionId,
+        selectionStore.selectedBlockId,
+    ],
+    ([newSectionId, newBlockId], [oldSectionId, oldBlockId]) => {
+        if (!mapInstance.value) return
+
+        //Regreso Lotes a manzanas
+        if (oldBlockId !== null && newBlockId ==null && newSectionId !== null) {
+            lotLayer.value?.remove()
+
+            const filteredBlocks = {
+                type: 'FeatureCollection',
+                features: blocks.value.features.filter(
+                    (block) => block.properties.seccion === newSectionId
+                ),
+            }
+            blockLayer.value = createBlockLayer(
+                filteredBlocks, 
+                'var(--color-block-outline)',
+                mapInstance.value,
+                handleBlockSelected,
+            )
+
+            blockLayer.value.addTo(mapInstance.value)
+        }
+
+        //Regresar de manzanas a secciones
+        if (oldSectionId !== null && newSectionId === null) {
+            blockLayer.value?.remove()
+            lotLayer.value?.remove()
+            sectionLayer.value.addTo(mapInstance.value)
+        }
+    }
+)
 
 // Esta funcion se ejecuta cuando el componente se desmonta, y es
 // la que elimina la instancia del mapa y libera los recursos.

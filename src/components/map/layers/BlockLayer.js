@@ -37,19 +37,15 @@ export function createBlockLayer(
         // crea un círculo con un radio calculado dinámicamente basado en 
         // el zoom del mapa.
         pointToLayer: function (feature, latlng) {
-            const mapRadius = getMapRadiusFromPixels(
-                mapInstance,
-                latlng,
-                12
-            )
 
             // Se crea un círculo en la ubicación del bloque con el 
             // radio calculado y el color especificado.
             return Leaf.circle(latlng, {
-                radius: mapRadius,
+                radius: feature.properties.radius,
                 color: blockColor,
                 weight: 1,
-                fill: false,
+                fill: true,
+                fillOpacity:0.5
             })
         },
 
