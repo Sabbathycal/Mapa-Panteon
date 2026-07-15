@@ -20,7 +20,7 @@ const selectionStore = useSelectionStore()
 
 <style scoped>
 .sidebar {
-    width:320px;
+    width:280px;
     padding: 1rem;
     border-left: 1px solid var(--color-border);
     background-color: var(--color-sidebar);
