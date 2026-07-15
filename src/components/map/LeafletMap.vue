@@ -3,6 +3,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import Leaf from 'leaflet'
 
 import 'leaflet/dist/leaflet.css'
+import {useSelectionStore} from '@/stores/Selection'
 
 //imagen del mapa base del panteon
 import mapImage from '@/assets/images/map/base.png'
@@ -17,6 +18,7 @@ import {createLotLayer} from '@/components/map/layers/LotLayer'
 //Estas constantes son para poder manipular el mapa y sus elementos
 const mapContainer = ref(null)
 const mapInstance = ref(null)
+const selectionStore = useSelectionStore()
 
 
 // Esta funcion es para poder obtener las dimensiones de la imagen del
@@ -91,7 +93,14 @@ onMounted(async() => {
     // de secciones y bloques al mapa.
     // -----------------------------------------------------
     const sections = await GeometryService.getSections()
-    const sectionLayer = createSectionLayer(sections, 'var(--color-section-outline)')
+    const sectionLayer = createSectionLayer(
+        sections, 
+        'var(--color-section-outline)',
+        (sectionId) => {
+            selectionStore.selectSection(sectionId)
+            console.log(`Seccion seleccionada: ${sectionId}`)
+        }
+    )
     sectionLayer.addTo(mapInstance.value)
 
     const blocks = await GeometryService.getBlocks()
