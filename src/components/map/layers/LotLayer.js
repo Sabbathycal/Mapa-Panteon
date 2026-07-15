@@ -5,7 +5,8 @@ export function createLotLayer(lots, lotColor) {
         style: {
             color: lotColor,
             weight: 0.5,
-            fill: false,
+            fill: true,
+            fillOpacity: 0.5
         },
     })
 }

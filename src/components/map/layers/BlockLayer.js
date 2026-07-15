@@ -4,8 +4,8 @@ import Leaf from 'leaflet'
 //Esta función calcula el radio en metros a partir de un radio en píxeles, 
 // dado un mapa y una ubicación (latlng).
 function getMapRadiusFromPixels(mapInstance, latlng, pixelRadius) {
+    
     const centerPoint = mapInstance.latLngToContainerPoint(latlng)
-
     const edgePoint = centerPoint.add([pixelRadius, 0])
     const edgeLatLng = mapInstance.containerPointToLatLng(edgePoint)
 
@@ -19,12 +19,18 @@ function getMapRadiusFromPixels(mapInstance, latlng, pixelRadius) {
 
 // Esta función crea una capa de bloques a partir de un objeto GeoJSON,
 // un color para los bloques y una instancia del mapa en LeafletMap.
-export function createBlockLayer(block, blockColor, mapInstance) {
+export function createBlockLayer(
+    block, 
+    blockColor, 
+    mapInstance, 
+    onBlockSelected,
+) {
     return Leaf.geoJSON(block, {
         style: {
             color: blockColor,
             weight: 1,
-            fill: false,
+            fill: true,
+            fillOpacity: 0.5
         },
 
         // Esta función se llama para cada punto en la capa de bloques y 
@@ -46,5 +52,12 @@ export function createBlockLayer(block, blockColor, mapInstance) {
                 fill: false,
             })
         },
+
+        onEachFeature(feature, layer) {
+            layer.on('click', () => {
+                onBlockSelected(feature.properties.manzana)
+            })
+        }
+
     })
 }

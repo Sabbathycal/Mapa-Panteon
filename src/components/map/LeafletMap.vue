@@ -105,9 +105,6 @@ onMounted(async() => {
     blocks.value = await GeometryService.getBlocks()
     lots.value = await GeometryService.getLots()
 
-    lotLayer.value = createLotLayer(lots.value, 'var(--color-lot-outline)')
-
-
     sectionLayer.value = createSectionLayer(
         sections.value, 
         'var(--color-section-outline)',
@@ -126,7 +123,29 @@ onMounted(async() => {
             blockLayer.value = createBlockLayer(
                 filteredBlocks, 
                 'var(--color-block-outline)', 
-                mapInstance.value
+                mapInstance.value,
+                (blockId) => {
+                    selectionStore.selectBlock(blockId)
+
+                    const filteredLots = {
+                        type: 'FeatureCollection',
+                        features: lots.value.features.filter(
+                            (lot) => 
+                                lot.properties.seccion === selectionStore.selectedSectionId &&
+                                lot.properties.manzana === blockId,
+                        ),
+                    }
+
+                    blockLayer.value.remove()
+
+                    lotLayer.value = createLotLayer(
+                        filteredLots,
+                        'var(--color-lot-outline)',
+                    )
+
+                    lotLayer.value.addTo(mapInstance.value)
+
+                }
             )
             blockLayer.value.addTo(mapInstance.value)
 
