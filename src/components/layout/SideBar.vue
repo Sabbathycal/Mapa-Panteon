@@ -33,6 +33,6 @@ const selectionStore = useSelectionStore()
     font-size: medium;
     font-weight: bold;
     padding: 5px;
-    border-radius: 15%;
+    border-radius: 10%;
 }
 </style>
