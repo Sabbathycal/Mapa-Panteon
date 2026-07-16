@@ -11,3 +11,16 @@
 
   padding: 2px;
 }
+
+.leaflet-tooltip.block-tooltip {
+  border-color: var(--color-block-outline);
+  box-shadow: none;
+
+  color: var(--color-text);
+
+  font-weight: 700;
+
+  text-align: center;
+
+  padding: 2px;
+}
