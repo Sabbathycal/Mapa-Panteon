@@ -1,7 +1,23 @@
 <script setup>
+import {computed } from 'vue'
 import { useSelectionStore } from '@/stores/Selection';
+import { LotService } from '@/services/lot/LotService';
 
 const selectionStore = useSelectionStore()
+
+const selectedLot = computed(
+    () => {
+        if (!selectionStore.selectedLotId) {
+            return null
+        }
+
+        return LotService.getLotbyId(
+            selectionStore.selectedLotId,
+            selectionStore.selectedSectionId,
+            selectionStore.selectedBlockId
+        )
+    }
+)
 </script>
 
 <template>
@@ -17,22 +33,37 @@ const selectionStore = useSelectionStore()
 
         <div v-if="selectionStore.selectedLotId" class="selection-details">
             <label> Seccion: 
-                <input :value="selectionStore.selectedSectionId"
-                        type="text" readonly/>
+                <input :value="selectedLot.section"
+                        readonly/>
             </label>
 
             <label> Manzana: 
-                <input :value="selectionStore.selectedBlockId"
-                        type="text" readonly/>
+                <input :value="selectedLot.block"
+                        readonly/>
             </label>
 
             <label> Lote: 
-                <input :value="selectionStore.selectedLotId"
-                        type="text" readonly/>
+                <input :value="selectedLot.id"
+                        readonly/>
+            </label>
+
+             <label> Propietario: 
+                <input :value="selectedLot.owner"
+                        readonly/>
+            </label>
+
+             <label> Estado: 
+                <input :value="selectedLot.status"
+                        readonly/>
+            </label>
+
+             <label> Paquete: 
+                <input :value="selectedLot.package"
+                        readonly/>
             </label>
         </div>
 
-        <p>Selecciona un elemento del mapa.</p>
+        <p v-else>Selecciona un elemento del mapa.</p>
     </aside>
 </template>
 
