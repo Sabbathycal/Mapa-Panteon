@@ -63,7 +63,7 @@ const selectedLot = computed(
             </label>
         </div>
 
-        <p v-else>Selecciona un elemento del mapa.</p>
+        <p v-else>Haz clic en cualquier elemento del mapa.</p>
     </aside>
 </template>
 

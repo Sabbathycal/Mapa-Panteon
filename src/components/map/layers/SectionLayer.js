@@ -10,16 +10,46 @@ export function createSectionLayer(
             color: sectionColor,
             weight: 2,
             fill: true,
-            fillOpacity: 0.5,
+            fillOpacity: 0.001,
         },
 
         onEachFeature(feature, layer) {
-            layer.on('click', () => {
-                const sectionId = feature.properties.id
+            const originalStyle = {
+                color: sectionColor,
+                weight: 2,
+                fill: true,
+                fillOpacity: 0.001,
+            }
 
-                onSectionSelected(sectionId)
-            })
+            layer.on({
+                mouseover() {
+                    layer.setStyle({
+                        color: feature.properties.color,
+                        weight: 3, 
+                        fill: true,
+                        fillOpacity: 0.25,
+                    })
+                
+                    layer.bindTooltip(feature.properties.nombre, {
+                        permanent: false,
+                        direction: 'center',
+                        className: 'section-tooltip',
+                    }).openTooltip()
+                },
+
+                mouseout() {
+                layer.setStyle(originalStyle)
+                layer.closeTooltip()
+                },
+
+                click() {
+
+                    layer.setStyle(originalStyle)
+                    layer.closeTooltip()
+
+                    onSectionSelected(feature.properties.id)
+                }
+             })
         },
-
     })
 }
