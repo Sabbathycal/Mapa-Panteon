@@ -77,10 +77,15 @@ function handleBlockSelected(blockId) {
     lotLayer.value = createLotLayer(
         filteredLots,
         'var(--color-lot-outline)',
+        handleLotSelected
     )
 
     lotLayer.value.addTo(mapInstance.value)
 
+}
+
+function handleLotSelected(lotId) {
+    selectionStore.selectLot(lotId)
 }
 
 

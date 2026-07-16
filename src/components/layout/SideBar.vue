@@ -14,6 +14,24 @@ const selectionStore = useSelectionStore()
         >
         ← Volver
         </button>
+
+        <div v-if="selectionStore.selectedLotId" class="selection-details">
+            <label> Seccion: 
+                <input :value="selectionStore.selectedSectionId"
+                        type="text" readonly/>
+            </label>
+
+            <label> Manzana: 
+                <input :value="selectionStore.selectedBlockId"
+                        type="text" readonly/>
+            </label>
+
+            <label> Lote: 
+                <input :value="selectionStore.selectedLotId"
+                        type="text" readonly/>
+            </label>
+        </div>
+
         <p>Selecciona un elemento del mapa.</p>
     </aside>
 </template>
@@ -35,4 +53,29 @@ const selectionStore = useSelectionStore()
     padding: 5px;
     border-radius: 10%;
 }
+
+.selection-details{
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-top: 10px;
+}
+
+.selection-details label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-weight: 600;
+}
+
+.selection-details input {
+    width: 100%;
+    padding: 0.6rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    box-sizing: border-box;
+}
+
 </style>
