@@ -7,6 +7,7 @@ import router from './router'
 import './styles/variables.css'
 import './styles/reset.css'
 import './styles/global.css'
+import './styles/leaflet.css'
 
 const app = createApp(App)
 
