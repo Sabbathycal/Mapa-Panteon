@@ -13,6 +13,7 @@ import { GeometryService } from '@/services/geometry/GeometryService'
 import { createSectionLayer } from '@/components/map/layers/SectionLayer'
 import { createBlockLayer } from '@/components/map/layers/BlockLayer'
 import { createLotLayer } from '@/components/map/layers/LotLayer'
+import { createNicheZoneLayer } from '@/components/map/layers/NicheZoneLayer'
 
 import { filterBlockbySection, filterLotsbyBlocks } from '@/utils/geometryFilters'
 
@@ -51,10 +52,12 @@ function loadImageDimensions(imageSource) {
 const sections = ref(null)
 const blocks = ref(null)
 const lots = ref(null)
+const nicheZones = ref(null)
 
 const sectionLayer = ref(null)
 const blockLayer = ref(null)
 const lotLayer = ref(null)
+const nicheZoneLayer = ref(null)
 
 // Funcion que nos permite llevar el hilo que cual bloque (manzana)
 // se debe usar al momento de usar el boton de Volver dentro del
@@ -122,6 +125,12 @@ onMounted(async () => {
   sections.value = await GeometryService.getSections()
   blocks.value = await GeometryService.getBlocks()
   lots.value = await GeometryService.getLots()
+  nicheZones.value = await GeometryService.getNicheZones()
+
+  console.log(
+    'Zona de Nichos:',
+    nicheZones.value.features.map((feature) => feature.properties),
+  )
 
   sectionLayer.value = createSectionLayer(
     sections.value,
@@ -144,6 +153,16 @@ onMounted(async () => {
   sectionLayer.value.addTo(mapInstance.value)
 
   // -----------------------------------------------------
+
+  nicheZoneLayer.value = createNicheZoneLayer(
+    nicheZones.value,
+    'var(--color-niche-zone-outline)',
+    (nicheZone) => {
+      console.log('Zona de nichos seleccionada:', nicheZone)
+    },
+  )
+
+  nicheZoneLayer.value.addTo(mapInstance.value)
 })
 
 watch(

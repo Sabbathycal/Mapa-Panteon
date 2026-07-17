@@ -1,8 +1,9 @@
-import sectionURL from '@/assets/data/secciones.geojson?url';
-import blocksURL from '@/assets/data/manzanas.geojson?url';
+import sectionURL from '@/assets/data/secciones.geojson?url'
+import blocksURL from '@/assets/data/manzanas.geojson?url'
+import nicheZonesURL from '@/assets/data/nichos/nichos-zonas.geojson?url'
 
 //--------------------------------------------------------------
-// Este servicio se encarga de obtener la geometría de las secciones 
+// Este servicio se encarga de obtener la geometría de las secciones
 // y manzanas del panteón
 import bronceLotsUrl from '@/assets/data/lotes/bronce/lotes.geojson?url'
 import oroLotsUrl from '@/assets/data/lotes/oro/lotes.geojson?url'
@@ -13,7 +14,6 @@ import sanMateoVipLotsUrl from '@/assets/data/lotes/sanmateovip/lotes.geojson?ur
 import sanPedroVipLotsUrl from '@/assets/data/lotes/sanpedrovip/lotes.geojson?url'
 //WHY: No quise juntar todos los lotes.geojson en un solo archivo
 // porque me dio flojera.
-
 
 // Esta constante contiene las URLs de los archivos GeoJSON de los lotes,
 // que se utilizarán para obtener la geometría de los lotes.
@@ -28,51 +28,60 @@ const lotUrls = [
 ]
 //--------------------------------------------------------------
 
-//Cada funcion obtiene la geometria de las secciones, manzanas y lotes del 
-// panteon desde un archivo geojson y lo retorna en formato JSON. 
+//Cada funcion obtiene la geometria de las secciones, manzanas y lotes del
+// panteon desde un archivo geojson y lo retorna en formato JSON.
 // Si hay un error en la carga del archivo, lanza un error con un mensaje descriptivo.
 async function getSections() {
-    const response = await fetch(sectionURL);
+  const response = await fetch(sectionURL)
 
-    if (!response.ok) {
-        throw new Error('No fue posible cargar la geometria de las secciones')
-    }
+  if (!response.ok) {
+    throw new Error('No fue posible cargar la geometria de las secciones')
+  }
 
-    return response.json()
+  return response.json()
 }
 
 async function getBlocks() {
-    const response = await fetch(blocksURL);
+  const response = await fetch(blocksURL)
 
-    if (!response.ok) {
-        throw new Error('No fue posible cargar la geometria de las manzanas')
-    }
+  if (!response.ok) {
+    throw new Error('No fue posible cargar la geometria de las manzanas')
+  }
 
-    return response.json()
+  return response.json()
 }
 
 async function getLots() {
-    const responses = await Promise.all(
-        lotUrls.map(async (lotUrl) => {
-            
-            const response = await fetch(lotUrl);
-            if (!response.ok){
-                throw new Error(`No fue posible cargar la geometria de los lotes desde ${lotUrl}`)
-            }
+  const responses = await Promise.all(
+    lotUrls.map(async (lotUrl) => {
+      const response = await fetch(lotUrl)
+      if (!response.ok) {
+        throw new Error(`No fue posible cargar la geometria de los lotes desde ${lotUrl}`)
+      }
 
-            return response.json()
-        }),
-    )
-    
-    return {
-        type: 'FeatureCollection',
-        features: responses.flatMap((geojson) => geojson.features),
-    }
+      return response.json()
+    }),
+  )
+
+  return {
+    type: 'FeatureCollection',
+    features: responses.flatMap((geojson) => geojson.features),
+  }
 }
 
+async function getNicheZones() {
+  const response = await fetch(nicheZonesURL)
+
+  if (!response.ok) {
+    throw new Error('No fue posible cargar las zonas de nichos.')
+  }
+
+  return response.json()
+}
 
 export const GeometryService = {
-    getSections,
-    getBlocks,
-    getLots
+  getSections,
+  getBlocks,
+  getLots,
+  getNicheZones,
 }

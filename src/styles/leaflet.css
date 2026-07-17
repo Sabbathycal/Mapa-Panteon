@@ -24,3 +24,16 @@
 
   padding: 2px;
 }
+
+.leaflet-tooltip.niche-zone-tooltip {
+  border-color: var(--color-niche-zone-outline);
+  box-shadow: none;
+
+  color: var(--color-text);
+
+  font-weight: 700;
+
+  text-align: center;
+
+  padding: 2px;
+}
