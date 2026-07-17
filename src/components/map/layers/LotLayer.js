@@ -1,19 +1,28 @@
 import Leaf from 'leaflet'
+import { getLotColorByStatus } from '@/utils/lotStatusColors'
 
-export function createLotLayer(lots, lotColor, onLotsSelected) {
+export function createLotLayer(lots, onLotsSelected) {
   return Leaf.geoJSON(lots, {
-    style: {
-      color: lotColor,
-      weight: 0.5,
-      fill: true,
-      fillOpacity: 0.5,
+    style(feature) {
+      console.log(feature.properties.estatus)
+
+      const lotColor = getLotColorByStatus(feature.properties.estatus)
+
+      return {
+        color: lotColor,
+        fillColor: lotColor,
+        weight: 0.5,
+        fill: true,
+        fillOpacity: 0.5,
+      }
     },
 
     onEachFeature(feature, layer) {
+      const lotColor = getLotColorByStatus(feature.properties.estatus)
+
       layer.on({
         mouseover() {
           layer.setStyle({
-            weight: 1,
             fillOpacity: 0.25,
           })
         },
@@ -21,8 +30,8 @@ export function createLotLayer(lots, lotColor, onLotsSelected) {
         mouseout() {
           layer.setStyle({
             color: lotColor,
+            fillColor: lotColor,
             weight: 0.5,
-            fill: true,
             fillOpacity: 0.5,
           })
         },

@@ -10,4 +10,11 @@
   --color-section-outline: #000000;
   --color-block-outline: #7d140b;
   --color-lot-outline: #24a13f;
+
+  /*Colores de Lotes */
+  --color-lot-available: #4caf50;
+  --color-lot-sold: #d32f2f;
+  --color-lot-used: #1976d2;
+  --color-lot-reserved: #fbc02d;
+  --color-lot-unknown: #9e9e9e;
 }

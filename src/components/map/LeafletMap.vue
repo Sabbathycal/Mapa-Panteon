@@ -66,7 +66,7 @@ function handleBlockSelected(blockId) {
 
   blockLayer.value?.remove()
 
-  lotLayer.value = createLotLayer(filteredLots, 'var(--color-lot-outline)', handleLotSelected)
+  lotLayer.value = createLotLayer(filteredLots, handleLotSelected)
 
   lotLayer.value.addTo(mapInstance.value)
 }
