@@ -37,7 +37,7 @@ export function createLotLayer(lots, onLotsSelected) {
         },
 
         click() {
-          onLotsSelected(feature.properties.id)
+          onLotsSelected(feature.properties.id, feature.properties.estatus)
         },
       })
     },

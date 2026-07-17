@@ -71,8 +71,8 @@ function handleBlockSelected(blockId) {
   lotLayer.value.addTo(mapInstance.value)
 }
 
-function handleLotSelected(lotId) {
-  selectionStore.selectLot(lotId)
+function handleLotSelected(lotId, lotStatus) {
+  selectionStore.selectLot(lotId, lotStatus)
 }
 
 // Esta funcion se ejecuta cuando el componente se monta, y es

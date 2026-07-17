@@ -14,6 +14,7 @@ const selectedLot = computed(() => {
     selectionStore.selectedLotId,
     selectionStore.selectedSectionId,
     selectionStore.selectedBlockId,
+    selectionStore.selectedLotStatus,
   )
 })
 </script>

@@ -2,24 +2,9 @@ function createLotKey(sectionId, blockId, lotId) {
   return `${sectionId}-${blockId}-${lotId}`
 }
 
-const mockLots = {
-  'BRONCE-A-050': {
-    id: '050',
+const mockLots = {}
 
-    section: 'BRONCE',
-    block: 'A',
-
-    owner: 'Sin Asignar',
-
-    status: 'Disponible',
-
-    package: 'Bronce',
-
-    observations: '',
-  },
-}
-
-function getLotbyId(lotId, sectionId, blockId) {
+function getLotbyId(lotId, sectionId, blockId, lotStatus) {
   const lotKey = createLotKey(sectionId, blockId, lotId)
 
   return (
@@ -28,7 +13,7 @@ function getLotbyId(lotId, sectionId, blockId) {
       section: sectionId,
       block: blockId,
       owner: '',
-      status: '',
+      status: lotStatus ?? '',
       package: '',
       observations: '',
     }
