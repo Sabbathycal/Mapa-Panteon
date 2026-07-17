@@ -74,15 +74,6 @@ const selectedLot = computed(() => {
   background-color: var(--color-sidebar);
 }
 
-.back-button {
-  background-color: var(--color-backbutton);
-  color: white;
-  font-size: medium;
-  font-weight: bold;
-  padding: 5px;
-  border-radius: 10%;
-}
-
 .selection-details {
   display: flex;
   flex-direction: column;

@@ -1,10 +1,14 @@
 <script setup>
 import LeafletMap from '@/components/map/LeafletMap.vue'
-</script>
+import NichoMapView from '@/views/NichoMapView.vue'
+import { useNicheStore } from '@/stores/Niche'
 
+const nicheStore = useNicheStore()
+</script>
 
 <template>
   <div class="map-view">
+    <NichoMapView v-if="nicheStore.selectedZone" />
     <LeafletMap />
   </div>
 </template>

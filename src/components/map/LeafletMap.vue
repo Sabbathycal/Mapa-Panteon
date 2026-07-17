@@ -4,6 +4,7 @@ import Leaf from 'leaflet'
 
 import 'leaflet/dist/leaflet.css'
 import { useSelectionStore } from '@/stores/Selection'
+import { useNicheStore } from '@/stores/Niche'
 
 //imagen del mapa base del panteon
 import mapImage from '@/assets/images/map/base.png'
@@ -21,6 +22,7 @@ import { filterBlockbySection, filterLotsbyBlocks } from '@/utils/geometryFilter
 const mapContainer = ref(null)
 const mapInstance = ref(null)
 const selectionStore = useSelectionStore()
+const nicheStore = useNicheStore()
 
 // Esta funcion es para poder obtener las dimensiones de la imagen del
 // mapa base
@@ -158,7 +160,7 @@ onMounted(async () => {
     nicheZones.value,
     'var(--color-niche-zone-outline)',
     (nicheZone) => {
-      console.log('Zona de nichos seleccionada:', nicheZone)
+      nicheStore.selectZone(nicheZone)
     },
   )
 
@@ -190,6 +192,8 @@ watch(
       blockLayer.value?.remove()
       lotLayer.value?.remove()
       sectionLayer.value.addTo(mapInstance.value)
+      nicheZoneLayer.value?.addTo(mapInstance.value)
+      nicheZoneLayer.value?.bringToFront()
     }
   },
 )
