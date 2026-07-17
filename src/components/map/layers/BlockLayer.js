@@ -6,7 +6,7 @@ export function createBlockLayer(blocks, blockColor, onBlockSelected) {
       color: blockColor,
       weight: 1,
       fill: true,
-      fillOpacity: 0.001,
+      fillOpacity: 0.5,
     },
 
     pointToLayer(feature, latlng) {
@@ -15,7 +15,7 @@ export function createBlockLayer(blocks, blockColor, onBlockSelected) {
         color: blockColor,
         weight: 1,
         fill: true,
-        fillOpacity: 0.001,
+        fillOpacity: 0.5,
       })
     },
 
@@ -41,7 +41,7 @@ export function createBlockLayer(blocks, blockColor, onBlockSelected) {
             color: blockColor,
             weight: 1,
             fill: true,
-            fillOpacity: 0.001,
+            fillOpacity: 0.5,
           })
 
           layer.closeTooltip()
