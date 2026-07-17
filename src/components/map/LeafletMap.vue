@@ -14,6 +14,8 @@ import { createSectionLayer } from '@/components/map/layers/SectionLayer'
 import { createBlockLayer } from '@/components/map/layers/BlockLayer'
 import { createLotLayer } from '@/components/map/layers/LotLayer'
 
+import { filterBlockbySection, filterLotsbyBlocks } from '@/utils/geometryFilters'
+
 //Estas constantes son para poder manipular el mapa y sus elementos
 const mapContainer = ref(null)
 const mapInstance = ref(null)
@@ -60,14 +62,7 @@ const lotLayer = ref(null)
 function handleBlockSelected(blockId) {
   selectionStore.selectBlock(blockId)
 
-  const filteredLots = {
-    type: 'FeatureCollection',
-    features: lots.value.features.filter(
-      (lot) =>
-        lot.properties.seccion === selectionStore.selectedSectionId &&
-        lot.properties.manzana === blockId,
-    ),
-  }
+  const filteredLots = filterLotsbyBlocks(lots.value, selectionStore.selectedSectionId, blockId)
 
   blockLayer.value?.remove()
 
@@ -134,10 +129,7 @@ onMounted(async () => {
     (sectionId) => {
       selectionStore.selectSection(sectionId)
 
-      const filteredBlocks = {
-        type: 'FeatureCollection',
-        features: blocks.value.features.filter((block) => block.properties.seccion === sectionId),
-      }
+      const filteredBlocks = filterBlockbySection(blocks.value, sectionId)
 
       sectionLayer.value.remove()
 
@@ -147,8 +139,6 @@ onMounted(async () => {
         handleBlockSelected,
       )
       blockLayer.value.addTo(mapInstance.value)
-
-      console.log(`Seccion seleccionada: ${sectionId}`)
     },
   )
   sectionLayer.value.addTo(mapInstance.value)
@@ -165,12 +155,8 @@ watch(
     if (oldBlockId !== null && newBlockId == null && newSectionId !== null) {
       lotLayer.value?.remove()
 
-      const filteredBlocks = {
-        type: 'FeatureCollection',
-        features: blocks.value.features.filter(
-          (block) => block.properties.seccion === newSectionId,
-        ),
-      }
+      const filteredBlocks = filterBlockbySection(blocks.value, newSectionId)
+
       blockLayer.value = createBlockLayer(
         filteredBlocks,
         'var(--color-block-outline)',
