@@ -5,6 +5,8 @@
   --color-border: #d1d5db;
   --color-background: #ffffff;
   --color-backbutton: #061e43;
+  --color-selectSide-button: #eff7b1;
+  --color-selectSide-button-active: #cfd699;
 
   /* Colores para las geometrias del mapa del panteon  */
   --color-section-outline: #000000;

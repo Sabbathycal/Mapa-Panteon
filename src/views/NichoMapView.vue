@@ -1,7 +1,35 @@
 <script setup>
+import { computed } from 'vue'
 import { useNicheStore } from '@/stores/Niche'
 
+import spnConcaveImage from '@/assets/images/nichos/SPN-concavo.png'
+import plnConcaveImage from '@/assets/images/nichos/PLN-concavo.png'
+import plnConvexImage from '@/assets/images/nichos/PLN-convexo.png'
+
 const nicheStore = useNicheStore()
+
+const nicheImages = {
+  SPN: {
+    concavo: spnConcaveImage,
+  },
+  PLN: {
+    concavo: plnConcaveImage,
+    convexo: plnConvexImage,
+  },
+}
+
+const selectedImage = computed(() => {
+  const zoneId = nicheStore.selectedZone?.id
+  const selectedSide = nicheStore.selectedSide
+
+  return nicheImages[zoneId]?.[selectedSide] ?? null
+})
+
+const hasConvexImage = computed(() => {
+  const zoneId = nicheStore.selectedZone?.id
+
+  return Boolean(nicheImages[zoneId]?.convexo)
+})
 </script>
 
 <template>
@@ -16,7 +44,44 @@ const nicheStore = useNicheStore()
       {{ nicheStore.selectedZone?.id }}
     </p>
 
-    <p>Aquí se mostrará el mapa de nichos.</p>
+    <div class="side-selector">
+      <button
+        type="button"
+        class="concave-button"
+        :class="{
+          active: nicheStore.selectedSide === 'concavo',
+        }"
+        :disabled="nicheStore.selectedSide === 'concavo'"
+        @click="nicheStore.selectSide('concavo')"
+      >
+        Cóncavo
+      </button>
+
+      <button
+        type="button"
+        class="convex-button"
+        :class="{
+          active: nicheStore.selectedSide === 'convexo',
+        }"
+        :disabled="!hasConvexImage || nicheStore.selectedSide === 'convexo'"
+        @click="nicheStore.selectSide('convexo')"
+      >
+        Convexo
+      </button>
+    </div>
+
+    <p v-if="!hasConvexImage" class="missing-image-msg">
+      La vista convexa de esta zona todavia no esta disponible.
+    </p>
+
+    <img
+      v-if="selectedImage"
+      :src="selectedImage"
+      :alt="`Vista cóncava de ${nicheStore.selectedZone?.nombre}`"
+      class="niche-map-image"
+    />
+
+    <p v-else>No fue posible encontrar la imagen de la zona.</p>
   </section>
 </template>
 
@@ -26,5 +91,13 @@ const nicheStore = useNicheStore()
   height: 100%;
   padding: 1rem;
   box-sizing: border-box;
+  overflow: auto;
+}
+
+.niche-map-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-top: 1rem;
 }
 </style>
