@@ -9,7 +9,7 @@ const nicheStore = useNicheStore()
 <template>
   <div class="map-view">
     <NichoMapView v-if="nicheStore.selectedZone" />
-    <LeafletMap />
+    <LeafletMap v-else />
   </div>
 </template>
 
