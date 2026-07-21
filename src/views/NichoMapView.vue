@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import { useNicheStore } from '@/stores/Niche'
 
+import NicheLeafletMap from '@/components/map/NicheLeafletMap.vue'
+
 import spnConcaveImage from '@/assets/images/nichos/SPN-concavo.png'
 import plnConcaveImage from '@/assets/images/nichos/PLN-concavo.png'
 import plnConvexImage from '@/assets/images/nichos/PLN-convexo.png'
@@ -74,11 +76,10 @@ const hasConvexImage = computed(() => {
       La vista convexa de esta zona todavia no esta disponible.
     </p>
 
-    <img
+    <NicheLeafletMap
       v-if="selectedImage"
-      :src="selectedImage"
-      :alt="`Vista cóncava de ${nicheStore.selectedZone?.nombre}`"
-      class="niche-map-image"
+      :key="`${nicheStore.selectedZone?.id}-${nicheStore.selectedSide}`"
+      :image-source="selectedImage"
     />
 
     <p v-else>No fue posible encontrar la imagen de la zona.</p>
@@ -92,12 +93,5 @@ const hasConvexImage = computed(() => {
   padding: 1rem;
   box-sizing: border-box;
   overflow: auto;
-}
-
-.niche-map-image {
-  display: block;
-  max-width: 100%;
-  height: auto;
-  margin-top: 1rem;
 }
 </style>
