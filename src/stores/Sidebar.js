@@ -12,10 +12,15 @@ export const useSidebarStore = defineStore('sidebar', () => {
     activeView.value = 'admin'
   }
 
+  function resetView() {
+    activeView.value = 'info'
+  }
+
   return {
     activeView,
     //-------------------
     showInfo,
     showAdmin,
+    resetView,
   }
 })
