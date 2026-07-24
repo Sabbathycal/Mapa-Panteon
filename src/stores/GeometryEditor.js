@@ -12,6 +12,7 @@ export const useGeometryEditorStore = defineStore('geometryEditor', () => {
   const isDrawing = computed(() => selectedTool.value === 'draw')
   const isEditing = computed(() => selectedTool.value === 'edit')
   const isDeleting = computed(() => selectedTool.value === 'delete')
+  const isGrid = computed(() => selectedTool.value === 'grid')
 
   return {
     selectedTool,
@@ -19,6 +20,7 @@ export const useGeometryEditorStore = defineStore('geometryEditor', () => {
     isDrawing,
     isEditing,
     isDeleting,
+    isGrid,
     selectTool,
   }
 })

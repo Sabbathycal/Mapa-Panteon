@@ -4,6 +4,12 @@ import { computed } from 'vue'
 import { useNicheStore } from '@/stores/Niche'
 import { useGeometryEditorStore } from '@/stores/GeometryEditor'
 
+import DrawPanel from '../panel/DrawPanel.vue'
+import GridPanel from '../panel/GridPanel.vue'
+import EditPanel from '../panel/EditPanel.vue'
+import DeletePanel from '../panel/DeletePanel.vue'
+import SelectionPanel from '../panel/SelectionPanel.vue'
+
 const nicheStore = useNicheStore()
 const geometryEditorStore = useGeometryEditorStore()
 
@@ -19,15 +25,26 @@ const currentSide = computed(() => {
   return nicheStore.selectedSide === 'concavo' ? 'Cóncavo' : 'Convexo'
 })
 
-const currentTool = computed(() => {
-  const toolNames = {
-    select: 'Seleccionar',
-    draw: 'Dibujar',
-    edit: 'Editar',
-    delete: 'Eliminar',
-  }
+const currentPanel = computed(() => {
+  switch (geometryEditorStore.selectedTool) {
+    case 'draw':
+      return DrawPanel
 
-  return toolNames[geometryEditorStore.selectedTool] ?? 'Sin herramienta'
+    case 'edit':
+      return EditPanel
+
+    case 'delete':
+      return DeletePanel
+
+    case 'select':
+      return SelectionPanel
+
+    case 'grid':
+      return GridPanel
+
+    default:
+      return SelectionPanel
+  }
 })
 </script>
 
@@ -45,14 +62,9 @@ const currentTool = computed(() => {
         <strong>Lado: </strong>
         {{ currentSide }}
       </p>
-
-      <p>
-        <strong>Herramienta: </strong>
-        {{ currentTool }}
-      </p>
     </section>
 
-    <p class="admin-placeholder">La configuracion de la herramienta activa aparecerá aquí.</p>
+    <component :is="currentPanel" />
   </div>
 </template>
 

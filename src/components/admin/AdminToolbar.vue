@@ -10,18 +10,7 @@ const geometryEditorStore = useGeometryEditorStore()
 const nicheStore = useNicheStore()
 
 const currentGeometry = computed(() => {
-  return nicheStore.selectedZone ? `Nichos - ${nicheStore.selectedZone.id}` : 'Mapa principal'
-})
-
-const currentTool = computed(() => {
-  const toolNames = {
-    select: 'Seleccionar',
-    draw: 'Dibujar',
-    edit: 'Editar',
-    delete: 'Eliminar',
-  }
-
-  return toolNames[geometryEditorStore.selectedTool]
+  return nicheStore.selectedZone ? `Nichos` : 'Mapa principal'
 })
 </script>
 
@@ -30,6 +19,11 @@ const currentTool = computed(() => {
     <h3>Herramientas de Administrador</h3>
     <section class="toolbar-section">
       <h4>Editor del Mapa</h4>
+      <hr />
+      <p>
+        <strong> Geometria: </strong>
+        {{ currentGeometry }}
+      </p>
       <hr />
       <div class="tool-list">
         <button
@@ -50,6 +44,14 @@ const currentTool = computed(() => {
 
         <button
           type="button"
+          :class="{ active: geometryEditorStore.isGrid }"
+          @click="geometryEditorStore.selectTool('grid')"
+        >
+          Cuadricula
+        </button>
+
+        <button
+          type="button"
           :class="{ active: geometryEditorStore.isEditing }"
           @click="geometryEditorStore.selectTool('edit')"
         >
@@ -64,25 +66,6 @@ const currentTool = computed(() => {
           Eliminar
         </button>
       </div>
-    </section>
-
-    <section class="toolbar-section editor-status">
-      <h4>Estado</h4>
-      <hr />
-      <p>
-        <strong>Modo:</strong>
-        Administrador
-      </p>
-
-      <p>
-        <strong>Geometría:</strong>
-        {{ currentGeometry }}
-      </p>
-
-      <p>
-        <strong>Herramienta:</strong>
-        {{ currentTool }}
-      </p>
     </section>
 
     <button type="button" class="export-button" disabled>Exportar GeoJSON</button>
