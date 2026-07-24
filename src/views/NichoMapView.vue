@@ -4,9 +4,9 @@ import { useNicheStore } from '@/stores/Niche'
 
 import NicheLeafletMap from '@/components/map/NicheLeafletMap.vue'
 
-import spnConcaveImage from '@/assets/images/nichos/SPN-concavo.png'
-import plnConcaveImage from '@/assets/images/nichos/PLN-concavo.png'
-import plnConvexImage from '@/assets/images/nichos/PLN-convexo.png'
+import spnConcaveImage from '@/assets/images/nichos/normalizadas/SPN-concavo.png'
+import plnConcaveImage from '@/assets/images/nichos/normalizadas/PLN-concavo.png'
+import plnConvexImage from '@/assets/images/nichos/normalizadas/PLN-convexo.png'
 
 const nicheStore = useNicheStore()
 
