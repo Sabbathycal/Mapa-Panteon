@@ -9,6 +9,11 @@ import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css'
 import { useAuthStore } from '@/stores/Auth'
 import { useGeometryEditorStore } from '@/stores/GeometryEditor'
 
+import { createNicheGeometry } from '@/services/niche/NicheGeometryService'
+import { useNicheStore } from '@/stores/Niche'
+
+const nicheStore = useNicheStore()
+
 const props = defineProps({
   imageSource: {
     type: String,
@@ -67,7 +72,7 @@ onMounted(async () => {
 
   mapInstance.value = Leaf.map(mapContainer.value, {
     crs: Leaf.CRS.Simple,
-    minZoom: -3,
+    minZoom: 0,
     maxZoom: 1,
     attributionControl: false,
   })
@@ -91,9 +96,23 @@ onMounted(async () => {
   }
 
   mapInstance.value.on('pm:create', (event) => {
+    if (!nicheStore.selectedZone) {
+      console.error('No hay una zona de nichos seleccionada.')
+      event.layer.remove()
+      return
+    }
+
     drawnLayers.value.addLayer(event.layer)
 
-    console.log('Geometría creada: ', event.layer.toGeoJSON())
+    const geojson = event.layer.toGeoJSON()
+
+    const newNiche = createNicheGeometry(
+      geojson,
+      nicheStore.selectedZone.id,
+      nicheStore.selectedSide,
+    )
+
+    console.log('Nicho temporal creado: ', newNiche)
   })
 
   updateEditorTool()
