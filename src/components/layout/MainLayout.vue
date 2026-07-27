@@ -22,19 +22,22 @@ import AdminToolbar from '../admin/AdminToolbar.vue'
 
 <style scoped>
 .app-layout {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .app-content {
   flex: 1;
   display: flex;
   min-height: 0;
+  overflow: hidden;
 }
 
 .main-content {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 </style>

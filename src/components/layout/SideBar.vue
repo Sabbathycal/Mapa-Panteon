@@ -44,11 +44,13 @@ watch(
 <style scoped>
 .sidebar {
   width: 280px;
-  height: auto;
+  height: 100%;
   flex-shrink: 0;
   padding: 1rem;
   box-sizing: border-box;
+
   overflow-y: auto;
+  overscroll-behavior: contain;
 
   border-left: 1px solid var(--color-border);
   background-color: var(--color-sidebar);

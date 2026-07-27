@@ -10,6 +10,7 @@ import { useSelectionStore } from '@/stores/Selection'
 import { useNicheStore } from '@/stores/Niche'
 import { useAuthStore } from '@/stores/Auth'
 import { useGridEditorStore } from '@/stores/GridEditorStore'
+import { useGeometryDraftStore } from '@/stores/GeometryDraft'
 
 //imagen del mapa base del panteon
 import mapImage from '@/assets/images/map/base.png'
@@ -35,6 +36,7 @@ const selectionStore = useSelectionStore()
 const nicheStore = useNicheStore()
 const authStore = useAuthStore()
 const gridEditorStore = useGridEditorStore()
+const geometryDraftStore = useGeometryDraftStore()
 
 const gridLayers = ref(null)
 
@@ -137,9 +139,11 @@ function generateGrid() {
     side: null,
   })
 
+  geometryDraftStore.setFeatureCollection(featureCollection)
+
   gridLayers.value.clearLayers()
 
-  Leaf.geoJSON(featureCollection, {
+  Leaf.geoJSON(geometryDraftStore.featureCollection, {
     style: {
       color: '#f4b805',
       fillColor: '#f4b805',
@@ -284,6 +288,15 @@ watch(
   () => {
     if (geometryEditorStore.geometryType === 'lots') {
       generateGrid()
+    }
+  },
+)
+
+watch(
+  () => geometryDraftStore.featureCount,
+  (newCount) => {
+    if (newCount === 0) {
+      gridLayers.value?.clearLayers()
     }
   },
 )

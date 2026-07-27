@@ -1,10 +1,13 @@
 <script setup>
 import { computed } from 'vue'
+
 import { useGridEditorStore } from '@/stores/GridEditorStore'
 import { useGeometryEditorStore } from '@/stores/GeometryEditor'
+import { useGeometryDraftStore } from '@/stores/GeometryDraft'
 
 const gridEditorStore = useGridEditorStore()
 const geometryEditorStore = useGeometryEditorStore()
+const geometryDraftStore = useGeometryDraftStore()
 
 const panelTitle = computed(() => {
   return geometryEditorStore.geometryType === 'lots' ? 'Generador de Lotes' : 'Generador de nichos'
@@ -14,6 +17,11 @@ const panelTitle = computed(() => {
 <template>
   <section class="grid-panel">
     <h4>Cuadricula - {{ panelTitle }}</h4>
+
+    <p>
+      Geometrias en Borrador:
+      <strong>{{ geometryDraftStore.featureCount }}</strong>
+    </p>
 
     <div class="grid-form">
       <label>
@@ -61,6 +69,14 @@ const panelTitle = computed(() => {
       <button type="button" @click="gridEditorStore.requestGridGeneration">Generar</button>
 
       <button type="button" @click="gridEditorStore.resetGrid">Restablecer</button>
+
+      <button
+        type="button"
+        :disabled="geometryDraftStore.featureCount === 0"
+        @click="geometryDraftStore.clearDraft"
+      >
+        Limpiar borrador
+      </button>
     </div>
   </section>
 </template>

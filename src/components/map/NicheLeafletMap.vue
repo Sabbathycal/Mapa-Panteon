@@ -9,6 +9,7 @@ import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css'
 import { useAuthStore } from '@/stores/Auth'
 import { useGeometryEditorStore } from '@/stores/GeometryEditor'
 import { useGridEditorStore } from '@/stores/GridEditorStore'
+import { useGeometryDraftStore } from '@/stores/GeometryDraft'
 
 import { GridGeneratorService } from '@/services/geometry/GridGeneratorService'
 
@@ -27,6 +28,7 @@ const props = defineProps({
 const authStore = useAuthStore()
 const geometryEditorStore = useGeometryEditorStore()
 const gridEditorStore = useGridEditorStore()
+const geometryDraftStore = useGeometryDraftStore()
 
 const mapContainer = ref(null)
 const mapInstance = ref(null)
@@ -95,9 +97,11 @@ function generateGrid() {
     side: nicheStore.selectedSide,
   })
 
+  geometryDraftStore.setFeatureCollection(featureCollection)
+
   gridLayers.value.clearLayers()
 
-  Leaf.geoJSON(featureCollection, {
+  Leaf.geoJSON(geometryDraftStore.featureCollection, {
     style: {
       color: '#f4b805',
       fillColor: '#f4b805',
@@ -173,6 +177,15 @@ watch(
   () => {
     if (geometryEditorStore.geometryType === 'niches') {
       generateGrid()
+    }
+  },
+)
+
+watch(
+  () => geometryDraftStore.featureCount,
+  (newCount) => {
+    if (newCount === 0) {
+      gridLayers.value?.clearLayers()
     }
   },
 )

@@ -71,7 +71,7 @@ const currentPanel = computed(() => {
 <style scoped>
 .admin-sidebar {
   width: 100%;
-  height: 100%;
+  min-height: 100%;
 }
 
 .admin-sidebar h3 {

@@ -4,14 +4,38 @@ import { computed } from 'vue'
 import { useAuthStore } from '@/stores/Auth'
 import { useGeometryEditorStore } from '@/stores/GeometryEditor'
 import { useNicheStore } from '@/stores/Niche'
+import { useGeometryDraftStore } from '@/stores/GeometryDraft'
+import { useSelectionStore } from '@/stores/Selection'
+
+import { exportGeoJSON } from '@/utils/exportGeoJSON'
 
 const authStore = useAuthStore()
 const geometryEditorStore = useGeometryEditorStore()
 const nicheStore = useNicheStore()
+const geometryDraftStore = useGeometryDraftStore()
+const selectionStore = useSelectionStore()
 
 const currentGeometry = computed(() => {
   return nicheStore.selectedZone ? `Nichos` : 'Mapa principal'
 })
+
+const exportFileName = computed(() => {
+  if (geometryEditorStore.geometryType === 'niches') {
+    const zoneId = nicheStore.selectedZone?.id ?? 'nichos'
+    const side = nicheStore.selectedSide ?? 'sin-lado'
+
+    return `${zoneId}-${side}`
+  }
+
+  const sectionId = selectionStore.selectedSectionId ?? 'lotes'
+  const blockId = selectionStore.selectedBlockId ?? null
+
+  return blockId ? `${sectionId}-${blockId}-lotes` : `${sectionId}-lotes`
+})
+
+function handleExport() {
+  exportGeoJSON(geometryDraftStore.featureCollection, exportFileName.value)
+}
 </script>
 
 <template>
@@ -68,7 +92,14 @@ const currentGeometry = computed(() => {
       </div>
     </section>
 
-    <button type="button" class="export-button" disabled>Exportar GeoJSON</button>
+    <button
+      type="button"
+      class="export-button"
+      :disabled="geometryDraftStore.featureCount === 0"
+      @click="handleExport"
+    >
+      Exportar GeoJSON
+    </button>
   </aside>
 </template>
 
