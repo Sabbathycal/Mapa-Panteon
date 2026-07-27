@@ -4,6 +4,12 @@ import { computed, ref } from 'vue'
 export const useGeometryEditorStore = defineStore('geometryEditor', () => {
   const selectedTool = ref('select')
 
+  const geometryType = ref(null)
+
+  function selectGeometryType(type) {
+    geometryType.value = type
+  }
+
   function selectTool(tool) {
     selectedTool.value = tool
   }
@@ -16,11 +22,14 @@ export const useGeometryEditorStore = defineStore('geometryEditor', () => {
 
   return {
     selectedTool,
+    geometryType,
     isSelecting,
     isDrawing,
     isEditing,
     isDeleting,
     isGrid,
+    //---------------
     selectTool,
+    selectGeometryType,
   }
 })

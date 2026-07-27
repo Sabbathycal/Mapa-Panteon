@@ -8,12 +8,14 @@ import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css'
 import 'leaflet/dist/leaflet.css'
 import { useSelectionStore } from '@/stores/Selection'
 import { useNicheStore } from '@/stores/Niche'
+import { useAuthStore } from '@/stores/Auth'
 
 //imagen del mapa base del panteon
 import mapImage from '@/assets/images/map/base.png'
 
 //Geometria para mapa del panteon
 import { GeometryService } from '@/services/geometry/GeometryService'
+import { useGeometryEditorStore } from '@/stores/GeometryEditor'
 import { createSectionLayer } from '@/components/map/layers/SectionLayer'
 import { createBlockLayer } from '@/components/map/layers/BlockLayer'
 import { createLotLayer } from '@/components/map/layers/LotLayer'
@@ -24,8 +26,10 @@ import { filterBlockbySection, filterLotsbyBlocks } from '@/utils/geometryFilter
 //Estas constantes son para poder manipular el mapa y sus elementos
 const mapContainer = ref(null)
 const mapInstance = ref(null)
+const geometryEditorStore = useGeometryEditorStore()
 const selectionStore = useSelectionStore()
 const nicheStore = useNicheStore()
+const authStore = useAuthStore()
 
 // Esta funcion es para poder obtener las dimensiones de la imagen del
 // mapa base
@@ -83,10 +87,32 @@ function handleLotSelected(lotId, lotStatus) {
   selectionStore.selectLot(lotId, lotStatus)
 }
 
+function updateEditorTool() {
+  if (!mapInstance.value) return
+
+  mapInstance.value.pm.disableDraw()
+
+  if (authStore.isAdminMode && geometryEditorStore.isDrawing) {
+    mapInstance.value.pm.enableDraw('Polygon', {
+      snappable: true,
+      allowSelfIntersection: false,
+
+      pathOptions: {
+        color: '#f4b805',
+        fillColor: '#f4b805',
+        fillOpacity: 0.25,
+        weight: 2,
+      },
+    })
+  }
+}
+
 // Esta funcion se ejecuta cuando el componente se monta, y es
 // la que inicializa el mapa.
 onMounted(async () => {
   if (!mapContainer.value) return
+
+  geometryEditorStore.selectGeometryType('lots')
 
   // Se crea la instancia del mapa con las opciones necesarias
   mapInstance.value = Leaf.map(mapContainer.value, {
@@ -168,7 +194,11 @@ onMounted(async () => {
   )
 
   nicheZoneLayer.value.addTo(mapInstance.value)
+
+  updateEditorTool()
 })
+
+watch(() => [authStore.isAdminMode, geometryEditorStore.selectedTool], updateEditorTool)
 
 watch(
   () => [selectionStore.selectedSectionId, selectionStore.selectedBlockId],
@@ -204,6 +234,7 @@ watch(
 // Esta funcion se ejecuta cuando el componente se desmonta, y es
 // la que elimina la instancia del mapa y libera los recursos.
 onBeforeUnmount(() => {
+  mapInstance.value?.pm.disableDraw()
   mapInstance.value?.remove()
   mapInstance.value = null
 })

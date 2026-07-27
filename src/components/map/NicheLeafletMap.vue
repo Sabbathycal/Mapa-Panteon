@@ -70,6 +70,8 @@ function updateEditorTool() {
 onMounted(async () => {
   if (!mapContainer.value) return
 
+  geometryEditorStore.selectGeometryType('niches')
+
   mapInstance.value = Leaf.map(mapContainer.value, {
     crs: Leaf.CRS.Simple,
     minZoom: 0,
