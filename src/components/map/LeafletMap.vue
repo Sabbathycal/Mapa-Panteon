@@ -9,12 +9,15 @@ import 'leaflet/dist/leaflet.css'
 import { useSelectionStore } from '@/stores/Selection'
 import { useNicheStore } from '@/stores/Niche'
 import { useAuthStore } from '@/stores/Auth'
+import { useGridEditorStore } from '@/stores/GridEditorStore'
 
 //imagen del mapa base del panteon
 import mapImage from '@/assets/images/map/base.png'
 
 //Geometria para mapa del panteon
 import { GeometryService } from '@/services/geometry/GeometryService'
+import { GridGeneratorService } from '@/services/geometry/GridGeneratorService'
+
 import { useGeometryEditorStore } from '@/stores/GeometryEditor'
 import { createSectionLayer } from '@/components/map/layers/SectionLayer'
 import { createBlockLayer } from '@/components/map/layers/BlockLayer'
@@ -26,10 +29,14 @@ import { filterBlockbySection, filterLotsbyBlocks } from '@/utils/geometryFilter
 //Estas constantes son para poder manipular el mapa y sus elementos
 const mapContainer = ref(null)
 const mapInstance = ref(null)
+
 const geometryEditorStore = useGeometryEditorStore()
 const selectionStore = useSelectionStore()
 const nicheStore = useNicheStore()
 const authStore = useAuthStore()
+const gridEditorStore = useGridEditorStore()
+
+const gridLayers = ref(null)
 
 // Esta funcion es para poder obtener las dimensiones de la imagen del
 // mapa base
@@ -107,6 +114,45 @@ function updateEditorTool() {
   }
 }
 
+function generateGrid() {
+  if (!mapInstance.value || !gridLayers.value) return
+
+  const featureCollection = GridGeneratorService.generateGridFeatureCollection({
+    center: mapInstance.value.getCenter(),
+
+    rows: gridEditorStore.rows,
+    columns: gridEditorStore.columns,
+
+    cellWidth: gridEditorStore.cellWidth,
+    cellHeight: gridEditorStore.cellHeight,
+
+    spacingX: gridEditorStore.spacingX,
+    spacingY: gridEditorStore.spacingY,
+
+    rotation: gridEditorStore.rotation,
+    startNumber: gridEditorStore.startNumber,
+
+    geometryType: 'lots',
+    zone: selectionStore.selectedSectionId,
+    side: null,
+  })
+
+  gridLayers.value.clearLayers()
+
+  Leaf.geoJSON(featureCollection, {
+    style: {
+      color: '#f4b805',
+      fillColor: '#f4b805',
+      fillOpacity: 0.25,
+      weight: 1,
+    },
+  }).eachLayer((layer) => {
+    gridLayers.value.addLayer(layer)
+  })
+
+  console.log('Cuadricula GeoJSON:', featureCollection)
+}
+
 // Esta funcion se ejecuta cuando el componente se monta, y es
 // la que inicializa el mapa.
 onMounted(async () => {
@@ -125,6 +171,8 @@ onMounted(async () => {
     maxZoom: 1, // Que tanto zoom in se puede hacer en el mapa
     attributionControl: false,
   })
+
+  gridLayers.value = Leaf.featureGroup().addTo(mapInstance.value)
 
   // Se cargan las dimensiones de la imagen del mapa base y
   // se crean los bounds
@@ -231,12 +279,22 @@ watch(
   },
 )
 
+watch(
+  () => gridEditorStore.generateRequest,
+  () => {
+    if (geometryEditorStore.geometryType === 'lots') {
+      generateGrid()
+    }
+  },
+)
+
 // Esta funcion se ejecuta cuando el componente se desmonta, y es
 // la que elimina la instancia del mapa y libera los recursos.
 onBeforeUnmount(() => {
   mapInstance.value?.pm.disableDraw()
   mapInstance.value?.remove()
   mapInstance.value = null
+  gridLayers.value = null
 })
 </script>
 

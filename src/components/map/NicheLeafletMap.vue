@@ -8,6 +8,9 @@ import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css'
 
 import { useAuthStore } from '@/stores/Auth'
 import { useGeometryEditorStore } from '@/stores/GeometryEditor'
+import { useGridEditorStore } from '@/stores/GridEditorStore'
+
+import { GridGeneratorService } from '@/services/geometry/GridGeneratorService'
 
 import { createNicheGeometry } from '@/services/niche/NicheGeometryService'
 import { useNicheStore } from '@/stores/Niche'
@@ -23,10 +26,12 @@ const props = defineProps({
 
 const authStore = useAuthStore()
 const geometryEditorStore = useGeometryEditorStore()
+const gridEditorStore = useGridEditorStore()
 
 const mapContainer = ref(null)
 const mapInstance = ref(null)
 const drawnLayers = ref(null)
+const gridLayers = ref(null)
 
 function loadImageDimensions(imageSource) {
   return new Promise((resolve, reject) => {
@@ -67,6 +72,45 @@ function updateEditorTool() {
   }
 }
 
+function generateGrid() {
+  if (!mapInstance.value || !gridLayers.value) return
+
+  const featureCollection = GridGeneratorService.generateGridFeatureCollection({
+    center: mapInstance.value.getCenter(),
+
+    rows: gridEditorStore.rows,
+    columns: gridEditorStore.columns,
+
+    cellWidth: gridEditorStore.cellWidth,
+    cellHeight: gridEditorStore.cellHeight,
+
+    spacingX: gridEditorStore.spacingX,
+    spacingY: gridEditorStore.spacingY,
+
+    rotation: gridEditorStore.rotation,
+    startNumber: gridEditorStore.startNumber,
+
+    geometryType: 'niches',
+    zone: nicheStore.selectedZone?.id ?? null,
+    side: nicheStore.selectedSide,
+  })
+
+  gridLayers.value.clearLayers()
+
+  Leaf.geoJSON(featureCollection, {
+    style: {
+      color: '#f4b805',
+      fillColor: '#f4b805',
+      fillOpacity: 0.25,
+      weight: 1,
+    },
+  }).eachLayer((layer) => {
+    gridLayers.value.addLayer(layer)
+  })
+
+  console.log('Cuadricula GeoJSON:', featureCollection)
+}
+
 onMounted(async () => {
   if (!mapContainer.value) return
 
@@ -80,6 +124,8 @@ onMounted(async () => {
   })
 
   drawnLayers.value = Leaf.featureGroup().addTo(mapInstance.value)
+
+  gridLayers.value = Leaf.featureGroup().addTo(mapInstance.value)
 
   try {
     const { width, height } = await loadImageDimensions(props.imageSource)
@@ -122,11 +168,21 @@ onMounted(async () => {
 
 watch(() => [authStore.isAdminMode, geometryEditorStore.selectedTool], updateEditorTool)
 
+watch(
+  () => gridEditorStore.generateRequest,
+  () => {
+    if (geometryEditorStore.geometryType === 'niches') {
+      generateGrid()
+    }
+  },
+)
+
 onBeforeUnmount(() => {
   mapInstance.value?.pm.disableDraw()
   mapInstance.value?.remove()
   mapInstance.value = null
   drawnLayers.value = null
+  gridLayers.value = null
 })
 </script>
 

@@ -58,7 +58,7 @@ const panelTitle = computed(() => {
     </div>
 
     <div class="grid-actions">
-      <button type="button" disabled>Generar</button>
+      <button type="button" @click="gridEditorStore.requestGridGeneration">Generar</button>
 
       <button type="button" @click="gridEditorStore.resetGrid">Restablecer</button>
     </div>

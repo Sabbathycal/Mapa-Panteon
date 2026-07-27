@@ -14,6 +14,12 @@ export const useGridEditorStore = defineStore('gridEditor', () => {
   const rotation = ref(0)
   const startNumber = ref(1)
 
+  const generateRequest = ref(0)
+
+  function requestGridGeneration() {
+    generateRequest.value++
+  }
+
   function resetGrid() {
     rows.value = 1
     columns.value = 1
@@ -37,7 +43,9 @@ export const useGridEditorStore = defineStore('gridEditor', () => {
     spacingY,
     rotation,
     startNumber,
+    generateRequest,
     //-----------------
     resetGrid,
+    requestGridGeneration,
   }
 })
