@@ -1,0 +1,245 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "TEMP-001",
+        "row": 0,
+        "column": 0,
+        "number": "001",
+        "zone": "PLN",
+        "side": "concavo",
+        "geometryType": "niches",
+        "status": "available"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              229,
+              226.033869
+            ],
+            [
+              249,
+              226.033869
+            ],
+            [
+              249,
+              206.033869
+            ],
+            [
+              229,
+              206.033869
+            ],
+            [
+              229,
+              226.033869
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "TEMP-002",
+        "row": 0,
+        "column": 1,
+        "number": "002",
+        "zone": "PLN",
+        "side": "concavo",
+        "geometryType": "niches",
+        "status": "available"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              252,
+              226.033869
+            ],
+            [
+              272,
+              226.033869
+            ],
+            [
+              272,
+              206.033869
+            ],
+            [
+              252,
+              206.033869
+            ],
+            [
+              252,
+              226.033869
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "TEMP-003",
+        "row": 0,
+        "column": 2,
+        "number": "003",
+        "zone": "PLN",
+        "side": "concavo",
+        "geometryType": "niches",
+        "status": "available"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              275,
+              226.033869
+            ],
+            [
+              295,
+              226.033869
+            ],
+            [
+              295,
+              206.033869
+            ],
+            [
+              275,
+              206.033869
+            ],
+            [
+              275,
+              226.033869
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "TEMP-004",
+        "row": 1,
+        "column": 0,
+        "number": "004",
+        "zone": "PLN",
+        "side": "concavo",
+        "geometryType": "niches",
+        "status": "available"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              229,
+              203.033869
+            ],
+            [
+              249,
+              203.033869
+            ],
+            [
+              249,
+              183.033869
+            ],
+            [
+              229,
+              183.033869
+            ],
+            [
+              229,
+              203.033869
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "TEMP-005",
+        "row": 1,
+        "column": 1,
+        "number": "005",
+        "zone": "PLN",
+        "side": "concavo",
+        "geometryType": "niches",
+        "status": "available"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              252,
+              203.033869
+            ],
+            [
+              272,
+              203.033869
+            ],
+            [
+              272,
+              183.033869
+            ],
+            [
+              252,
+              183.033869
+            ],
+            [
+              252,
+              203.033869
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "TEMP-006",
+        "row": 1,
+        "column": 2,
+        "number": "006",
+        "zone": "PLN",
+        "side": "concavo",
+        "geometryType": "niches",
+        "status": "available"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              275,
+              203.033869
+            ],
+            [
+              295,
+              203.033869
+            ],
+            [
+              295,
+              183.033869
+            ],
+            [
+              275,
+              183.033869
+            ],
+            [
+              275,
+              203.033869
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

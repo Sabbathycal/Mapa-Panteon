@@ -12,7 +12,7 @@ function rotatePoint(x, y, centerX, centerY, angleInDegrees) {
 
   const rotatedY = translatedX * Math.sin(angle) + translatedY * Math.cos(angle)
 
-  return [rotatedX + centerY, rotatedY + centerX]
+  return [rotatedY + centerY, rotatedX + centerX]
 }
 
 function createCellFeature({ id, row, column, number, zone, side, geometryType, coordinates }) {
@@ -60,7 +60,7 @@ function generateGridFeatureCollection({
   const totalHeight = rows * cellHeight + (rows - 1) * spacingY
 
   const startX = center.lng - totalWidth / 2
-  const startY = center.lat - totalHeight / 2
+  const startY = center.lat + totalHeight / 2
 
   let currentNumber = startNumber
 

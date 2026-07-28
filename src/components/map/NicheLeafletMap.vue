@@ -35,6 +35,9 @@ const mapInstance = ref(null)
 const drawnLayers = ref(null)
 const gridLayers = ref(null)
 
+const draggedGridLayer = ref(null)
+const previousDragCenter = ref(null)
+
 function loadImageDimensions(imageSource) {
   return new Promise((resolve, reject) => {
     const image = new Image()
@@ -71,6 +74,14 @@ function updateEditorTool() {
         weight: 2,
       },
     })
+  }
+
+  gridLayers.value?.eachLayer((layer) => {
+    layer.pm.disableLayerDrag()
+  })
+
+  if (authStore.isAdminMode && geometryEditorStore.isEditing) {
+    enableGridDragging()
   }
 }
 
@@ -112,7 +123,82 @@ function generateGrid() {
     gridLayers.value.addLayer(layer)
   })
 
+  if (geometryEditorStore.isEditing) {
+    enableGridDragging()
+  }
+
   console.log('Cuadricula GeoJSON:', featureCollection)
+}
+
+function enableGridDragging() {
+  if (!gridLayers.value) return
+
+  gridLayers.value.eachLayer((layer) => {
+    layer.pm.enableLayerDrag()
+
+    layer.on('pm:dragstart', () => {
+      draggedGridLayer.value = layer
+      previousDragCenter.value = layer.getBounds().getCenter()
+    })
+
+    layer.on('pm:drag', () => {
+      if (!draggedGridLayer.value || !previousDragCenter.value) {
+        return
+      }
+
+      const currentCenter = draggedGridLayer.value.getBounds().getCenter()
+
+      const latDifference = currentCenter.lat - previousDragCenter.value.lat
+
+      const lngDifference = currentCenter.lng - previousDragCenter.value.lng
+
+      gridLayers.value.eachLayer((gridLayer) => {
+        if (gridLayer === draggedGridLayer.value) return
+
+        const movedCoordinates = gridLayer
+          .getLatLngs()[0]
+          .map((latLng) => [latLng.lat + latDifference, latLng.lng + lngDifference])
+
+        gridLayer.setLatLngs(movedCoordinates)
+      })
+
+      previousDragCenter.value = currentCenter
+    })
+
+    layer.on('pm:dragend', () => {
+      syncGridDraftFromLayers()
+
+      draggedGridLayer.value = null
+      previousDragCenter.value = null
+    })
+  })
+}
+
+function syncGridDraftFromLayers() {
+  if (!gridLayers.value) return
+
+  const originalFeatures = geometryDraftStore.featureCollection.features
+
+  const features = []
+
+  let index = 0
+
+  gridLayers.value.eachLayer((layer) => {
+    const updatedFeature = layer.toGeoJSON()
+    const originalFeature = originalFeatures[index]
+
+    updatedFeature.properties = {
+      ...originalFeature?.properties,
+    }
+
+    features.push(updatedFeature)
+    index++
+  })
+
+  geometryDraftStore.setFeatureCollection({
+    type: 'FeatureCollection',
+    features,
+  })
 }
 
 onMounted(async () => {

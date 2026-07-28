@@ -1,0 +1,245 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "TEMP-001",
+        "row": 0,
+        "column": 0,
+        "number": "001",
+        "zone": "PLN",
+        "side": "concavo",
+        "geometryType": "niches",
+        "status": "available"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              991,
+              122
+            ],
+            [
+              1011,
+              122
+            ],
+            [
+              1011,
+              102
+            ],
+            [
+              991,
+              102
+            ],
+            [
+              991,
+              122
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "TEMP-002",
+        "row": 0,
+        "column": 1,
+        "number": "002",
+        "zone": "PLN",
+        "side": "concavo",
+        "geometryType": "niches",
+        "status": "available"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1014,
+              122
+            ],
+            [
+              1034,
+              122
+            ],
+            [
+              1034,
+              102
+            ],
+            [
+              1014,
+              102
+            ],
+            [
+              1014,
+              122
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "TEMP-003",
+        "row": 0,
+        "column": 2,
+        "number": "003",
+        "zone": "PLN",
+        "side": "concavo",
+        "geometryType": "niches",
+        "status": "available"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1037,
+              122
+            ],
+            [
+              1057,
+              122
+            ],
+            [
+              1057,
+              102
+            ],
+            [
+              1037,
+              102
+            ],
+            [
+              1037,
+              122
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "TEMP-004",
+        "row": 1,
+        "column": 0,
+        "number": "004",
+        "zone": "PLN",
+        "side": "concavo",
+        "geometryType": "niches",
+        "status": "available"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              991,
+              99
+            ],
+            [
+              1011,
+              99
+            ],
+            [
+              1011,
+              79
+            ],
+            [
+              991,
+              79
+            ],
+            [
+              991,
+              99
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "TEMP-005",
+        "row": 1,
+        "column": 1,
+        "number": "005",
+        "zone": "PLN",
+        "side": "concavo",
+        "geometryType": "niches",
+        "status": "available"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1014,
+              99
+            ],
+            [
+              1034,
+              99
+            ],
+            [
+              1034,
+              79
+            ],
+            [
+              1014,
+              79
+            ],
+            [
+              1014,
+              99
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "TEMP-006",
+        "row": 1,
+        "column": 2,
+        "number": "006",
+        "zone": "PLN",
+        "side": "concavo",
+        "geometryType": "niches",
+        "status": "available"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1037,
+              99
+            ],
+            [
+              1057,
+              99
+            ],
+            [
+              1057,
+              79
+            ],
+            [
+              1037,
+              79
+            ],
+            [
+              1037,
+              99
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
