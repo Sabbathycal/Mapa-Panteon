@@ -88,7 +88,17 @@ function updateEditorTool() {
 function generateGrid() {
   if (!mapInstance.value || !gridLayers.value) return
 
-  const featureCollection = GridGeneratorService.generateGridFeatureCollection({
+  if (!nicheStore.selectedZone) {
+    console.error('No hay una zona de nichos seleccionada.')
+    return
+  }
+
+  if (!nicheStore.selectedSide) {
+    console.error('No hay cara seleccionada.')
+    return
+  }
+
+  const generateGrid = GridGeneratorService.generateGridFeatureCollection({
     center: mapInstance.value.getCenter(),
 
     rows: gridEditorStore.rows,
@@ -104,9 +114,63 @@ function generateGrid() {
     startNumber: gridEditorStore.startNumber,
 
     geometryType: 'niches',
-    zone: nicheStore.selectedZone?.id ?? null,
+    zone: nicheStore.selectedZone.id,
     side: nicheStore.selectedSide,
   })
+
+  const rowLabels =
+    nicheStore.selectedSide === 'concavo'
+      ? ['A', 'B', 'C', 'D', 'E', 'F']
+      : ['AX', 'BX', 'CX', 'DX', 'EX', 'FX']
+
+  const featureCollection = {
+    type: 'FeatureCollection',
+
+    features: generateGrid.features.map((feature) => {
+      const rowIndex = feature.properties.row
+      const columnIndex = feature.properties.column
+
+      const rowLabel = rowLabels[rowIndex]
+
+      const number = gridEditorStore.startNumber + columnIndex
+
+      const niche = createNicheGeometry(feature, {
+        zoneId: nicheStore.selectedZone.id,
+        side: nicheStore.selectedSide,
+        row: rowLabel,
+        number,
+      })
+
+      return {
+        type: 'Feature',
+
+        properties: {
+          id: niche.id,
+          tipo: niche.tipo,
+
+          zonaId: niche.zonaId,
+          cara: niche.cara,
+
+          fila: niche.fila,
+          numero: niche.numero,
+          codigo: niche.codigo,
+
+          estatus_venta: niche.estatus_venta,
+          estatus_ocupacion: niche.estatus_ocupacion,
+
+          referencia_procap: niche.referencia_procap,
+          observaciones: niche.observaciones,
+
+          geometryType: feature.properties.geometryType,
+
+          gridRow: rowIndex,
+          gridColumn: columnIndex,
+        },
+
+        geometry: feature.geometry,
+      }
+    }),
+  }
 
   geometryDraftStore.setFeatureCollection(featureCollection)
 
@@ -127,7 +191,7 @@ function generateGrid() {
     enableGridDragging()
   }
 
-  console.log('Cuadricula GeoJSON:', featureCollection)
+  console.log('Cuadricula de nichos GeoJSON:', featureCollection)
 }
 
 function enableGridDragging() {
@@ -244,13 +308,12 @@ onMounted(async () => {
 
     const geojson = event.layer.toGeoJSON()
 
-    const newNiche = createNicheGeometry(
-      geojson,
-      nicheStore.selectedZone.id,
-      nicheStore.selectedSide,
-    )
+    const newNiche = createNicheGeometry(geojson, {
+      zoneId: nicheStore.selectedZone.id,
+      side: nicheStore.selectedSide,
+    })
 
-    console.log('Nicho temporal creado: ', newNiche)
+    console.log('Nicho manual creado: ', newNiche)
   })
 
   updateEditorTool()

@@ -1,16 +1,32 @@
-let temporaryId = 1
+export function createNicheGeometry(feature, { zoneId, side, row = '', number = '' }) {
+  const normalizedRow = String(row).trim().toUpperCase()
 
-export function createNicheGeometry(feature, zoneId, side) {
+  const hasNumbering =
+    normalizedRow !== '' && number !== '' && number !== null && number !== undefined
+
+  const normalizedNumber = hasNumbering ? Number(number) : ''
+
+  const code = hasNumbering ? `${normalizedRow}${normalizedNumber}` : ''
+
+  const id = hasNumbering ? `${zoneId}-${side}-${code}` : crypto.randomUUID()
+
   return {
-    id: `TEMP-${String(temporaryId++).padStart(3, '0')}`,
+    id,
 
-    zona: zoneId,
-    lado: side,
+    tipo: 'nicho',
 
-    fila: '',
-    numero: '',
+    zonaId: zoneId,
+    cara: side,
 
-    estado: 'disponible',
+    fila: normalizedRow,
+    numero: normalizedNumber,
+    codigo: code,
+
+    estatus_venta: 'disponible',
+    estatus_ocupacion: '',
+
+    referencia_procap: '',
+    observaciones: '',
 
     geojson: feature,
   }

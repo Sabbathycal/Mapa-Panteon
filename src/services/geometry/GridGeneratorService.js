@@ -15,19 +15,17 @@ function rotatePoint(x, y, centerX, centerY, angleInDegrees) {
   return [rotatedY + centerY, rotatedX + centerX]
 }
 
-function createCellFeature({ id, row, column, number, zone, side, geometryType, coordinates }) {
+function createCellFeature({ row, column, number, zone, side, geometryType, coordinates }) {
   return {
     type: 'Feature',
 
     properties: {
-      id,
       row,
       column,
       number,
       zone,
       side,
       geometryType,
-      status: 'available',
     },
 
     geometry: {
@@ -84,14 +82,11 @@ function generateGridFeatureCollection({
         rotatePoint(left, bottom, center.lng, center.lat, rotation),
       ]
 
-      const paddedNumber = String(currentNumber).padStart(3, '0')
-
       features.push(
         createCellFeature({
-          id: `TEMP-${paddedNumber}`,
           row,
           column,
-          number: paddedNumber,
+          number: currentNumber,
           zone,
           side,
           geometryType,
