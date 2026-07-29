@@ -7,8 +7,6 @@ import { useGeometryEditorStore } from '@/stores/GeometryEditor'
 import DrawPanel from '../panel/DrawPanel.vue'
 import GridPanel from '../panel/GridPanel.vue'
 import EditPanel from '../panel/EditPanel.vue'
-import DeletePanel from '../panel/DeletePanel.vue'
-import SelectionPanel from '../panel/SelectionPanel.vue'
 
 const nicheStore = useNicheStore()
 const geometryEditorStore = useGeometryEditorStore()
@@ -33,17 +31,11 @@ const currentPanel = computed(() => {
     case 'edit':
       return EditPanel
 
-    case 'delete':
-      return DeletePanel
-
-    case 'select':
-      return SelectionPanel
-
     case 'grid':
       return GridPanel
 
     default:
-      return SelectionPanel
+      return GridPanel
   }
 })
 </script>

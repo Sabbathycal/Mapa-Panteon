@@ -45,19 +45,11 @@ function handleExport() {
       <h4>Editor del Mapa</h4>
       <hr />
       <p>
-        <strong> Geometria: </strong>
+        <strong> Geometría: </strong>
         {{ currentGeometry }}
       </p>
       <hr />
       <div class="tool-list">
-        <button
-          type="button"
-          :class="{ active: geometryEditorStore.isSelecting }"
-          @click="geometryEditorStore.selectTool('select')"
-        >
-          Seleccionar
-        </button>
-
         <button
           type="button"
           :class="{ active: geometryEditorStore.isDrawing }"
@@ -71,7 +63,7 @@ function handleExport() {
           :class="{ active: geometryEditorStore.isGrid }"
           @click="geometryEditorStore.selectTool('grid')"
         >
-          Cuadricula
+          Cuadrícula
         </button>
 
         <button
@@ -80,14 +72,6 @@ function handleExport() {
           @click="geometryEditorStore.selectTool('edit')"
         >
           Editar
-        </button>
-
-        <button
-          type="button"
-          :class="{ active: geometryEditorStore.isDeleting }"
-          @click="geometryEditorStore.selectTool('delete')"
-        >
-          Eliminar
         </button>
       </div>
     </section>
