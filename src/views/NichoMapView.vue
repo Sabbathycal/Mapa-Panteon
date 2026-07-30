@@ -42,7 +42,7 @@ const hasConvexImage = computed(() => {
     <h2>{{ nicheStore.selectedZone?.nombre }}</h2>
 
     <p>
-      Zona seleccionada:
+      <strong>Zona seleccionada:</strong>
       {{ nicheStore.selectedZone?.id }}
     </p>
 

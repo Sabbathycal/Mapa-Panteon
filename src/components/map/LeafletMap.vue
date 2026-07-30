@@ -40,6 +40,25 @@ const geometryDraftStore = useGeometryDraftStore()
 
 const gridLayers = ref(null)
 
+// Constantes que se usan dentro de onMount para cambiar los valores
+// que se usan dentro del mapa.
+const sections = ref(null)
+const blocks = ref(null)
+const lots = ref(null)
+const nicheZones = ref(null)
+
+const sectionLayer = ref(null)
+const blockLayer = ref(null)
+const lotLayer = ref(null)
+const nicheZoneLayer = ref(null)
+
+const draggedGridLayer = ref(null)
+const previousDragCenter = ref(null)
+
+// Funcion que nos permite llevar el hilo que cual bloque (manzana)
+// se debe usar al momento de usar el boton de Volver dentro del
+//  mapa se usa en ambos onMount() y watch().
+
 // Esta funcion es para poder obtener las dimensiones de la imagen del
 // mapa base
 function loadImageDimensions(imageSource) {
@@ -65,24 +84,6 @@ function loadImageDimensions(imageSource) {
   })
 }
 
-// Constantes que se usan dentro de onMount para cambiar los valores
-// que se usan dentro del mapa.
-const sections = ref(null)
-const blocks = ref(null)
-const lots = ref(null)
-const nicheZones = ref(null)
-
-const sectionLayer = ref(null)
-const blockLayer = ref(null)
-const lotLayer = ref(null)
-const nicheZoneLayer = ref(null)
-
-const draggedGridLayer = ref(null)
-const previousDragCenter = ref(null)
-
-// Funcion que nos permite llevar el hilo que cual bloque (manzana)
-// se debe usar al momento de usar el boton de Volver dentro del
-//  mapa se usa en ambos onMount() y watch().
 function handleBlockSelected(blockId) {
   selectionStore.selectBlock(blockId)
 

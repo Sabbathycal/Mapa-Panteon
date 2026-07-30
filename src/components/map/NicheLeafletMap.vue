@@ -11,6 +11,7 @@ import { useGeometryEditorStore } from '@/stores/GeometryEditor'
 import { useGridEditorStore } from '@/stores/GridEditorStore'
 import { useGeometryDraftStore } from '@/stores/GeometryDraft'
 
+import { GeometryService } from '@/services/geometry/GeometryService'
 import { GridGeneratorService } from '@/services/geometry/GridGeneratorService'
 
 import { createNicheGeometry } from '@/services/niche/NicheGeometryService'
@@ -32,6 +33,10 @@ const geometryDraftStore = useGeometryDraftStore()
 
 const mapContainer = ref(null)
 const mapInstance = ref(null)
+
+const niches = ref(null)
+const nichesLayer = ref(null)
+
 const drawnLayers = ref(null)
 const gridLayers = ref(null)
 
@@ -295,6 +300,35 @@ onMounted(async () => {
     mapInstance.value.setMaxBounds(imageBounds)
   } catch (error) {
     console.error(error)
+  }
+
+  try {
+    const zoneId = nicheStore.selectedZone?.id
+    const side = nicheStore.selectedSide
+
+    if (!zoneId || !side) {
+      throw new Error('No hay una zona o cara de nichos seleccionada')
+    }
+
+    niches.value = await GeometryService.getNiches(zoneId, side)
+
+    nichesLayer.value = Leaf.geoJSON(niches.value, {
+      style: {
+        color: '#f4b805',
+        weight: 1,
+        fillOpacity: 0.15,
+      },
+
+      onEachFeature(feature, layer) {
+        layer.on('click', () => {
+          console.log('Nicho seleccionado:', feature.properties)
+        })
+      },
+    })
+
+    nichesLayer.value.addTo(mapInstance.value)
+  } catch (error) {
+    console.error('No fue posible cargar la geometría de los nichos:', error)
   }
 
   mapInstance.value.on('pm:create', (event) => {

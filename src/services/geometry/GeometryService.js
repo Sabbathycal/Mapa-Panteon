@@ -15,8 +15,12 @@ import sanPedroVipLotsUrl from '@/assets/data/lotes/sanpedrovip/lotes.geojson?ur
 //WHY: No quise juntar todos los lotes.geojson en un solo archivo
 // porque me dio flojera.
 
-// Esta constante contiene las URLs de los archivos GeoJSON de los lotes,
-// que se utilizarán para obtener la geometría de los lotes.
+import plnConcavoNichesURL from '@/assets/data/nichos/PLN-concavo.geojson?url'
+import plnConvexoNichesURL from '@/assets/data/nichos/PLN-convexo.geojson?url'
+import spnConcavoNichesURL from '@/assets/data/nichos/SPN-concavo.geojson?url'
+
+// Estas constantes contienen las URLs de los archivos GeoJSON de los lotes y nichos,
+// que se utilizarán para obtener la geometría de los lotes y nichos.
 const lotUrls = [
   bronceLotsUrl,
   oroLotsUrl,
@@ -26,6 +30,17 @@ const lotUrls = [
   sanMateoVipLotsUrl,
   sanPedroVipLotsUrl,
 ]
+
+const nicheURLS = {
+  PLN: {
+    concavo: plnConcavoNichesURL,
+    convexo: plnConvexoNichesURL,
+  },
+
+  SPN: {
+    concavo: spnConcavoNichesURL,
+  },
+}
 //--------------------------------------------------------------
 
 //Cada funcion obtiene la geometria de las secciones, manzanas y lotes del
@@ -79,9 +94,26 @@ async function getNicheZones() {
   return response.json()
 }
 
+async function getNiches(zoneId, side) {
+  const nicheURL = nicheURLS[zoneId]?.[side]
+
+  if (!nicheURL) {
+    throw new Error(`No existe geometría de nichos para la zona ${zoneId} y la cara ${side}.`)
+  }
+
+  const response = await fetch(nicheURL)
+
+  if (!response.ok) {
+    throw new Error(`No fue posible cargar la geometría de nichos para ${zoneId} - ${side}.`)
+  }
+
+  return response.json()
+}
+
 export const GeometryService = {
   getSections,
   getBlocks,
   getLots,
   getNicheZones,
+  getNiches,
 }
