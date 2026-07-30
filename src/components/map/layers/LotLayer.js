@@ -1,12 +1,17 @@
 import Leaf from 'leaflet'
-import { getLotColorByStatus } from '@/utils/lotStatusColors'
+import { getGeometryColorByStatus } from '@/utils/geometryStatusColors'
 
 export function createLotLayer(lots, onLotsSelected) {
   return Leaf.geoJSON(lots, {
     style(feature) {
       console.log(feature.properties.estatus)
 
-      const lotColor = getLotColorByStatus(feature.properties.estatus)
+      const status =
+        feature.properties.estatus_ocupacion ||
+        feature.properties.estatus_venta ||
+        feature.properties.estatus
+
+      const lotColor = getGeometryColorByStatus(status)
 
       return {
         color: lotColor,
@@ -18,7 +23,12 @@ export function createLotLayer(lots, onLotsSelected) {
     },
 
     onEachFeature(feature, layer) {
-      const lotColor = getLotColorByStatus(feature.properties.estatus)
+      const status =
+        feature.properties.estatus_ocupacion ||
+        feature.properties.estatus_venta ||
+        feature.properties.estatus
+
+      const lotColor = getGeometryColorByStatus(status)
 
       layer.on({
         mouseover() {
@@ -37,7 +47,7 @@ export function createLotLayer(lots, onLotsSelected) {
         },
 
         click() {
-          onLotsSelected(feature.properties.id, feature.properties.estatus)
+          onLotsSelected(feature.properties.id, status)
         },
       })
     },

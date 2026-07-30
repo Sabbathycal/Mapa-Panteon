@@ -1,4 +1,4 @@
-const lotStatusVariables = {
+const geometryStatusVariables = {
   disponible: '--color-status-available',
   vendido: '--color-status-sold',
   ocupado: '--color-status-used',
@@ -9,10 +9,10 @@ function getCSSVar(varName) {
   return getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
 }
 
-export function getLotColorByStatus(status) {
+export function getGeometryColorByStatus(status) {
   const normalizedStatus = status?.trim().toLowerCase()
 
-  const varName = lotStatusVariables[normalizedStatus] ?? '--color-status-unknown'
+  const varName = geometryStatusVariables[normalizedStatus] ?? '--color-status-unknown'
 
   return getCSSVar(varName)
 }

@@ -6,6 +6,8 @@ import 'leaflet/dist/leaflet.css'
 import '@geoman-io/leaflet-geoman-free'
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css'
 
+import { createNicheLayer } from './layers/NicheLayer'
+
 import { useAuthStore } from '@/stores/Auth'
 import { useGeometryEditorStore } from '@/stores/GeometryEditor'
 import { useGridEditorStore } from '@/stores/GridEditorStore'
@@ -312,18 +314,8 @@ onMounted(async () => {
 
     niches.value = await GeometryService.getNiches(zoneId, side)
 
-    nichesLayer.value = Leaf.geoJSON(niches.value, {
-      style: {
-        color: '#f4b805',
-        weight: 1,
-        fillOpacity: 0.15,
-      },
-
-      onEachFeature(feature, layer) {
-        layer.on('click', () => {
-          console.log('Nicho seleccionado:', feature.properties)
-        })
-      },
+    nichesLayer.value = createNicheLayer(niches.value, (niche) => {
+      console.log('Nicho seleccionado:', niche)
     })
 
     nichesLayer.value.addTo(mapInstance.value)

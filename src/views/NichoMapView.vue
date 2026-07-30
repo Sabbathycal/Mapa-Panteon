@@ -39,12 +39,7 @@ const hasConvexImage = computed(() => {
     <button type="button" @click="nicheStore.clearZone" class="back-button">
       ← Volver al mapa
     </button>
-    <h2>{{ nicheStore.selectedZone?.nombre }}</h2>
-
-    <p>
-      <strong>Zona seleccionada:</strong>
-      {{ nicheStore.selectedZone?.id }}
-    </p>
+    <h2>{{ nicheStore.selectedZone?.nombre }} - {{ nicheStore.selectedZone?.id }}</h2>
 
     <div class="side-selector">
       <button
