@@ -6,6 +6,8 @@ export const useNicheStore = defineStore('niche', () => {
 
   const selectedSide = ref('concavo')
 
+  const selectedNiche = ref(null)
+
   function selectSide(side) {
     selectedSide.value = side
   }
@@ -15,17 +17,30 @@ export const useNicheStore = defineStore('niche', () => {
     selectedSide.value = 'concavo'
   }
 
+  function selectNiche(niche) {
+    console.log('Store:', niche)
+    selectedNiche.value = niche
+  }
+
+  function clearSelectedNiche() {
+    selectedNiche.value = null
+  }
+
   function clearZone() {
     selectedZone.value = null
     selectedSide.value = 'concavo'
+    clearSelectedNiche()
   }
 
   return {
     selectedZone,
     selectedSide,
+    selectedNiche,
     //----------------------
     selectSide,
     selectZone,
+    selectNiche,
+    clearSelectedNiche,
     clearZone,
   }
 })

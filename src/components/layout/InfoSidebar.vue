@@ -1,9 +1,15 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
+
 import { useSelectionStore } from '@/stores/Selection'
+import { useNicheStore } from '@/stores/Niche'
+
 import { LotService } from '@/services/lot/LotService'
 
 const selectionStore = useSelectionStore()
+const nicheStore = useNicheStore()
+
+const selectedNiche = computed(() => nicheStore.selectedNiche)
 
 const selectedLot = computed(() => {
   if (!selectionStore.selectedLotId) {
@@ -17,6 +23,11 @@ const selectedLot = computed(() => {
     selectionStore.selectedLotStatus,
   )
 })
+
+watch(
+  () => nicheStore.selectedNiche,
+  (value) => console.log('Sidebar recibio:', value),
+)
 </script>
 
 <template>
@@ -30,15 +41,62 @@ const selectedLot = computed(() => {
       ← Volver
     </button>
 
-    <div v-if="selectedLot" class="selection-details">
+    <div v-if="selectedNiche" class="selection-details">
+      <label>
+        Zona:
+        <input :value="selectedNiche.zonaId" readonly />
+      </label>
+
+      <label>
+        Cara:
+        <input :value="selectedNiche.cara" readonly />
+      </label>
+
+      <label>
+        Fila:
+        <input :value="selectedNiche.fila" readonly />
+      </label>
+
+      <label>
+        Número:
+        <input :value="selectedNiche.numero" readonly />
+      </label>
+
+      <label>
+        Código:
+        <input :value="selectedNiche.codigo" readonly />
+      </label>
+
+      <label>
+        Estado de venta:
+        <input :value="selectedNiche.estatus_venta || '-'" readonly />
+      </label>
+
+      <label>
+        Estado de ocupación:
+        <input :value="selectedNiche.estatus_ocupacion || '-'" readonly />
+      </label>
+
+      <label>
+        Referencia ProCaP:
+        <input :value="selectedNiche.referencia_procap || '-'" readonly />
+      </label>
+
+      <label>
+        Observaciones:
+        <textarea :value="selectedNiche.observaciones || '-'" readonly></textarea>
+      </label>
+    </div>
+
+    <div v-else-if="selectedLot" class="selection-details">
       <label>
         Sección:
-        <input :value="selectedLot.section" readonly />
+        <input :value="selectedLot.seccionId" readonly />
       </label>
 
       <label>
         Manzana:
-        <input :value="selectedLot.block" readonly />
+        <input :value="selectedLot.manzanaId" readonly />
       </label>
 
       <label>
@@ -47,18 +105,19 @@ const selectedLot = computed(() => {
       </label>
 
       <label>
-        Propietario:
-        <input :value="selectedLot.owner" readonly />
+        Estado de Venta:
+        <input :value="selectedLot.estatus_venta" readonly />
+        <input :value="selectedLot.estatus_ocupacion || '-'" readonly />
       </label>
 
       <label>
-        Estado:
-        <input :value="selectedLot.status" readonly />
+        Referencia ProcaP:
+        <input :value="selectedLot.referencia_procap || '-'" readonly />
       </label>
 
       <label>
-        Paquete:
-        <input :value="selectedLot.package" readonly />
+        Observaciones:
+        <textarea :value="selectedLot.observaciones || '-'" readonly></textarea>
       </label>
     </div>
 

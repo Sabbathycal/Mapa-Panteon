@@ -28,8 +28,14 @@ function getLotbyId(lotId, sectionId, blockId, lotStatus) {
   return (
     mockLots[lotKey] ?? {
       id: lotId,
-      section: sectionId,
-      block: blockId,
+
+      tipo: 'lote',
+
+      seccionId: sectionId,
+      manzanaId: blockId,
+
+      lote: lotId,
+      codigo: lotKey,
 
       estatus_venta: normalizedStatuses.estatus_venta,
       estatus_ocupacion: normalizedStatuses.estatus_ocupacion,

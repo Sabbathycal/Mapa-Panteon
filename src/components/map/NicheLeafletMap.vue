@@ -315,7 +315,8 @@ onMounted(async () => {
     niches.value = await GeometryService.getNiches(zoneId, side)
 
     nichesLayer.value = createNicheLayer(niches.value, (niche) => {
-      console.log('Nicho seleccionado:', niche)
+      console.log('Leaflet:', niche)
+      nicheStore.selectNiche(niche)
     })
 
     nichesLayer.value.addTo(mapInstance.value)
