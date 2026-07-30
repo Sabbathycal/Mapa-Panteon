@@ -1,8 +1,8 @@
 const lotStatusVariables = {
-  disponible: '--color-lot-available',
-  vendido: '--color-lot-sold',
-  utilizado: '--color-lot-used',
-  separado: '--color-lot-reserved',
+  disponible: '--color-status-available',
+  vendido: '--color-status-sold',
+  ocupado: '--color-status-used',
+  separado: '--color-status-reserved',
 }
 
 function getCSSVar(varName) {
@@ -12,7 +12,7 @@ function getCSSVar(varName) {
 export function getLotColorByStatus(status) {
   const normalizedStatus = status?.trim().toLowerCase()
 
-  const varName = lotStatusVariables[normalizedStatus] ?? '--color-lot-unknown'
+  const varName = lotStatusVariables[normalizedStatus] ?? '--color-status-unknown'
 
   return getCSSVar(varName)
 }
