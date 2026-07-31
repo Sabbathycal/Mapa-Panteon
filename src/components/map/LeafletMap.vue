@@ -86,18 +86,44 @@ function loadImageDimensions(imageSource) {
 
 function handleBlockSelected(blockId) {
   selectionStore.selectBlock(blockId)
-
-  const filteredLots = filterLotsbyBlocks(lots.value, selectionStore.selectedSectionId, blockId)
-
-  blockLayer.value?.remove()
-
-  lotLayer.value = createLotLayer(filteredLots, handleLotSelected)
-
-  lotLayer.value.addTo(mapInstance.value)
 }
 
 function handleLotSelected(lotId, lotStatus) {
   selectionStore.selectLot(lotId, lotStatus)
+}
+
+function showBlocksForSection(sectionId) {
+  if (!mapInstance.value || !blocks.value || !sectionId) return
+
+  const filteredBlocks = filterBlockbySection(blocks.value, sectionId)
+
+  sectionLayer.value?.remove()
+  lotLayer.value?.remove()
+  nicheZoneLayer.value?.remove()
+  blockLayer.value?.remove()
+
+  blockLayer.value = createBlockLayer(
+    filteredBlocks,
+    'var(--color-block-outline)',
+    handleBlockSelected,
+  )
+
+  blockLayer.value.addTo(mapInstance.value)
+}
+
+function showLotsForBlock(blockId) {
+  if (!mapInstance.value || !lots.value || !selectionStore.selectedSectionId || !blockId) {
+    return
+  }
+
+  const filteredLots = filterLotsbyBlocks(lots.value, selectionStore.selectedSectionId, blockId)
+
+  blockLayer.value?.remove()
+  lotLayer.value?.remove()
+
+  lotLayer.value = createLotLayer(filteredLots, handleLotSelected)
+
+  lotLayer.value.addTo(mapInstance.value)
 }
 
 function updateEditorTool() {
@@ -307,17 +333,7 @@ onMounted(async () => {
     'var(--color-section-outline)',
     (sectionId) => {
       selectionStore.selectSection(sectionId)
-
-      const filteredBlocks = filterBlockbySection(blocks.value, sectionId)
-
-      sectionLayer.value.remove()
-
-      blockLayer.value = createBlockLayer(
-        filteredBlocks,
-        'var(--color-block-outline)',
-        handleBlockSelected,
-      )
-      blockLayer.value.addTo(mapInstance.value)
+      showBlocksForSection(sectionId)
     },
   )
   sectionLayer.value.addTo(mapInstance.value)
@@ -340,33 +356,41 @@ onMounted(async () => {
 watch(() => [authStore.isAdminMode, geometryEditorStore.selectedTool], updateEditorTool)
 
 watch(
-  () => [selectionStore.selectedSectionId, selectionStore.selectedBlockId],
-  ([newSectionId, newBlockId], [oldSectionId, oldBlockId]) => {
+  () => selectionStore.selectedSectionId,
+  (newSectionId) => {
     if (!mapInstance.value) return
 
-    //Regreso Lotes a manzanas
-    if (oldBlockId !== null && newBlockId == null && newSectionId !== null) {
-      lotLayer.value?.remove()
-
-      const filteredBlocks = filterBlockbySection(blocks.value, newSectionId)
-
-      blockLayer.value = createBlockLayer(
-        filteredBlocks,
-        'var(--color-block-outline)',
-        handleBlockSelected,
-      )
-
-      blockLayer.value.addTo(mapInstance.value)
-    }
-
-    //Regresar de manzanas a secciones
-    if (oldSectionId !== null && newSectionId === null) {
+    if (newSectionId === null) {
       blockLayer.value?.remove()
       lotLayer.value?.remove()
-      sectionLayer.value.addTo(mapInstance.value)
+
+      sectionLayer.value?.addTo(mapInstance.value)
       nicheZoneLayer.value?.addTo(mapInstance.value)
       nicheZoneLayer.value?.bringToFront()
+
+      return
     }
+
+    showBlocksForSection(newSectionId)
+  },
+)
+
+watch(
+  () => selectionStore.selectedBlockId,
+  (newBlockId) => {
+    if (!mapInstance.value) return
+
+    if (newBlockId === null) {
+      lotLayer.value?.remove()
+
+      if (selectionStore.selectedSectionId) {
+        showBlocksForSection(selectionStore.selectedSectionId)
+      }
+
+      return
+    }
+
+    showLotsForBlock(newBlockId)
   },
 )
 
