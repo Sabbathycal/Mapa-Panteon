@@ -3,7 +3,8 @@ import Leaf from 'leaflet'
 export function createNicheZoneLayer(nicheZones, zoneColor, onNicheZoneSelected) {
   return Leaf.geoJSON(nicheZones, {
     style: {
-      color: 'var(--color-section-outline)',
+      color: 'transparent',
+      opacity: 0,
       weight: 3,
       fill: true,
       fillOpacity: 0.001,
@@ -11,7 +12,8 @@ export function createNicheZoneLayer(nicheZones, zoneColor, onNicheZoneSelected)
 
     onEachFeature(feature, layer) {
       const originalStyle = {
-        color: 'var(--color-section-outline)',
+        color: 'transparent',
+        opacity: 0,
         weight: 3,
         fill: true,
         fillOpacity: 0.001,
@@ -21,6 +23,7 @@ export function createNicheZoneLayer(nicheZones, zoneColor, onNicheZoneSelected)
         mouseover() {
           layer.setStyle({
             color: zoneColor,
+            opacity: 1,
             weight: 4,
             fillOpacity: 0.25,
           })
