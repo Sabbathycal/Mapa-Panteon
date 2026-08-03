@@ -3,6 +3,7 @@ import { ref } from 'vue'
 
 import { PropertySearchService } from '@/services/search/PropertySearchService'
 import { useSelectionStore } from '@/stores/Selection'
+import { useNicheStore } from './Niche'
 
 export const useSearchStore = defineStore('search', () => {
   const query = ref('')
@@ -24,7 +25,7 @@ export const useSearchStore = defineStore('search', () => {
     clearResults()
   }
 
-  function searchLots(lotFeatures, options = {}) {
+  function searchProperties(lotFeatures, nicheFeatures, options = {}) {
     const normalizedQuery = PropertySearchService.normalizeSearchValue(query.value)
 
     if (!normalizedQuery) {
@@ -35,7 +36,12 @@ export const useSearchStore = defineStore('search', () => {
     isSearching.value = true
 
     try {
-      results.value = PropertySearchService.searchLots(lotFeatures, query.value, options)
+      results.value = PropertySearchService.searchProperties(
+        lotFeatures,
+        nicheFeatures,
+        query.value,
+        options,
+      )
 
       isOpen.value = true
     } finally {
@@ -44,15 +50,30 @@ export const useSearchStore = defineStore('search', () => {
   }
 
   function selectResult(result) {
-    if (!result || result.tipo !== 'lote') {
-      return
-    }
+    if (!result) return
 
     const selectionStore = useSelectionStore()
+    const nicheStore = useNicheStore()
 
-    selectionStore.selectSection(result.seccionId)
-    selectionStore.selectBlock(result.manzanaId)
-    selectionStore.selectLot(result.loteId, result.estatus)
+    if (result.tipo === 'lote') {
+      nicheStore.clearZone()
+
+      selectionStore.selectSection(result.seccionId)
+      selectionStore.selectBlock(result.manzanaId)
+      selectionStore.selectLot(result.loteId, result.estatus)
+    }
+
+    if (result.tipo === 'nicho') {
+      selectionStore.clearSelection()
+
+      nicheStore.selectZone({
+        id: result.zonaId,
+        nombre: result.zonaId,
+      })
+
+      nicheStore.selectSide(result.cara)
+      nicheStore.selectNiche(result.feature.properties)
+    }
 
     query.value = result.titulo
     isOpen.value = false
@@ -75,7 +96,7 @@ export const useSearchStore = defineStore('search', () => {
     isSearching,
     //--------------------
     setQuery,
-    searchLots,
+    searchProperties,
     selectResult,
     clearResults,
     clearSearch,

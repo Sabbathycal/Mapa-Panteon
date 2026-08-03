@@ -118,6 +118,152 @@ function calculateLotRelevance(lot, normalizedQuery) {
   return 10
 }
 
+function normalizeNicheNumber(value) {
+  const normalizedValue = String(value ?? '').trim()
+
+  if (!/^\d+$/.test(normalizedValue)) {
+    return normalizedValue
+  }
+
+  return String(Number(normalizedValue))
+}
+
+function normalizeNicheFeature(feature) {
+  const properties = feature?.properties ?? {}
+
+  const zoneId = String(properties.zonaId ?? '').trim()
+  const side = String(properties.cara ?? '').trim()
+  const row = String(properties.fila ?? '').trim()
+  const number = String(properties.numero ?? '').trim()
+  const code = String(properties.codigo ?? `${row}${number}`).trim()
+
+  if (!zoneId || !side || !row || !number) {
+    return null
+  }
+
+  const sideLabel = side === 'concavo' ? 'Cóncavo' : 'Convexo'
+
+  return {
+    tipo: 'nicho',
+
+    codigo: `${zoneId}-${side}-${code}`,
+    titulo: `${zoneId} - ${sideLabel} - ${code}`,
+
+    zonaId: zoneId,
+    cara: side,
+    fila: row,
+    numero: number,
+    nichoCodigo: code,
+
+    estatus: properties.estatus_ocupacion || properties.estatus_venta || '',
+
+    feature,
+  }
+}
+
+function createNicheSearchText(niche) {
+  const normalizedNumber = normalizeNicheNumber(niche.numero)
+
+  return normalizeSearchValue(
+    [
+      niche.codigo,
+      niche.titulo,
+
+      niche.zonaId,
+      niche.cara,
+      niche.fila,
+      niche.numero,
+      normalizedNumber,
+      niche.nichoCodigo,
+
+      `${niche.zonaId} ${niche.cara} ${niche.nichoCodigo}`,
+      `${niche.zonaId} ${niche.fila} ${niche.numero}`,
+      `${niche.zonaId} ${niche.fila} ${normalizedNumber}`,
+      `${niche.fila}${niche.numero}`,
+      `${niche.fila}${normalizedNumber}`,
+    ].join(' '),
+  )
+}
+
+function calculateNicheRelevance(niche, normalizedQuery) {
+  const normalizedCode = normalizeSearchValue(niche.codigo)
+  const normalizedTitle = normalizeSearchValue(niche.titulo)
+  const normalizedNicheCode = normalizeSearchValue(niche.nichoCodigo)
+  const normalizedNumber = normalizeSearchValue(niche.numero)
+  const normalizedNumericNumber = normalizeSearchValue(normalizeNicheNumber(niche.numero))
+  const normalizedZone = normalizeSearchValue(niche.zonaId)
+
+  if (normalizedQuery === normalizedCode || normalizedQuery === normalizedTitle) {
+    return 100
+  }
+
+  if (normalizedQuery === normalizedNicheCode) {
+    return 95
+  }
+
+  if (normalizedQuery === normalizedNumber) {
+    return 90
+  }
+
+  if (normalizedQuery === normalizedNumericNumber) {
+    return 89
+  }
+
+  if (normalizedQuery === normalizedZone) {
+    return 70
+  }
+
+  if (normalizedCode.startsWith(normalizedQuery)) {
+    return 50
+  }
+
+  return 10
+}
+
+function searchNiches(nicheFeatures, query, options = {}) {
+  const normalizedQuery = normalizeSearchValue(query)
+  const limit = options.limit ?? 50
+
+  if (!normalizedQuery) {
+    return []
+  }
+
+  const normalizedNiches = nicheFeatures.map(normalizeNicheFeature).filter(Boolean)
+
+  return normalizedNiches
+    .filter((niche) => createNicheSearchText(niche).includes(normalizedQuery))
+    .map((niche) => ({
+      ...niche,
+      relevance: calculateNicheRelevance(niche, normalizedQuery),
+    }))
+    .sort((nicheA, nicheB) => {
+      if (nicheA.relevance !== nicheB.relevance) {
+        return nicheB.relevance - nicheA.relevance
+      }
+
+      const zoneComparison = nicheA.zonaId.localeCompare(nicheB.zonaId, 'es')
+
+      if (zoneComparison !== 0) {
+        return zoneComparison
+      }
+
+      const sideComparison = nicheA.cara.localeCompare(nicheB.cara, 'es')
+
+      if (sideComparison !== 0) {
+        return sideComparison
+      }
+
+      const rowComparison = nicheA.fila.localeCompare(nicheB.fila, 'es')
+
+      if (rowComparison !== 0) {
+        return rowComparison
+      }
+
+      return String(nicheA.numero).localeCompare(String(nicheB.numero), 'es', { numeric: true })
+    })
+    .slice(0, limit)
+}
+
 function searchLots(lotFeatures, query, options = {}) {
   const normalizedQuery = normalizeSearchValue(query)
   const limit = options.limit ?? 50
@@ -162,7 +308,27 @@ function searchLots(lotFeatures, query, options = {}) {
     .slice(0, limit)
 }
 
+function searchProperties(lotFeatures, nicheFeatures, query, options = {}) {
+  const limit = options.limit ?? 50
+
+  const lotResults = searchLots(lotFeatures, query, { limit })
+
+  const nicheResults = searchNiches(nicheFeatures, query, { limit })
+
+  return [...lotResults, ...nicheResults]
+    .sort((resultA, resultB) => {
+      if (resultA.relevance !== resultB.relevance) {
+        return resultB.relevance - resultA.relevance
+      }
+
+      return resultA.titulo.localeCompare(resultB.titulo, 'es', { numeric: true })
+    })
+    .slice(0, limit)
+}
+
 export const PropertySearchService = {
   normalizeSearchValue,
   searchLots,
+  searchNiches,
+  searchProperties,
 }

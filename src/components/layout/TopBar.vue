@@ -16,6 +16,7 @@ const sections = ref([])
 const blocks = ref([])
 const lots = ref([])
 const nicheZones = ref([])
+const niches = ref([])
 
 const selectedLocationValue = computed(() => {
   if (nicheStore.selectedZone) {
@@ -30,17 +31,20 @@ const selectedLocationValue = computed(() => {
 })
 
 onMounted(async () => {
-  const [sectionsGeoJSON, blocksGeoJSON, lotsGeoJSON, nicheZonesGeoJSON] = await Promise.all([
-    GeometryService.getSections(),
-    GeometryService.getBlocks(),
-    GeometryService.getLots(),
-    GeometryService.getNicheZones(),
-  ])
+  const [sectionsGeoJSON, blocksGeoJSON, lotsGeoJSON, nicheZonesGeoJSON, nichesGeoJSON] =
+    await Promise.all([
+      GeometryService.getSections(),
+      GeometryService.getBlocks(),
+      GeometryService.getLots(),
+      GeometryService.getNicheZones(),
+      GeometryService.getAllNiches(),
+    ])
 
   sections.value = sectionsGeoJSON.features
   blocks.value = blocksGeoJSON.features
   lots.value = lotsGeoJSON.features
   nicheZones.value = nicheZonesGeoJSON.features
+  niches.value = nichesGeoJSON.features
 })
 
 //Filtra secciones con bloques y bloques por secciones, es decir,
@@ -163,7 +167,7 @@ function handleSecondaryChange(event) {
 }
 
 function handleSearch() {
-  searchStore.searchLots(lots.value)
+  searchStore.searchProperties(lots.value, niches.value)
 }
 
 function handleSearchInput() {
@@ -242,7 +246,7 @@ function handleSearchResult(result) {
           <input
             v-model="searchStore.query"
             type="search"
-            placeholder="Buscar lote..."
+            placeholder="Buscar lote o nicho..."
             aria-label="Buscar lote"
             autocomplete="off"
             @input="handleSearchInput"
@@ -269,12 +273,12 @@ function handleSearchResult(result) {
             </span>
 
             <span class="result-status">
-              {{ result.estatus || 'Sin estado' }}
+              {{ result.tipo }} · {{ result.estatus || 'Sin estado' }}
             </span>
           </button>
 
           <p v-if="searchStore.results.length === 0" class="empty-results">
-            No se encontraron lotes.
+            No se encontraron lotes ni nichos.
           </p>
         </div>
       </div>

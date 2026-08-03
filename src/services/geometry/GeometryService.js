@@ -110,10 +110,38 @@ async function getNiches(zoneId, side) {
   return response.json()
 }
 
+async function getAllNiches() {
+  const nicheEntries = Object.entries(nicheURLS).flatMap(([zoneId, sides]) =>
+    Object.entries(sides).map(([side, url]) => ({
+      zoneId,
+      side,
+      url,
+    })),
+  )
+
+  const responses = await Promise.all(
+    nicheEntries.map(async ({ zoneId, side, url }) => {
+      const response = await fetch(url)
+
+      if (!response.ok) {
+        throw new Error(`No fue posible cargar la geometría de nichos para ${zoneId} - ${side}.`)
+      }
+
+      return response.json()
+    }),
+  )
+
+  return {
+    type: 'FeatureCollection',
+    features: responses.flatMap((geojson) => geojson.features),
+  }
+}
+
 export const GeometryService = {
   getSections,
   getBlocks,
   getLots,
   getNicheZones,
   getNiches,
+  getAllNiches,
 }
