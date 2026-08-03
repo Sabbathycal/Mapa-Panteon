@@ -4,26 +4,43 @@ import { computed, onMounted, ref } from 'vue'
 import { GeometryService } from '@/services/geometry/GeometryService'
 import { useSelectionStore } from '@/stores/Selection'
 import { useSearchStore } from '@/stores/Search'
+import { useNicheStore } from '@/stores/Niche'
 
 import { filterBlockbySection } from '@/utils/geometryFilters'
 
 const selectionStore = useSelectionStore()
 const searchStore = useSearchStore()
+const nicheStore = useNicheStore()
 
 const sections = ref([])
 const blocks = ref([])
 const lots = ref([])
+const nicheZones = ref([])
+
+const selectedLocationValue = computed(() => {
+  if (nicheStore.selectedZone) {
+    return `niche:${nicheStore.selectedZone.id}`
+  }
+
+  if (selectionStore.selectedSectionId) {
+    return `section:${selectionStore.selectedSectionId}`
+  }
+
+  return ''
+})
 
 onMounted(async () => {
-  const [sectionsGeoJSON, blocksGeoJSON, lotsGeoJSON] = await Promise.all([
+  const [sectionsGeoJSON, blocksGeoJSON, lotsGeoJSON, nicheZonesGeoJSON] = await Promise.all([
     GeometryService.getSections(),
     GeometryService.getBlocks(),
     GeometryService.getLots(),
+    GeometryService.getNicheZones(),
   ])
 
   sections.value = sectionsGeoJSON.features
   blocks.value = blocksGeoJSON.features
   lots.value = lotsGeoJSON.features
+  nicheZones.value = nicheZonesGeoJSON.features
 })
 
 //Filtra secciones con bloques y bloques por secciones, es decir,
@@ -68,26 +85,81 @@ const blocksBySelectedSection = computed(() => {
   })
 })
 
-function handleSectionChange(event) {
-  const sectionId = event.target.value
+const availableNicheZones = computed(() => {
+  return nicheZones.value
+    .map((feature) => feature.properties)
+    .filter((zone) => zone?.id)
+    .sort((zoneA, zoneB) =>
+      String(zoneA.nombre ?? zoneA.id).localeCompare(String(zoneB.nombre ?? zoneB.id), 'es'),
+    )
+})
 
-  if (!sectionId) {
+const nicheSidesByZone = {
+  SPN: ['concavo'],
+  PLN: ['concavo', 'convexo'],
+}
+
+const sidesBySelectedZone = computed(() => {
+  const zoneId = nicheStore.selectedZone?.id
+
+  if (!zoneId) {
+    return []
+  }
+
+  return nicheSidesByZone[zoneId] ?? ['concavo']
+})
+
+const isNicheLocation = computed(() => Boolean(nicheStore.selectedZone))
+
+function handleLocationChange(event) {
+  const value = event.target.value
+
+  if (!value) {
     selectionStore.clearSelection()
+    nicheStore.clearZone()
     return
   }
 
-  selectionStore.selectSection(sectionId)
+  const [type, id] = value.split(':')
+
+  searchStore.clearSearch()
+
+  if (type === 'section') {
+    nicheStore.clearZone()
+    selectionStore.selectSection(id)
+    return
+  }
+
+  if (type === 'niche') {
+    selectionStore.clearSelection()
+
+    const zone = availableNicheZones.value.find((item) => item.id === id)
+
+    if (zone) {
+      nicheStore.selectZone(zone)
+    }
+  }
 }
 
-function handleBlockChange(event) {
-  const blockId = event.target.value
+function handleSecondaryChange(event) {
+  const value = event.target.value
 
-  if (!blockId) {
+  if (isNicheLocation.value) {
+    if (!value) {
+      nicheStore.selectSide('concavo')
+      return
+    }
+
+    nicheStore.selectSide(value)
+    return
+  }
+
+  if (!value) {
     selectionStore.selectSection(selectionStore.selectedSectionId)
     return
   }
 
-  selectionStore.selectBlock(blockId)
+  selectionStore.selectBlock(value)
 }
 
 function handleSearch() {
@@ -111,34 +183,58 @@ function handleSearchResult(result) {
 
     <div class="top-bar-actions">
       <select
-        :value="selectionStore.selectedSectionId ?? ''"
-        aria-label="Seleccionar sección"
-        @change="handleSectionChange"
+        :value="selectedLocationValue"
+        aria-label="Seleccionar sección o Zona de nichos"
+        @change="handleLocationChange"
       >
-        <option value="">Sección</option>
-        <option
-          v-for="section in sectionsWithBlocks"
-          :key="section.properties.id"
-          :value="section.properties.id"
-        >
-          {{ section.properties.id }}
-        </option>
+        <option value="">Sección o Zona</option>
+
+        <optgroup label="Secciones">
+          <option
+            v-for="section in sectionsWithBlocks"
+            :key="`section-${section.properties.id}`"
+            :value="`section:${section.properties.id}`"
+          >
+            {{ section.properties.id }}
+          </option>
+        </optgroup>
+
+        <optgroup label="Nichos">
+          <option
+            v-for="zone in availableNicheZones"
+            :key="`niche-${zone.id}`"
+            :value="`niche:${zone.id}`"
+          >
+            {{ zone.nombre ?? zone.id }}
+          </option>
+        </optgroup>
       </select>
 
       <select
-        :value="selectionStore.selectedBlockId ?? ''"
-        :disabled="!selectionStore.selectedSectionId"
-        aria-label="Seleccionar Manzana"
-        @change="handleBlockChange"
+        :value="isNicheLocation ? nicheStore.selectedSide : (selectionStore.selectedBlockId ?? '')"
+        :disabled="!selectionStore.selectedSectionId && !nicheStore.selectedZone"
+        :aria-label="isNicheLocation ? 'Seleccionar cara' : 'Seleccionar manzana'"
+        @change="handleSecondaryChange"
       >
-        <option value="">Manzana</option>
-        <option
-          v-for="block in blocksBySelectedSection"
-          :key="block.properties.id"
-          :value="block.properties.manzana"
-        >
-          {{ block.properties.nombre }}
+        <option value="">
+          {{ isNicheLocation ? 'Cara' : 'Manzana' }}
         </option>
+
+        <template v-if="isNicheLocation">
+          <option v-for="side in sidesBySelectedZone" :key="side" :value="side">
+            {{ side === 'concavo' ? 'Cóncavo' : 'Convexo' }}
+          </option>
+        </template>
+
+        <template v-else>
+          <option
+            v-for="block in blocksBySelectedSection"
+            :key="block.properties.id"
+            :value="block.properties.manzana"
+          >
+            {{ block.properties.nombre }}
+          </option>
+        </template>
       </select>
 
       <div class="search-wrapper">
