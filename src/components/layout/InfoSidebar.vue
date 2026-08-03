@@ -3,12 +3,13 @@ import { computed, watch } from 'vue'
 
 import { useSelectionStore } from '@/stores/Selection'
 import { useNicheStore } from '@/stores/Niche'
+import { useSearchStore } from '@/stores/Search'
 
 import { LotService } from '@/services/lot/LotService'
 
 const selectionStore = useSelectionStore()
 const nicheStore = useNicheStore()
-
+const searchStore = useSearchStore()
 const selectedNiche = computed(() => nicheStore.selectedNiche)
 
 const selectedLot = computed(() => {
@@ -24,6 +25,11 @@ const selectedLot = computed(() => {
   )
 })
 
+function handleGoBack() {
+  searchStore.clearSearch()
+  selectionStore.goBack()
+}
+
 watch(
   () => nicheStore.selectedNiche,
   (value) => console.log('Sidebar recibio:', value),
@@ -32,12 +38,7 @@ watch(
 
 <template>
   <div class="info-sidebar">
-    <button
-      v-if="selectionStore.canGoBack"
-      type="button"
-      class="back-button"
-      @click="selectionStore.goBack"
-    >
+    <button v-if="selectionStore.canGoBack" type="button" class="back-button" @click="handleGoBack">
       ← Volver
     </button>
 

@@ -3,22 +3,27 @@ import { computed, onMounted, ref } from 'vue'
 
 import { GeometryService } from '@/services/geometry/GeometryService'
 import { useSelectionStore } from '@/stores/Selection'
+import { useSearchStore } from '@/stores/Search'
 
 import { filterBlockbySection } from '@/utils/geometryFilters'
 
 const selectionStore = useSelectionStore()
+const searchStore = useSearchStore()
 
 const sections = ref([])
 const blocks = ref([])
+const lots = ref([])
 
 onMounted(async () => {
-  const [sectionsGeoJSON, blocksGeoJSON] = await Promise.all([
+  const [sectionsGeoJSON, blocksGeoJSON, lotsGeoJSON] = await Promise.all([
     GeometryService.getSections(),
     GeometryService.getBlocks(),
+    GeometryService.getLots(),
   ])
 
   sections.value = sectionsGeoJSON.features
   blocks.value = blocksGeoJSON.features
+  lots.value = lotsGeoJSON.features
 })
 
 //Filtra secciones con bloques y bloques por secciones, es decir,
@@ -84,6 +89,20 @@ function handleBlockChange(event) {
 
   selectionStore.selectBlock(blockId)
 }
+
+function handleSearch() {
+  searchStore.searchLots(lots.value)
+}
+
+function handleSearchInput() {
+  if (!searchStore.query.trim()) {
+    searchStore.clearResults()
+  }
+}
+
+function handleSearchResult(result) {
+  searchStore.selectResult(result)
+}
 </script>
 
 <template>
@@ -122,10 +141,46 @@ function handleBlockChange(event) {
         </option>
       </select>
 
-      <div class="search-group">
-        <input type="search" placeholder="Busca lote o nicho..." aria-label="Buscar lote o nicho" />
+      <div class="search-wrapper">
+        <div class="search-group">
+          <input
+            v-model="searchStore.query"
+            type="search"
+            placeholder="Buscar lote..."
+            aria-label="Buscar lote"
+            autocomplete="off"
+            @input="handleSearchInput"
+            @focus="searchStore.openResults"
+            @keyup.enter="handleSearch"
+            @keyup.esc="searchStore.closeResults"
+          />
 
-        <button type="button">Buscar</button>
+          <button type="button" :disabled="searchStore.isSearching" @click="handleSearch">
+            {{ searchStore.isSearching ? 'Buscando...' : 'Buscar' }}
+          </button>
+        </div>
+
+        <div v-if="searchStore.isOpen" class="search-results">
+          <button
+            v-for="result in searchStore.results"
+            :key="result.codigo"
+            type="button"
+            class="search-result"
+            @click="handleSearchResult(result)"
+          >
+            <span class="result-title">
+              {{ result.titulo }}
+            </span>
+
+            <span class="result-status">
+              {{ result.estatus || 'Sin estado' }}
+            </span>
+          </button>
+
+          <p v-if="searchStore.results.length === 0" class="empty-results">
+            No se encontraron lotes.
+          </p>
+        </div>
       </div>
 
       <button type="button" class="user-button">Usuario</button>
@@ -181,20 +236,67 @@ function handleBlockChange(event) {
   min-width: 135px;
 }
 
+.search-wrapper {
+  position: relative;
+}
+
 .search-group {
   display: flex;
   align-items: center;
 }
 
-.search-group input {
-  width: min(320px, 26vw);
-  border-radius: 6px 0 0 6px;
+.search-results {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 1000;
+
+  width: 340px;
+  max-height: 320px;
+  overflow-y: auto;
+
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background-color: var(--color-background);
 }
 
-.search-group button {
-  border-left: none;
-  border-radius: 0 6px 6px 0;
+.search-result {
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  text-align: left;
   cursor: pointer;
+}
+
+.search-result:last-child {
+  border-bottom: none;
+}
+
+.search-result:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.result-title {
+  font-weight: 600;
+}
+
+.result-status {
+  font-size: 0.85rem;
+  text-transform: capitalize;
+}
+
+.empty-results {
+  margin: 0;
+  padding: 0.9rem;
+  text-align: center;
 }
 
 .user-button {
