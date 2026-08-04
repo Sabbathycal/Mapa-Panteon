@@ -195,8 +195,8 @@ const emit = defineEmits(['close'])
   border: 1px solid var(--color-border);
   border-radius: 10px;
 
-  background-color: var(--color-background);
-  color: var(--color-text);
+  background-color: var(--color-primary);
+  color: white;
 
   font: inherit;
   font-weight: 700;
@@ -242,5 +242,13 @@ const emit = defineEmits(['close'])
 .return-button {
   width: 100%;
   margin-top: 1.25rem;
+}
+
+.return-button:hover {
+  filter: brightness(1.5);
+}
+
+.close-modal-button:hover {
+  filter: brightness(1.5);
 }
 </style>
