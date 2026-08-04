@@ -54,10 +54,10 @@ const sidebarStore = useSidebarStore()
 
 <style scoped>
 .sidebar {
-  width: 280px;
+  width: 360px;
   height: 100%;
   flex-shrink: 0;
-  padding: 1rem;
+  padding: 0.75rem;
   box-sizing: border-box;
 
   overflow-y: auto;
