@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 export const useNicheStore = defineStore('niche', () => {
   const selectedZone = ref(null)
@@ -7,6 +7,17 @@ export const useNicheStore = defineStore('niche', () => {
   const selectedSide = ref('concavo')
 
   const selectedNiche = ref(null)
+
+  const canGoBack = computed(() => selectedZone.value !== null)
+
+  function goBack() {
+    if (selectedNiche.value !== null) {
+      clearSelectedNiche()
+      return
+    }
+
+    clearZone()
+  }
 
   function selectSide(side) {
     selectedSide.value = side
@@ -36,11 +47,13 @@ export const useNicheStore = defineStore('niche', () => {
     selectedZone,
     selectedSide,
     selectedNiche,
+    canGoBack,
     //----------------------
     selectSide,
     selectZone,
     selectNiche,
     clearSelectedNiche,
     clearZone,
+    goBack,
   }
 })

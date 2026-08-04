@@ -36,10 +36,14 @@ export const useSelectionStore = defineStore('selection', () => {
   const canGoBack = computed(() => selectedSectionId.value !== null)
 
   function goBack() {
-    if (selectedBlockId.value !== null) {
-      selectedBlockId.value = null
+    if (selectedLotId.value !== null) {
       selectedLotId.value = null
       selectedLotStatus.value = null
+      return
+    }
+
+    if (selectedBlockId.value !== null) {
+      selectedBlockId.value = null
       return
     }
 

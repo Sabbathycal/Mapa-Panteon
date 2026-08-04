@@ -1,32 +1,32 @@
 <script setup>
-import { computed, watch } from 'vue'
+// import { computed, watch } from 'vue'
 
 import InfoSidebar from './InfoSidebar.vue'
-import AdminSidebar from './AdminSidebar.vue'
+// import AdminSidebar from './AdminSidebar.vue'
 
-import { useAuthStore } from '@/stores/Auth.js'
+// import { useAuthStore } from '@/stores/Auth.js'
 import { useSidebarStore } from '@/stores/Sidebar.js'
 
-const authStore = useAuthStore()
+// const authStore = useAuthStore()
 const sidebarStore = useSidebarStore()
 
-const isInfoView = computed(() => {
-  return sidebarStore.activeView === 'info'
-})
+// const isInfoView = computed(() => {
+//   return sidebarStore.activeView === 'info'
+// })
 
-watch(
-  () => authStore.isAdminMode,
-  (isAdminMode) => {
-    if (!isAdminMode) {
-      sidebarStore.resetView()
-    }
-  },
-)
+// watch(
+//   () => authStore.isAdminMode,
+//   (isAdminMode) => {
+//     if (!isAdminMode) {
+//       sidebarStore.resetView()
+//     }
+//   },
+// )
 </script>
 
 <template>
   <aside class="sidebar">
-    <div v-if="authStore.isAdminMode" class="sidebar-tabs">
+    <!-- <div v-if="authStore.isAdminMode" class="sidebar-tabs">
       <button type="button" :class="{ active: isInfoView }" @click="sidebarStore.showInfo">
         Información
       </button>
@@ -34,10 +34,21 @@ watch(
       <button type="button" :class="{ active: !isInfoView }" @click="sidebarStore.showAdmin">
         Administrar
       </button>
+    </div> -->
+    <div class="sidebar-header">
+      <button
+        type="button"
+        class="close-button"
+        aria-label="Cerrar panel lateral"
+        title="Cerrar Panel"
+        @click="sidebarStore.closeSidebar"
+      >
+        ×
+      </button>
     </div>
 
-    <InfoSidebar v-if="isInfoView" />
-    <AdminSidebar v-else />
+    <InfoSidebar />
+    <!-- <AdminSidebar v-else /> -->
   </aside>
 </template>
 
@@ -56,7 +67,28 @@ watch(
   background-color: var(--color-sidebar);
 }
 
-.sidebar-tabs {
+.sidebar-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  height: 2.25rem;
+  margin-bottom: -2.25rem;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.close-button {
+  width: 2.25rem;
+  height: 2.25rem;
+  pointer-events: auto;
+}
+
+.close-button:hover {
+  background-color: var(--color-background);
+}
+
+/* .sidebar-tabs {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1rem;
@@ -74,5 +106,5 @@ watch(
 .sidebar-tabs button.active {
   background-color: var(--color-niche-zone-outline);
   color: black;
-}
+} */
 </style>

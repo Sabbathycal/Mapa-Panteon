@@ -1,5 +1,5 @@
 <script setup>
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 
 import { useSelectionStore } from '@/stores/Selection'
 import { useNicheStore } from '@/stores/Niche'
@@ -25,20 +25,33 @@ const selectedLot = computed(() => {
   )
 })
 
+const hasSearchQuery = computed(() => {
+  return searchStore.query.trim().length > 0
+})
+
+const searchResultCount = computed(() => {
+  return searchStore.results.length
+})
+
+const canGoBack = computed(() => {
+  return selectionStore.canGoBack || nicheStore.canGoBack
+})
+
 function handleGoBack() {
   searchStore.clearSearch()
+
+  if (nicheStore.canGoBack) {
+    nicheStore.goBack()
+    return
+  }
+
   selectionStore.goBack()
 }
-
-watch(
-  () => nicheStore.selectedNiche,
-  (value) => console.log('Sidebar recibio:', value),
-)
 </script>
 
 <template>
   <div class="info-sidebar">
-    <button v-if="selectionStore.canGoBack" type="button" class="back-button" @click="handleGoBack">
+    <button v-if="canGoBack" type="button" class="back-button" @click="handleGoBack">
       ← Volver
     </button>
 
@@ -122,6 +135,23 @@ watch(
       </label>
     </div>
 
+    <div v-else-if="hasSearchQuery" class="search-prompt">
+      <h2>Búsqueda de propiedades</h2>
+
+      <p v-if="searchResultCount > 0">
+        Se encontraron
+        <strong>{{ searchResultCount }}</strong>
+        propiedades.
+      </p>
+
+      <p v-else>No se encontraron propiedades con esa búsqueda.</p>
+
+      <p v-if="searchResultCount > 0" class="search-prompt-hint">
+        Selecciona un lote o nicho desde los resultados del buscador para consultar su ubicación e
+        información.
+      </p>
+    </div>
+
     <p v-else>Haz clic en cualquier elemento del mapa.</p>
   </div>
 </template>
@@ -130,6 +160,11 @@ watch(
 .info-sidebar {
   width: 100%;
   min-height: 100%;
+}
+
+.back-button {
+  min-height: 2.25rem;
+  margin-bottom: 1rem;
 }
 
 .selection-details {
@@ -155,5 +190,26 @@ watch(
   border-radius: 4px;
   background-color: var(--color-background);
   color: var(--color-text);
+}
+
+.search-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.search-prompt h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.search-prompt p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.search-prompt-hint {
+  color: var(--color-text-muted, var(--color-text));
 }
 </style>
