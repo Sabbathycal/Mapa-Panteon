@@ -60,6 +60,7 @@ export const useSearchStore = defineStore('search', () => {
 
       selectionStore.selectSection(result.seccionId)
       selectionStore.selectBlock(result.manzanaId)
+      selectionStore.showLots()
       selectionStore.selectLot(result.loteId, result.estatus)
     }
 

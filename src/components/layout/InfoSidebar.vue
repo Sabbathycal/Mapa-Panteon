@@ -135,6 +135,24 @@ function handleGoBack() {
       </label>
     </div>
 
+    <div
+      v-else-if="selectionStore.selectedBlockId && !nicheStore.selectedZone"
+      class="block-summary"
+    >
+      <h2>
+        SECCIÓN {{ selectionStore.selectedSectionId }} — MANZANA
+        {{ selectionStore.selectedBlockId }}
+      </h2>
+
+      <button
+        type="button"
+        class="lots-visibility-button"
+        @click="selectionStore.toggleLotsVisibility"
+      >
+        {{ selectionStore.areLotsVisible ? 'Ocultar lotes' : 'Mostrar lotes' }}
+      </button>
+    </div>
+
     <div v-else-if="hasSearchQuery" class="search-prompt">
       <h2>Búsqueda de propiedades</h2>
 
@@ -211,5 +229,22 @@ function handleGoBack() {
 
 .search-prompt-hint {
   color: var(--color-text-muted, var(--color-text));
+}
+
+.block-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.block-summary h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.lots-visibility-button {
+  width: 100%;
+  padding: 0.7rem;
+  cursor: pointer;
 }
 </style>

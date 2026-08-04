@@ -344,6 +344,7 @@ onMounted(async () => {
     nicheZones.value,
     'var(--color-niche-zone-outline)',
     (nicheZone) => {
+      selectionStore.clearSelection()
       nicheStore.selectZone(nicheZone)
     },
   )
@@ -380,9 +381,9 @@ watch(
   (newBlockId) => {
     if (!mapInstance.value) return
 
-    if (newBlockId === null) {
-      lotLayer.value?.remove()
+    lotLayer.value?.remove()
 
+    if (newBlockId === null) {
       if (selectionStore.selectedSectionId) {
         showBlocksForSection(selectionStore.selectedSectionId)
       }
@@ -390,7 +391,25 @@ watch(
       return
     }
 
-    showLotsForBlock(newBlockId)
+    showBlocksForSection(selectionStore.selectedSectionId)
+  },
+)
+
+watch(
+  () => selectionStore.areLotsVisible,
+  (areLotsVisible) => {
+    if (!mapInstance.value) return
+
+    lotLayer.value?.remove()
+
+    if (areLotsVisible && selectionStore.selectedSectionId && selectionStore.selectedBlockId) {
+      showLotsForBlock(selectionStore.selectedBlockId)
+      return
+    }
+
+    if (selectionStore.selectedSectionId) {
+      showBlocksForSection(selectionStore.selectedSectionId)
+    }
   },
 )
 
