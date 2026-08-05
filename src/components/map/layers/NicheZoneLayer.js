@@ -19,6 +19,12 @@ export function createNicheZoneLayer(nicheZones, zoneColor, onNicheZoneSelected)
         fillOpacity: 0.001,
       }
 
+      layer.bindTooltip(feature.properties.nombre, {
+        permanent: false,
+        direction: 'center',
+        className: 'niche-zone-tooltip',
+      })
+
       layer.on({
         mouseover() {
           layer.setStyle({
@@ -28,12 +34,7 @@ export function createNicheZoneLayer(nicheZones, zoneColor, onNicheZoneSelected)
             fillOpacity: 0.25,
           })
 
-          layer
-            .bindTooltip(feature.properties.nombre, {
-              direction: 'center',
-              className: 'niche-zone-tooltip',
-            })
-            .openTooltip()
+          layer.openTooltip()
         },
 
         mouseout() {

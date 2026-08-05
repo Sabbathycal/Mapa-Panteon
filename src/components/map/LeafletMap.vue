@@ -92,14 +92,63 @@ function handleLotSelected(lotId, lotStatus) {
   selectionStore.selectLot(lotId, lotStatus)
 }
 
+function normalizeStatus(value) {
+  return String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+}
+
+function getLotStatus(feature) {
+  const properties = feature?.properties ?? {}
+
+  const saleStatus = normalizeStatus(properties.estatus_venta || properties.estatus)
+
+  const occupationStatus = normalizeStatus(properties.estatus_ocupacion)
+
+  if (occupationStatus === 'ocupado' || saleStatus === 'ocupado') {
+    return 'ocupado'
+  }
+
+  if (saleStatus === 'separado') return 'separado'
+  if (saleStatus === 'vendido') return 'vendido'
+  if (saleStatus === 'disponible') return 'disponible'
+
+  return 'sin-estado'
+}
+
+function filterLotsByStatus(featureCollection, filterId) {
+  if (!featureCollection?.features) {
+    return {
+      type: 'FeatureCollection',
+      features: [],
+    }
+  }
+
+  if (filterId === 'todos') {
+    return featureCollection
+  }
+
+  return {
+    ...featureCollection,
+    features: featureCollection.features.filter((feature) => {
+      return getLotStatus(feature) === filterId
+    }),
+  }
+}
+
 function showBlocksForSection(sectionId) {
   if (!mapInstance.value || !blocks.value || !sectionId) return
 
   const filteredBlocks = filterBlockbySection(blocks.value, sectionId)
 
+  closeLayerTooltips(sectionLayer.value)
   sectionLayer.value?.remove()
   lotLayer.value?.remove()
+  closeLayerTooltips(nicheZoneLayer.value)
   nicheZoneLayer.value?.remove()
+  closeLayerTooltips(blockLayer.value)
   blockLayer.value?.remove()
 
   blockLayer.value = createBlockLayer(
@@ -112,18 +161,43 @@ function showBlocksForSection(sectionId) {
 }
 
 function showLotsForBlock(blockId) {
+  console.log('showLotsForBlock ejecutado:', {
+    blockId,
+    sectionId: selectionStore.selectedSectionId,
+    activeFilter: selectionStore.activeLotFilter,
+    hasMap: Boolean(mapInstance.value),
+    hasLots: Boolean(lots.value),
+  })
+
   if (!mapInstance.value || !lots.value || !selectionStore.selectedSectionId || !blockId) {
+    console.warn('showLotsForBlock salió antes de cargar')
     return
   }
 
-  const filteredLots = filterLotsbyBlocks(lots.value, selectionStore.selectedSectionId, blockId)
+  const blockLots = filterLotsbyBlocks(lots.value, selectionStore.selectedSectionId, blockId)
+
+  console.log('Lotes de la manzana:', {
+    result: blockLots,
+    count: blockLots?.features?.length,
+  })
+
+  const filteredLots = filterLotsByStatus(blockLots, selectionStore.activeLotFilter)
+
+  console.log('Lotes después del filtro:', {
+    filter: selectionStore.activeLotFilter,
+    count: filteredLots?.features?.length,
+  })
 
   blockLayer.value?.remove()
   lotLayer.value?.remove()
 
   lotLayer.value = createLotLayer(filteredLots, handleLotSelected)
 
+  console.log('Capa creada:', lotLayer.value)
+
   lotLayer.value.addTo(mapInstance.value)
+
+  console.log('Capa agregada al mapa')
 }
 
 function updateEditorTool() {
@@ -270,6 +344,14 @@ function syncGridDraftFromLayers() {
   })
 }
 
+function closeLayerTooltips(layerGroup) {
+  if (!layerGroup) return
+
+  layerGroup.eachLayer((layer) => {
+    layer.closeTooltip?.()
+  })
+}
+
 // Esta funcion se ejecuta cuando el componente se monta, y es
 // la que inicializa el mapa.
 onMounted(async () => {
@@ -410,6 +492,17 @@ watch(
     if (selectionStore.selectedSectionId) {
       showBlocksForSection(selectionStore.selectedSectionId)
     }
+  },
+)
+
+watch(
+  () => selectionStore.activeLotFilter,
+  () => {
+    if (!mapInstance.value || !selectionStore.areLotsVisible || !selectionStore.selectedBlockId) {
+      return
+    }
+
+    showLotsForBlock(selectionStore.selectedBlockId)
   },
 )
 

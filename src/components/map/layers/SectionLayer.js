@@ -17,6 +17,12 @@ export function createSectionLayer(sections, sectionColor, onSectionSelected) {
         fillOpacity: 0.001,
       }
 
+      layer.bindTooltip(feature.properties.nombre, {
+        permanent: false,
+        direction: 'center',
+        className: 'section-tooltip',
+      })
+
       layer.on({
         mouseover() {
           layer.setStyle({
@@ -27,13 +33,7 @@ export function createSectionLayer(sections, sectionColor, onSectionSelected) {
             fillOpacity: 0.25,
           })
 
-          layer
-            .bindTooltip(feature.properties.nombre, {
-              permanent: false,
-              direction: 'center',
-              className: 'section-tooltip',
-            })
-            .openTooltip()
+          layer.openTooltip()
         },
 
         mouseout() {

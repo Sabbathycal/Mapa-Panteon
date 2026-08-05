@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 import { useSelectionStore } from '@/stores/Selection'
 import { useNicheStore } from '@/stores/Niche'
@@ -13,8 +13,6 @@ import PropertyDetailsModal from './PropertyDetailsModal.vue'
 
 const lots = ref(null)
 const niches = ref(null)
-const activeLotFilter = ref('todos')
-const activeNicheFilter = ref('todos')
 const isPropertyModalOpen = ref(false)
 
 const selectionStore = useSelectionStore()
@@ -192,10 +190,6 @@ const nicheFilterOptions = computed(() => {
   ]
 })
 
-function selectNicheFilter(filterId) {
-  activeNicheFilter.value = filterId
-}
-
 const nicheSideSummaries = computed(() => {
   const sides = ['concavo', 'convexo']
 
@@ -217,10 +211,6 @@ const nicheSideSummaries = computed(() => {
 const activeNicheSideSummary = computed(() => {
   return nicheSideSummaries.value.find((side) => side.id === nicheStore.selectedSide) ?? null
 })
-
-function selectLotFilter(filterId) {
-  activeLotFilter.value = filterId
-}
 
 function handleGoBack() {
   searchStore.clearSearch()
@@ -300,13 +290,6 @@ onMounted(async () => {
   lots.value = loadedLots
   niches.value = loadedNiches
 })
-
-watch(
-  () => nicheStore.selectedSide,
-  () => {
-    activeNicheFilter.value = 'todos'
-  },
-)
 </script>
 
 <template>
@@ -445,8 +428,8 @@ watch(
             :key="filter.id"
             type="button"
             class="lot-filter-button"
-            :class="{ active: activeLotFilter === filter.id }"
-            @click="selectLotFilter(filter.id)"
+            :class="{ active: selectionStore.activeLotFilter === filter.id }"
+            @click="selectionStore.selectLotFilter(filter.id)"
           >
             {{ filter.label }} ({{ filter.count }})
           </button>
@@ -454,7 +437,7 @@ watch(
 
         <p class="active-filter">
           Filtro actual:
-          <strong>{{ activeLotFilter }}</strong>
+          <strong>{{ selectionStore.activeLotFilter }}</strong>
         </p>
       </div>
 
@@ -530,8 +513,8 @@ watch(
             :key="filter.id"
             type="button"
             class="niche-filter-button"
-            :class="{ active: activeNicheFilter === filter.id }"
-            @click="selectNicheFilter(filter.id)"
+            :class="{ active: nicheStore.activeNicheFilter === filter.id }"
+            @click="nicheStore.selectNicheFilter(filter.id)"
           >
             {{ filter.label }} ({{ filter.count }})
           </button>
@@ -539,7 +522,7 @@ watch(
 
         <p class="active-filter">
           Filtro actual:
-          <strong>{{ activeNicheFilter }}</strong>
+          <strong>{{ nicheStore.activeNicheFilter }}</strong>
         </p>
       </div>
       <section v-if="activeNicheSideSummary" class="niche-summary-card">

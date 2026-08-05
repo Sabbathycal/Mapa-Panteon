@@ -9,6 +9,7 @@ export const useSelectionStore = defineStore('selection', () => {
   const selectedLotId = ref(null)
 
   const areLotsVisible = ref(false)
+  const activeLotFilter = ref('todos')
 
   function selectSection(sectionId) {
     selectedSectionId.value = sectionId
@@ -16,6 +17,7 @@ export const useSelectionStore = defineStore('selection', () => {
     selectedLotId.value = null
     selectedLotStatus.value = null
     areLotsVisible.value = false
+    activeLotFilter.value = 'todos'
   }
 
   function selectBlock(blockId) {
@@ -23,11 +25,16 @@ export const useSelectionStore = defineStore('selection', () => {
     selectedLotId.value = null
     selectedLotStatus.value = null
     areLotsVisible.value = false
+    activeLotFilter.value = 'todos'
   }
 
   function selectLot(lotId, lotStatus) {
     selectedLotId.value = lotId
     selectedLotStatus.value = lotStatus
+  }
+
+  function selectLotFilter(filterId) {
+    activeLotFilter.value = filterId
   }
 
   function showLots() {
@@ -57,6 +64,7 @@ export const useSelectionStore = defineStore('selection', () => {
     selectedLotId.value = null
     selectedLotStatus.value = null
     areLotsVisible.value = false
+    activeLotFilter.value = 'todos'
   }
 
   const canGoBack = computed(() => selectedSectionId.value !== null)
@@ -83,6 +91,7 @@ export const useSelectionStore = defineStore('selection', () => {
     selectedLotId,
     selectedLotStatus,
     areLotsVisible,
+    activeLotFilter,
     canGoBack,
     //-----------------
     selectSection,
@@ -91,6 +100,7 @@ export const useSelectionStore = defineStore('selection', () => {
     showLots,
     hideLots,
     toggleLotsVisibility,
+    selectLotFilter,
     clearSelection,
     goBack,
   }

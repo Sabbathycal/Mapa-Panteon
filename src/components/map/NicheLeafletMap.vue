@@ -64,6 +64,51 @@ function loadImageDimensions(imageSource) {
   })
 }
 
+function normalizeStatus(value) {
+  return String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+}
+
+function getNicheStatus(feature) {
+  const properties = feature?.properties ?? {}
+
+  const saleStatus = normalizeStatus(properties.estatus_venta)
+  const occupationStatus = normalizeStatus(properties.estatus_ocupacion)
+
+  if (occupationStatus === 'ocupado' || saleStatus === 'ocupado') {
+    return 'ocupado'
+  }
+
+  if (saleStatus === 'separado') return 'separado'
+  if (saleStatus === 'vendido') return 'vendido'
+  if (saleStatus === 'disponible') return 'disponible'
+
+  return 'sin-estado'
+}
+
+function filterNichesByStatus(featureCollection, filterId) {
+  if (!featureCollection?.features) {
+    return {
+      type: 'FeatureCollection',
+      features: [],
+    }
+  }
+
+  if (filterId === 'todos') {
+    return featureCollection
+  }
+
+  return {
+    ...featureCollection,
+    features: featureCollection.features.filter((feature) => {
+      return getNicheStatus(feature) === filterId
+    }),
+  }
+}
+
 function updateEditorTool() {
   if (!mapInstance.value) return
 
@@ -272,6 +317,20 @@ function syncGridDraftFromLayers() {
   })
 }
 
+function renderNiches() {
+  if (!mapInstance.value || !niches.value) return
+
+  const filteredNiches = filterNichesByStatus(niches.value, nicheStore.activeNicheFilter)
+
+  nichesLayer.value?.remove()
+
+  nichesLayer.value = createNicheLayer(filteredNiches, (niche) => {
+    nicheStore.selectNiche(niche)
+  })
+
+  nichesLayer.value.addTo(mapInstance.value)
+}
+
 onMounted(async () => {
   if (!mapContainer.value) return
 
@@ -313,11 +372,7 @@ onMounted(async () => {
     }
 
     niches.value = await GeometryService.getNiches(zoneId, side)
-
-    nichesLayer.value = createNicheLayer(niches.value, (niche) => {
-      console.log('Leaflet:', niche)
-      nicheStore.selectNiche(niche)
-    })
+    renderNiches()
 
     nichesLayer.value.addTo(mapInstance.value)
   } catch (error) {
@@ -347,6 +402,13 @@ onMounted(async () => {
 })
 
 watch(() => [authStore.isAdminMode, geometryEditorStore.selectedTool], updateEditorTool)
+
+watch(
+  () => nicheStore.activeNicheFilter,
+  () => {
+    renderNiches()
+  },
+)
 
 watch(
   () => gridEditorStore.generateRequest,

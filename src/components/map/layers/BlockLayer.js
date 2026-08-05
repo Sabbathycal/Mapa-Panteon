@@ -20,6 +20,12 @@ export function createBlockLayer(blocks, blockColor, onBlockSelected) {
     },
 
     onEachFeature(feature, layer) {
+      layer.bindTooltip(feature.properties.nombre, {
+        permanent: false,
+        direction: 'center',
+        className: 'block-tooltip',
+      })
+
       layer.on({
         mouseover() {
           layer.setStyle({
@@ -28,12 +34,7 @@ export function createBlockLayer(blocks, blockColor, onBlockSelected) {
             fillOpacity: 0.2,
           })
 
-          layer
-            .bindTooltip(feature.properties.nombre, {
-              direction: 'center',
-              className: 'block-tooltip',
-            })
-            .openTooltip()
+          layer.openTooltip()
         },
 
         mouseout() {
@@ -48,6 +49,8 @@ export function createBlockLayer(blocks, blockColor, onBlockSelected) {
         },
 
         click() {
+          layer.closeTooltip()
+
           onBlockSelected(feature.properties.manzana)
         },
       })
