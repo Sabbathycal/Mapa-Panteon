@@ -478,6 +478,15 @@ onMounted(async () => {
       </section>
     </section>
 
+    <section
+      v-else-if="selectionStore.selectedSectionId && !nicheStore.selectedZone"
+      class="section-prompt"
+    >
+      <h2>SECCIÓN {{ selectionStore.selectedSectionId }}</h2>
+
+      <p>Seleccione una <strong>MANZANA</strong> en el mapa.</p>
+    </section>
+
     <section v-else-if="nicheStore.selectedZone" class="niche-zone-panel">
       <header class="niche-zone-header">
         <h2>
@@ -485,7 +494,7 @@ onMounted(async () => {
           {{ nicheStore.selectedZone.id }}
         </h2>
 
-        <p>Selecciona una cara para consultar el resumen de sus nichos.</p>
+        <p>Selecciona una <strong>CARA</strong> para consultar el resumen de sus nichos.</p>
       </header>
 
       <div class="niche-zone-section">
@@ -565,21 +574,42 @@ onMounted(async () => {
       </section>
     </section>
 
-    <div v-else-if="hasSearchQuery" class="search-prompt">
-      <h2>Búsqueda de propiedades</h2>
+    <div v-else-if="searchStore.isSearchActive" class="search-prompt">
+      <h2>Buscar propiedad</h2>
 
-      <p v-if="searchResultCount > 0">
-        Se encontraron
-        <strong>{{ searchResultCount }}</strong>
-        propiedades.
-      </p>
+      <template v-if="!hasSearchQuery">
+        <p>Escribe una referencia, lote o clave de propiedad.</p>
 
-      <p v-else>No se encontraron propiedades con esa búsqueda.</p>
+        <p>Ejemplos:</p>
 
-      <p v-if="searchResultCount > 0" class="search-prompt-hint">
-        Selecciona un lote o nicho desde los resultados del buscador para consultar su ubicación e
-        información.
-      </p>
+        <ul class="search-examples">
+          <strong>SECCIÓN</strong>
+          <li>PLATINO - 011 - B</li>
+          <li>PLATINO B 011</li>
+          <li>011</li>
+          <hr />
+          <strong>NICHO</strong>
+          <li>PLN-Cóncavo-A1</li>
+          <li>SPN concavo A1</li>
+          <li>Concavo A1</li>
+          <li>A1</li>
+        </ul>
+      </template>
+
+      <template v-else>
+        <p v-if="searchResultCount > 0">
+          Se encontraron
+          <strong>{{ searchResultCount }}</strong>
+          propiedades.
+        </p>
+
+        <p v-else>No se encontraron propiedades con esa búsqueda.</p>
+
+        <p v-if="searchResultCount > 0" class="search-prompt-hint">
+          Selecciona un lote o nicho desde los resultados del buscador para consultar su ubicación e
+          información.
+        </p>
+      </template>
     </div>
 
     <p v-else>Haz clic en cualquier elemento del mapa.</p>
@@ -780,7 +810,7 @@ onMounted(async () => {
 }
 
 .lot-filter-button.active {
-  outline: 2px solid var(--color-block-outline);
+  outline: 2px solid var(--color-backbutton);
   outline-offset: 1px;
 }
 
@@ -888,7 +918,7 @@ onMounted(async () => {
 }
 
 .niche-side-button.active {
-  outline: 2px solid var(--color-block-outline);
+  outline: 2px solid var(--color-backbutton);
   outline-offset: 1px;
 }
 
@@ -959,7 +989,35 @@ onMounted(async () => {
 }
 
 .niche-filter-button.active {
-  outline: 2px solid var(--color-block-outline);
+  outline: 2px solid var(--color-backbutton);
   outline-offset: 1px;
+}
+
+.section-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.section-prompt h2 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.section-prompt p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.search-examples {
+  margin: 0;
+  padding-left: 2rem;
+}
+
+.search-examples li {
+  margin: 0.15rem 0;
+  line-height: 1.35;
 }
 </style>

@@ -51,7 +51,7 @@ const hasConvexImage = computed(() => {
         :disabled="nicheStore.selectedSide === 'concavo'"
         @click="nicheStore.selectSide('concavo')"
       >
-        Cóncavo
+        CÓNCAVO
       </button>
 
       <button
@@ -63,7 +63,7 @@ const hasConvexImage = computed(() => {
         :disabled="!hasConvexImage || nicheStore.selectedSide === 'convexo'"
         @click="nicheStore.selectSide('convexo')"
       >
-        Convexo
+        CONVEXO
       </button>
     </div>
 

@@ -176,6 +176,17 @@ function handleSearchInput() {
   }
 }
 
+function handleSearchBlur() {
+  window.setTimeout(() => {
+    searchStore.closeSearch()
+  }, 150)
+}
+
+function handleSearchEscape() {
+  searchStore.closeResults()
+  searchStore.closeSearch()
+}
+
 function handleSearchResult(result) {
   searchStore.selectResult(result)
 }
@@ -191,9 +202,9 @@ function handleSearchResult(result) {
         aria-label="Seleccionar sección o Zona de nichos"
         @change="handleLocationChange"
       >
-        <option value="">Sección o Zona</option>
+        <option value="">SECCIÓN O ZONA...</option>
 
-        <optgroup label="Secciones">
+        <optgroup label="SECCIONES">
           <option
             v-for="section in sectionsWithBlocks"
             :key="`section-${section.properties.id}`"
@@ -203,7 +214,7 @@ function handleSearchResult(result) {
           </option>
         </optgroup>
 
-        <optgroup label="Nichos">
+        <optgroup label="NICHOS">
           <option
             v-for="zone in availableNicheZones"
             :key="`niche-${zone.id}`"
@@ -221,12 +232,12 @@ function handleSearchResult(result) {
         @change="handleSecondaryChange"
       >
         <option value="">
-          {{ isNicheLocation ? 'Cara' : 'Manzana' }}
+          {{ isNicheLocation ? 'CARA...' : 'MANZANA...' }}
         </option>
 
         <template v-if="isNicheLocation">
           <option v-for="side in sidesBySelectedZone" :key="side" :value="side">
-            {{ side === 'concavo' ? 'Cóncavo' : 'Convexo' }}
+            {{ side === 'concavo' ? 'CÓNCAVO' : 'CONVEXO' }}
           </option>
         </template>
 
@@ -235,6 +246,7 @@ function handleSearchResult(result) {
             v-for="block in blocksBySelectedSection"
             :key="block.properties.id"
             :value="block.properties.manzana"
+            class="select-block"
           >
             {{ block.properties.nombre }}
           </option>
@@ -246,13 +258,15 @@ function handleSearchResult(result) {
           <input
             v-model="searchStore.query"
             type="search"
-            placeholder="Buscar lote o nicho..."
+            placeholder="Buscar lote o nicho...(ej. 001)"
             aria-label="Buscar lote"
             autocomplete="off"
             @input="handleSearchInput"
-            @focus="searchStore.openResults"
+            @focus="searchStore.openSearch"
+            @click="searchStore.openSearch"
+            @blur="handleSearchBlur"
             @keyup.enter="handleSearch"
-            @keyup.esc="searchStore.closeResults"
+            @keyup.esc="handleSearchEscape"
           />
 
           <button type="button" :disabled="searchStore.isSearching" @click="handleSearch">
@@ -311,6 +325,10 @@ function handleSearchResult(result) {
   color: white;
 }
 
+.select-block {
+  text-transform: uppercase;
+}
+
 .top-bar-actions {
   display: flex;
   align-items: center;
@@ -343,6 +361,7 @@ function handleSearchResult(result) {
 .search-group {
   display: flex;
   align-items: center;
+  gap: 5px;
 }
 
 .search-results {

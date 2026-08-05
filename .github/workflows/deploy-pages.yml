@@ -1,10 +1,6 @@
 name: Deploy V2 to GitHub Pages
 
 on:
-  push:
-    branches:
-      - V2
-
   workflow_dispatch:
 
 permissions:

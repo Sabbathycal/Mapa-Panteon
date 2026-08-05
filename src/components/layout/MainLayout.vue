@@ -24,12 +24,16 @@ const sidebarContext = computed(() => {
     nicheStore.selectedSide,
     nicheStore.selectedNiche?.id ?? nicheStore.selectedNiche?.codigo ?? null,
     searchStore.query.trim(),
+    searchStore.isSearchActive,
   ]
 })
 
 const hasSidebarContext = computed(() => {
   return Boolean(
-    selectionStore.selectedSectionId || nicheStore.selectedZone || searchStore.query.trim(),
+    selectionStore.selectedSectionId ||
+    nicheStore.selectedZone ||
+    searchStore.query.trim() ||
+    searchStore.isSearchActive,
   )
 })
 
@@ -37,7 +41,10 @@ watch(sidebarContext, (currentContext, previousContext) => {
   const contextChanged = currentContext.some((value, index) => value !== previousContext?.[index])
 
   const hasContext = Boolean(
-    selectionStore.selectedSectionId || nicheStore.selectedZone || searchStore.query.trim(),
+    selectionStore.selectedSectionId ||
+    nicheStore.selectedZone ||
+    searchStore.query.trim() ||
+    searchStore.isSearchActive,
   )
 
   if (contextChanged && hasContext) {

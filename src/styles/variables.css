@@ -1,13 +1,15 @@
 :root {
   /* Colores para la pagina del mapa del panteon  */
-  --color-primary: #430d06;
-  --color-sidebar: #eff7b1;
-  --color-border: #ffffff;
+  --color-primary: #0d2d52;
+  --color-sidebar: #fff8ec;
+  --color-border: #eadcc6;
   --color-border-2: #000000;
   --color-background: #ffffff;
-  --color-backbutton: #430d06;
-  --color-selectSide-button: #eff7b1;
-  --color-selectSide-button-active: #cfd699;
+  --color-backbutton: #0d2d52;
+  --color-selectSide-button: #d0d0d7;
+  --color-selectSide-button-active: #bcbcc3;
+  --color-heading: #0b2545;
+  --color-text: #222222;
 
   /* Colores para las geometrias del mapa del panteon  */
   --color-section-outline: #000000;

@@ -10,9 +10,18 @@ export const useSearchStore = defineStore('search', () => {
   const results = ref([])
   const isOpen = ref(false)
   const isSearching = ref(false)
+  const isSearchActive = ref(false)
 
   function setQuery(value) {
     query.value = value
+  }
+
+  function openSearch() {
+    isSearchActive.value = true
+  }
+
+  function closeSearch() {
+    isSearchActive.value = false
   }
 
   function clearResults() {
@@ -22,7 +31,8 @@ export const useSearchStore = defineStore('search', () => {
 
   function clearSearch() {
     query.value = ''
-    clearResults()
+    results.value = []
+    isSearchActive.value = false
   }
 
   function searchProperties(lotFeatures, nicheFeatures, options = {}) {
@@ -95,6 +105,7 @@ export const useSearchStore = defineStore('search', () => {
     results,
     isOpen,
     isSearching,
+    isSearchActive,
     //--------------------
     setQuery,
     searchProperties,
@@ -103,5 +114,7 @@ export const useSearchStore = defineStore('search', () => {
     clearSearch,
     openResults,
     closeResults,
+    openSearch,
+    closeSearch,
   }
 })

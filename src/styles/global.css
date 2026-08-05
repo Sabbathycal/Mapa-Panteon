@@ -33,3 +33,52 @@
   border-radius: 6px;
   transition: 0.2s ease;
 }
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+strong {
+  color: var(--color-heading);
+}
+
+button strong,
+a strong {
+  color: inherit;
+}
+
+html,
+body,
+button,
+input,
+select,
+textarea {
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Arial,
+    sans-serif;
+}
+
+body {
+  color: var(--color-text);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+strong {
+  color: var(--color-heading);
+}
+
+button strong,
+a strong {
+  color: inherit;
+}
