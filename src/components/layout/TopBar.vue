@@ -194,7 +194,7 @@ function handleSearchResult(result) {
 
 <template>
   <header class="top-bar">
-    <h1 class="top-bar-title">Mapa Panteón V2</h1>
+    <h1 class="top-bar-title">Mapa del Panteón</h1>
 
     <div class="top-bar-actions">
       <select
