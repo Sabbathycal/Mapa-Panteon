@@ -1,49 +1,51 @@
 import Leaf from 'leaflet'
 import { getGeometryColorByStatus } from '@/utils/geometryStatusColors'
 
-export function createLotLayer(lots, onLotsSelected) {
+export function createLotLayer(lots, selectedLotId, onLotsSelected) {
+  function getStatus(feature) {
+    return (
+      feature?.properties?.estatus_ocupacion ||
+      feature?.properties?.estatus_venta ||
+      feature?.properties?.estatus
+    )
+  }
+
+  function isSelected(feature) {
+    return String(feature?.properties?.id) === String(selectedLotId)
+  }
+
+  function getDefaultStyle(feature) {
+    const lotColor = getGeometryColorByStatus(getStatus(feature))
+
+    return {
+      color: isSelected(feature) ? 'var(--color-selection)' : lotColor,
+      fillColor: lotColor,
+      weight: isSelected(feature) ? 4 : 0.5,
+      fill: true,
+      fillOpacity: 0.5,
+    }
+  }
+
   return Leaf.geoJSON(lots, {
     style(feature) {
-      console.log(feature.properties.estatus)
-
-      const status =
-        feature.properties.estatus_ocupacion ||
-        feature.properties.estatus_venta ||
-        feature.properties.estatus
-
-      const lotColor = getGeometryColorByStatus(status)
-
-      return {
-        color: lotColor,
-        fillColor: lotColor,
-        weight: 0.5,
-        fill: true,
-        fillOpacity: 0.5,
-      }
+      return getDefaultStyle(feature)
     },
 
     onEachFeature(feature, layer) {
-      const status =
-        feature.properties.estatus_ocupacion ||
-        feature.properties.estatus_venta ||
-        feature.properties.estatus
-
-      const lotColor = getGeometryColorByStatus(status)
+      const status = getStatus(feature)
 
       layer.on({
         mouseover() {
           layer.setStyle({
+            weight: isSelected(feature) ? 4 : 1.5,
             fillOpacity: 0.25,
           })
+
+          layer.bringToFront()
         },
 
         mouseout() {
-          layer.setStyle({
-            color: lotColor,
-            fillColor: lotColor,
-            weight: 0.5,
-            fillOpacity: 0.5,
-          })
+          layer.setStyle(getDefaultStyle(feature))
         },
 
         click() {

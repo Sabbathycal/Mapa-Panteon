@@ -324,9 +324,11 @@ function renderNiches() {
 
   const filteredNiches = filterNichesByStatus(niches.value, nicheStore.activeNicheFilter)
 
+  const selectedNicheId = nicheStore.selectedNiche?.id || nicheStore.selectedNiche?.codigo || null
+
   nichesLayer.value?.remove()
 
-  nichesLayer.value = createNicheLayer(filteredNiches, (niche) => {
+  nichesLayer.value = createNicheLayer(filteredNiches, selectedNicheId, (niche) => {
     nicheStore.selectNiche(niche)
   })
 
@@ -409,6 +411,15 @@ watch(() => [authStore.isAdminMode, geometryEditorStore.selectedTool], updateEdi
 watch(
   () => nicheStore.activeNicheFilter,
   () => {
+    renderNiches()
+  },
+)
+
+watch(
+  () => nicheStore.selectedNiche?.id || nicheStore.selectedNiche?.codigo || null,
+  () => {
+    if (!mapInstance.value || !niches.value) return
+
     renderNiches()
   },
 )

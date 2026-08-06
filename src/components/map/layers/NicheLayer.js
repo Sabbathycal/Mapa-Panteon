@@ -1,28 +1,44 @@
 import Leaf from 'leaflet'
 import { getGeometryColorByStatus } from '@/utils/geometryStatusColors'
 
-export function createNicheLayer(niches, onNicheSelected) {
+export function createNicheLayer(niches, selectedNicheId, onNicheSelected) {
+  function getStatus(feature) {
+    const properties = feature?.properties ?? {}
+
+    return properties.estatus_ocupacion || properties.estatus_venta
+  }
+
+  function getNicheId(feature) {
+    const properties = feature?.properties ?? {}
+
+    return properties.id || properties.codigo
+  }
+
+  function isSelected(feature) {
+    return String(getNicheId(feature)) === String(selectedNicheId)
+  }
+
+  function getDefaultStyle(feature) {
+    const color = getGeometryColorByStatus(getStatus(feature))
+
+    return {
+      color: isSelected(feature) ? 'var(--color-selection)' : color,
+      fillColor: color,
+      weight: isSelected(feature) ? 4 : 1,
+      fillOpacity: 0.65,
+    }
+  }
+
   return Leaf.geoJSON(niches, {
     style(feature) {
-      const properties = feature?.properties ?? {}
-
-      const status = properties.estatus_ocupacion || properties.estatus_venta
-
-      const color = getGeometryColorByStatus(status)
-
-      return {
-        color,
-        fillColor: color,
-        weight: 1,
-        fillOpacity: 0.65,
-      }
+      return getDefaultStyle(feature)
     },
 
     onEachFeature(feature, layer) {
       layer.on({
         mouseover() {
           layer.setStyle({
-            weight: 2,
+            weight: isSelected(feature) ? 4 : 2,
             fillOpacity: 0.35,
           })
 
@@ -30,18 +46,7 @@ export function createNicheLayer(niches, onNicheSelected) {
         },
 
         mouseout() {
-          const properties = feature?.properties ?? {}
-
-          const status = properties.estatus_ocupacion || properties.estatus_venta
-
-          const color = getGeometryColorByStatus(status)
-
-          layer.setStyle({
-            color,
-            fillColor: color,
-            weight: 1,
-            fillOpacity: 0.65,
-          })
+          layer.setStyle(getDefaultStyle(feature))
         },
 
         click() {

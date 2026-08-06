@@ -146,6 +146,7 @@ function showBlocksForSection(sectionId) {
   blockLayer.value = createBlockLayer(
     filteredBlocks,
     'var(--color-block-outline)',
+    selectionStore.selectedBlockId,
     handleBlockSelected,
   )
 
@@ -153,14 +154,6 @@ function showBlocksForSection(sectionId) {
 }
 
 function showLotsForBlock(blockId) {
-  console.log('showLotsForBlock ejecutado:', {
-    blockId,
-    sectionId: selectionStore.selectedSectionId,
-    activeFilter: selectionStore.activeLotFilter,
-    hasMap: Boolean(mapInstance.value),
-    hasLots: Boolean(lots.value),
-  })
-
   if (!mapInstance.value || !lots.value || !selectionStore.selectedSectionId || !blockId) {
     console.warn('showLotsForBlock salió antes de cargar')
     return
@@ -168,28 +161,14 @@ function showLotsForBlock(blockId) {
 
   const blockLots = filterLotsbyBlocks(lots.value, selectionStore.selectedSectionId, blockId)
 
-  console.log('Lotes de la manzana:', {
-    result: blockLots,
-    count: blockLots?.features?.length,
-  })
-
   const filteredLots = filterLotsByStatus(blockLots, selectionStore.activeLotFilter)
-
-  console.log('Lotes después del filtro:', {
-    filter: selectionStore.activeLotFilter,
-    count: filteredLots?.features?.length,
-  })
 
   blockLayer.value?.remove()
   lotLayer.value?.remove()
 
-  lotLayer.value = createLotLayer(filteredLots, handleLotSelected)
-
-  console.log('Capa creada:', lotLayer.value)
+  lotLayer.value = createLotLayer(filteredLots, selectionStore.selectedLotId, handleLotSelected)
 
   lotLayer.value.addTo(mapInstance.value)
-
-  console.log('Capa agregada al mapa')
 }
 
 function updateEditorTool() {
@@ -473,6 +452,17 @@ watch(
 
 watch(
   () => selectionStore.activeLotFilter,
+  () => {
+    if (!mapInstance.value || !selectionStore.areLotsVisible || !selectionStore.selectedBlockId) {
+      return
+    }
+
+    showLotsForBlock(selectionStore.selectedBlockId)
+  },
+)
+
+watch(
+  () => selectionStore.selectedLotId,
   () => {
     if (!mapInstance.value || !selectionStore.areLotsVisible || !selectionStore.selectedBlockId) {
       return
