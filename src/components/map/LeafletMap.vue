@@ -385,6 +385,40 @@ function restoreInitialMapView() {
   })
 }
 
+function recenterMap() {
+  if (!mapInstance.value) return
+
+  if (selectionStore.selectedLotId) {
+    centerSelectedLot(selectionStore.selectedLotId)
+    return
+  }
+
+  if (selectionStore.selectedBlockId) {
+    if (selectionStore.areLotsVisible) {
+      fitLayerGroup(lotLayer.value, {
+        padding: [80, 80],
+        maxZoom: 0,
+      })
+
+      return
+    }
+
+    centerSelectedBlock(selectionStore.selectedBlockId)
+    return
+  }
+
+  if (selectionStore.selectedSectionId) {
+    fitLayerGroup(blockLayer.value, {
+      padding: [60, 60],
+      maxZoom: -1,
+    })
+
+    return
+  }
+
+  restoreInitialMapView()
+}
+
 onMounted(async () => {
   if (!mapContainer.value) return
 
@@ -585,6 +619,17 @@ onBeforeUnmount(() => {
   <div class="map-wrapper">
     <div ref="mapContainer" class="leaflet-map"></div>
 
+    <button
+      v-if="!isLoading && !loadingError"
+      type="button"
+      class="recenter-map-button"
+      aria-label="Centrar mapa"
+      title="Centrar mapa"
+      @click="recenterMap"
+    >
+      <span aria-hidden="true">◎</span>
+    </button>
+
     <div v-if="isLoading" class="map-loading-overlay">
       <div class="map-loading-card">
         <span class="map-loading-spinner" aria-hidden="true"></span>
@@ -658,5 +703,46 @@ onBeforeUnmount(() => {
   to {
     transform: rotate(360deg);
   }
+}
+
+.recenter-map-button {
+  position: absolute;
+  top: 5.25rem;
+  left: 0.65rem;
+  z-index: 1000;
+
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+
+  display: grid;
+  place-items: center;
+
+  border: 2px solid rgb(0 0 0 / 20%);
+  border-radius: 10%;
+
+  background-color: var(--color-background);
+  color: var(--color-heading);
+
+  font: inherit;
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+
+  box-shadow: 0 1px 5px rgb(0 0 0 / 35%);
+  cursor: pointer;
+}
+
+.recenter-map-button:hover {
+  filter: brightness(0.87);
+}
+
+.recenter-map-button:active {
+  transform: scale(0.95);
+}
+
+.recenter-map-button:focus-visible {
+  outline: 3px solid var(--color-selection);
+  outline-offset: 2px;
 }
 </style>
