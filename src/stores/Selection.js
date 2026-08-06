@@ -35,6 +35,10 @@ export const useSelectionStore = defineStore('selection', () => {
 
   function selectLotFilter(filterId) {
     activeLotFilter.value = filterId
+
+    if (filterId !== 'todos') {
+      showLots()
+    }
   }
 
   function showLots() {
