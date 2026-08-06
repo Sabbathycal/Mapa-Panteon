@@ -6,16 +6,15 @@ import '@geoman-io/leaflet-geoman-free'
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css'
 
 import 'leaflet/dist/leaflet.css'
+
 import { useSelectionStore } from '@/stores/Selection'
 import { useNicheStore } from '@/stores/Niche'
 import { useAuthStore } from '@/stores/Auth'
 import { useGridEditorStore } from '@/stores/GridEditorStore'
 import { useGeometryDraftStore } from '@/stores/GeometryDraft'
 
-//imagen del mapa base del panteon
 import mapImage from '@/assets/images/map/base.png'
 
-//Geometria para mapa del panteon
 import { GeometryService } from '@/services/geometry/GeometryService'
 import { GridGeneratorService } from '@/services/geometry/GridGeneratorService'
 
@@ -27,9 +26,10 @@ import { createNicheZoneLayer } from '@/components/map/layers/NicheZoneLayer'
 
 import { filterBlockbySection, filterLotsbyBlocks } from '@/utils/geometryFilters'
 
-//Estas constantes son para poder manipular el mapa y sus elementos
 const mapContainer = ref(null)
 const mapInstance = ref(null)
+const isLoading = ref(null)
+const loadingError = ref('')
 
 const geometryEditorStore = useGeometryEditorStore()
 const selectionStore = useSelectionStore()
@@ -40,8 +40,6 @@ const geometryDraftStore = useGeometryDraftStore()
 
 const gridLayers = ref(null)
 
-// Constantes que se usan dentro de onMount para cambiar los valores
-// que se usan dentro del mapa.
 const sections = ref(null)
 const blocks = ref(null)
 const lots = ref(null)
@@ -55,12 +53,6 @@ const nicheZoneLayer = ref(null)
 const draggedGridLayer = ref(null)
 const previousDragCenter = ref(null)
 
-// Funcion que nos permite llevar el hilo que cual bloque (manzana)
-// se debe usar al momento de usar el boton de Volver dentro del
-//  mapa se usa en ambos onMount() y watch().
-
-// Esta funcion es para poder obtener las dimensiones de la imagen del
-// mapa base
 function loadImageDimensions(imageSource) {
   return new Promise((resolve, reject) => {
     const image = new Image()
@@ -352,30 +344,24 @@ function closeLayerTooltips(layerGroup) {
   })
 }
 
-// Esta funcion se ejecuta cuando el componente se monta, y es
-// la que inicializa el mapa.
 onMounted(async () => {
   if (!mapContainer.value) return
 
-  geometryEditorStore.selectGeometryType('lots')
+  isLoading.value = true
+  loadingError.value = ''
 
-  // Se crea la instancia del mapa con las opciones necesarias
-  mapInstance.value = Leaf.map(mapContainer.value, {
-    crs: Leaf.CRS.Simple,
-    minZoom: -3, //NO MODIFICAR
-    // Que tanto zoom out se puede hacer en
-    // el mapa. Esto para que se pueda visualizar
-    // gran parte del mapa, menos abrumante.
-
-    maxZoom: 1, // Que tanto zoom in se puede hacer en el mapa
-    attributionControl: false,
-  })
-
-  gridLayers.value = Leaf.featureGroup().addTo(mapInstance.value)
-
-  // Se cargan las dimensiones de la imagen del mapa base y
-  // se crean los bounds
   try {
+    geometryEditorStore.selectGeometryType('lots')
+
+    mapInstance.value = Leaf.map(mapContainer.value, {
+      crs: Leaf.CRS.Simple,
+      minZoom: -3,
+      maxZoom: 1,
+      attributionControl: false,
+    })
+
+    gridLayers.value = Leaf.featureGroup().addTo(mapInstance.value)
+
     const { width, height } = await loadImageDimensions(mapImage)
 
     const imageBounds = [
@@ -383,57 +369,47 @@ onMounted(async () => {
       [height, width],
     ]
 
-    // Se agrega la imagen del mapa base al mapa y se
-    // ajusta el zoom y los bounds.
     Leaf.imageOverlay(mapImage, imageBounds).addTo(mapInstance.value)
 
-    // Se ajusta el zoom y los bounds del mapa para que se
-    // vea la imagen completa y no se pueda hacer zoom fuera
-    // de los bounds.
     mapInstance.value.fitBounds(imageBounds)
     mapInstance.value.setMaxBounds(imageBounds)
+    ;[sections.value, blocks.value, lots.value, nicheZones.value] = await Promise.all([
+      GeometryService.getSections(),
+      GeometryService.getBlocks(),
+      GeometryService.getLots(),
+      GeometryService.getNicheZones(),
+    ])
+
+    sectionLayer.value = createSectionLayer(
+      sections.value,
+      'var(--color-section-outline)',
+      (sectionId) => {
+        selectionStore.selectSection(sectionId)
+        showBlocksForSection(sectionId)
+      },
+    )
+
+    sectionLayer.value.addTo(mapInstance.value)
+
+    nicheZoneLayer.value = createNicheZoneLayer(
+      nicheZones.value,
+      'var(--color-niche-zone-outline)',
+      (nicheZone) => {
+        selectionStore.clearSelection()
+        nicheStore.selectZone(nicheZone)
+      },
+    )
+
+    nicheZoneLayer.value.addTo(mapInstance.value)
+
+    updateEditorTool()
   } catch (error) {
-    console.error(error)
+    console.error('No fue posible cargar el mapa:', error)
+
+    loadingError.value = 'No fue posible cargar el mapa.'
+  } finally {
+    isLoading.value = false
   }
-
-  // Se cargan las geometrías de las secciones, bloques y lotes
-  // dinamicamente desde el servicio GeometryService y se crean
-  // las capas correspondientes.
-  // -----------------------------------------------------
-  sections.value = await GeometryService.getSections()
-  blocks.value = await GeometryService.getBlocks()
-  lots.value = await GeometryService.getLots()
-  nicheZones.value = await GeometryService.getNicheZones()
-
-  console.log(
-    'Zona de Nichos:',
-    nicheZones.value.features.map((feature) => feature.properties),
-  )
-
-  sectionLayer.value = createSectionLayer(
-    sections.value,
-    'var(--color-section-outline)',
-    (sectionId) => {
-      selectionStore.selectSection(sectionId)
-      showBlocksForSection(sectionId)
-    },
-  )
-  sectionLayer.value.addTo(mapInstance.value)
-
-  // -----------------------------------------------------
-
-  nicheZoneLayer.value = createNicheZoneLayer(
-    nicheZones.value,
-    'var(--color-niche-zone-outline)',
-    (nicheZone) => {
-      selectionStore.clearSelection()
-      nicheStore.selectZone(nicheZone)
-    },
-  )
-
-  nicheZoneLayer.value.addTo(mapInstance.value)
-
-  updateEditorTool()
 })
 
 watch(() => [authStore.isAdminMode, geometryEditorStore.selectedTool], updateEditorTool)
@@ -524,8 +500,6 @@ watch(
   },
 )
 
-// Esta funcion se ejecuta cuando el componente se desmonta, y es
-// la que elimina la instancia del mapa y libera los recursos.
 onBeforeUnmount(() => {
   mapInstance.value?.pm.disableDraw()
   mapInstance.value?.remove()
@@ -535,13 +509,81 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="mapContainer" class="leaflet-map"></div>
+  <div class="map-wrapper">
+    <div ref="mapContainer" class="leaflet-map"></div>
+
+    <div v-if="isLoading" class="map-loading-overlay">
+      <div class="map-loading-card">
+        <span class="map-loading-spinner" aria-hidden="true"></span>
+        <strong>Cargando mapa…</strong>
+      </div>
+    </div>
+
+    <div v-else-if="loadingError" class="map-loading-overlay">
+      <div class="map-loading-card map-loading-error">
+        <strong>{{ loadingError }}</strong>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
+.map-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .leaflet-map {
   width: 100%;
   height: 100%;
   background-color: var(--color-background);
+}
+
+.map-loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1500;
+
+  display: grid;
+  place-items: center;
+
+  background-color: rgb(255 255 255 / 72%);
+  backdrop-filter: blur(2px);
+}
+
+.map-loading-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  padding: 0.9rem 1.1rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+
+  background-color: var(--color-background);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 15%);
+}
+
+.map-loading-spinner {
+  width: 1.15rem;
+  height: 1.15rem;
+
+  border: 3px solid rgb(11 37 69 / 20%);
+  border-top-color: #0b2545;
+  border-radius: 50%;
+
+  animation: map-loading-spin 0.8s linear infinite;
+}
+
+.map-loading-error {
+  text-align: center;
+}
+
+@keyframes map-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

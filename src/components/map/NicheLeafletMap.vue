@@ -35,6 +35,8 @@ const geometryDraftStore = useGeometryDraftStore()
 
 const mapContainer = ref(null)
 const mapInstance = ref(null)
+const isLoading = ref(null)
+const loadingError = ref(null)
 
 const niches = ref(null)
 const nichesLayer = ref(null)
@@ -334,20 +336,22 @@ function renderNiches() {
 onMounted(async () => {
   if (!mapContainer.value) return
 
-  geometryEditorStore.selectGeometryType('niches')
-
-  mapInstance.value = Leaf.map(mapContainer.value, {
-    crs: Leaf.CRS.Simple,
-    minZoom: 0,
-    maxZoom: 1,
-    attributionControl: false,
-  })
-
-  drawnLayers.value = Leaf.featureGroup().addTo(mapInstance.value)
-
-  gridLayers.value = Leaf.featureGroup().addTo(mapInstance.value)
+  isLoading.value = true
+  loadingError.value = ''
 
   try {
+    geometryEditorStore.selectGeometryType('niches')
+
+    mapInstance.value = Leaf.map(mapContainer.value, {
+      crs: Leaf.CRS.Simple,
+      minZoom: 0,
+      maxZoom: 1,
+      attributionControl: false,
+    })
+
+    drawnLayers.value = Leaf.featureGroup().addTo(mapInstance.value)
+    gridLayers.value = Leaf.featureGroup().addTo(mapInstance.value)
+
     const { width, height } = await loadImageDimensions(props.imageSource)
 
     const imageBounds = [
@@ -359,11 +363,7 @@ onMounted(async () => {
 
     mapInstance.value.fitBounds(imageBounds)
     mapInstance.value.setMaxBounds(imageBounds)
-  } catch (error) {
-    console.error(error)
-  }
 
-  try {
     const zoneId = nicheStore.selectedZone?.id
     const side = nicheStore.selectedSide
 
@@ -372,33 +372,36 @@ onMounted(async () => {
     }
 
     niches.value = await GeometryService.getNiches(zoneId, side)
+
     renderNiches()
 
-    nichesLayer.value.addTo(mapInstance.value)
-  } catch (error) {
-    console.error('No fue posible cargar la geometría de los nichos:', error)
-  }
+    mapInstance.value.on('pm:create', (event) => {
+      if (!nicheStore.selectedZone) {
+        console.error('No hay una zona de nichos seleccionada.')
+        event.layer.remove()
+        return
+      }
 
-  mapInstance.value.on('pm:create', (event) => {
-    if (!nicheStore.selectedZone) {
-      console.error('No hay una zona de nichos seleccionada.')
-      event.layer.remove()
-      return
-    }
+      drawnLayers.value.addLayer(event.layer)
 
-    drawnLayers.value.addLayer(event.layer)
+      const geojson = event.layer.toGeoJSON()
 
-    const geojson = event.layer.toGeoJSON()
+      const newNiche = createNicheGeometry(geojson, {
+        zoneId: nicheStore.selectedZone.id,
+        side: nicheStore.selectedSide,
+      })
 
-    const newNiche = createNicheGeometry(geojson, {
-      zoneId: nicheStore.selectedZone.id,
-      side: nicheStore.selectedSide,
+      console.log('Nicho manual creado: ', newNiche)
     })
 
-    console.log('Nicho manual creado: ', newNiche)
-  })
+    updateEditorTool()
+  } catch (error) {
+    console.error('No fue posible cargar el mapa de nichos:', error)
 
-  updateEditorTool()
+    loadingError.value = 'No fue posible cargar el mapa de nichos.'
+  } finally {
+    isLoading.value = false
+  }
 })
 
 watch(() => [authStore.isAdminMode, geometryEditorStore.selectedTool], updateEditorTool)
@@ -438,14 +441,82 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="mapContainer" class="niche-leaflet-map"></div>
+  <div class="niche-map-wrapper">
+    <div ref="mapContainer" class="niche-leaflet-map"></div>
+
+    <div v-if="isLoading" class="map-loading-overlay">
+      <div class="map-loading-card">
+        <span class="map-loading-spinner" aria-hidden="true"></span>
+        <strong>Cargando mapa de nichos…</strong>
+      </div>
+    </div>
+
+    <div v-else-if="loadingError" class="map-loading-overlay">
+      <div class="map-loading-card map-loading-error">
+        <strong>{{ loadingError }}</strong>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
-.niche-leaflet-map {
+.niche-map-wrapper {
+  position: relative;
   width: 100%;
   height: 70vh;
   min-height: 500px;
+}
+
+.niche-leaflet-map {
+  width: 100%;
+  height: 100%;
   background-color: var(--color-background);
+}
+
+.map-loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1500;
+
+  display: grid;
+  place-items: center;
+
+  background-color: rgb(255 255 255 / 72%);
+  backdrop-filter: blur(2px);
+}
+
+.map-loading-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  padding: 0.9rem 1.1rem;
+
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+
+  background-color: var(--color-background);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 15%);
+}
+
+.map-loading-spinner {
+  width: 1.15rem;
+  height: 1.15rem;
+
+  border: 3px solid rgb(11 37 69 / 20%);
+  border-top-color: #0b2545;
+  border-radius: 50%;
+
+  animation: map-loading-spin 0.8s linear infinite;
+}
+
+.map-loading-error {
+  text-align: center;
+}
+
+@keyframes map-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
