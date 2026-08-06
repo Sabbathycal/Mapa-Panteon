@@ -28,6 +28,8 @@ import { filterBlockbySection, filterLotsbyBlocks } from '@/utils/geometryFilter
 
 const mapContainer = ref(null)
 const mapInstance = ref(null)
+const initialMapView = ref(null)
+
 const isLoading = ref(null)
 const loadingError = ref('')
 
@@ -323,6 +325,66 @@ function closeLayerTooltips(layerGroup) {
   })
 }
 
+function fitLayerGroup(layerGroup, options = {}) {
+  if (!mapInstance.value || !layerGroup) return
+
+  const bounds = layerGroup.getBounds?.()
+
+  if (!bounds?.isValid()) return
+
+  mapInstance.value.fitBounds(bounds, {
+    animate: true,
+    duration: 0.45,
+    padding: [50, 50],
+    ...options,
+  })
+}
+
+function findLayerByProperty(layerGroup, propertyName, propertyValue) {
+  if (!layerGroup || propertyValue === null || propertyValue === undefined) {
+    return null
+  }
+
+  let matchingLayer = null
+
+  layerGroup.eachLayer((layer) => {
+    const layerValue = layer.feature?.properties?.[propertyName]
+
+    if (String(layerValue) === String(propertyValue)) {
+      matchingLayer = layer
+    }
+  })
+
+  return matchingLayer
+}
+
+function centerSelectedBlock(blockId) {
+  const selectedLayer = findLayerByProperty(blockLayer.value, 'manzana', blockId)
+
+  fitLayerGroup(selectedLayer, {
+    padding: [100, 100],
+    maxZoom: 0,
+  })
+}
+
+function centerSelectedLot(lotId) {
+  const selectedLayer = findLayerByProperty(lotLayer.value, 'id', lotId)
+
+  fitLayerGroup(selectedLayer, {
+    padding: [120, 120],
+    maxZoom: 1,
+  })
+}
+
+function restoreInitialMapView() {
+  if (!mapInstance.value || !initialMapView.value) return
+
+  mapInstance.value.setView(initialMapView.value.center, initialMapView.value.zoom, {
+    animate: true,
+    duration: 0.45,
+  })
+}
+
 onMounted(async () => {
   if (!mapContainer.value) return
 
@@ -352,6 +414,10 @@ onMounted(async () => {
 
     mapInstance.value.fitBounds(imageBounds)
     mapInstance.value.setMaxBounds(imageBounds)
+    initialMapView.value = {
+      center: mapInstance.value.getCenter(),
+      zoom: mapInstance.value.getZoom(),
+    }
     ;[sections.value, blocks.value, lots.value, nicheZones.value] = await Promise.all([
       GeometryService.getSections(),
       GeometryService.getBlocks(),
@@ -406,10 +472,17 @@ watch(
       nicheZoneLayer.value?.addTo(mapInstance.value)
       nicheZoneLayer.value?.bringToFront()
 
+      restoreInitialMapView()
+
       return
     }
 
     showBlocksForSection(newSectionId)
+
+    fitLayerGroup(blockLayer.value, {
+      padding: [60, 60],
+      maxZoom: -1,
+    })
   },
 )
 
@@ -423,12 +496,18 @@ watch(
     if (newBlockId === null) {
       if (selectionStore.selectedSectionId) {
         showBlocksForSection(selectionStore.selectedSectionId)
+
+        fitLayerGroup(blockLayer.value, {
+          padding: [60, 60],
+          maxZoom: -1,
+        })
       }
 
       return
     }
 
     showBlocksForSection(selectionStore.selectedSectionId)
+    centerSelectedBlock(newBlockId)
   },
 )
 
@@ -463,12 +542,16 @@ watch(
 
 watch(
   () => selectionStore.selectedLotId,
-  () => {
+  (newLotId) => {
     if (!mapInstance.value || !selectionStore.areLotsVisible || !selectionStore.selectedBlockId) {
       return
     }
 
     showLotsForBlock(selectionStore.selectedBlockId)
+
+    if (newLotId !== null) {
+      centerSelectedLot(newLotId)
+    }
   },
 )
 

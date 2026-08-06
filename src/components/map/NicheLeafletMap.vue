@@ -35,6 +35,8 @@ const geometryDraftStore = useGeometryDraftStore()
 
 const mapContainer = ref(null)
 const mapInstance = ref(null)
+const initialNicheMapView = ref(null)
+
 const isLoading = ref(null)
 const loadingError = ref(null)
 
@@ -335,6 +337,48 @@ function renderNiches() {
   nichesLayer.value.addTo(mapInstance.value)
 }
 
+function findNicheLayer(nicheId) {
+  if (!nichesLayer.value || !nicheId) return null
+
+  let matchingLayer = null
+
+  nichesLayer.value.eachLayer((layer) => {
+    const properties = layer.feature?.properties ?? {}
+    const layerId = properties.id || properties.codigo
+
+    if (String(layerId) === String(nicheId)) {
+      matchingLayer = layer
+    }
+  })
+
+  return matchingLayer
+}
+
+function centerSelectedNiche(nicheId) {
+  if (!mapInstance.value) return
+
+  const selectedLayer = findNicheLayer(nicheId)
+  const bounds = selectedLayer?.getBounds?.()
+
+  if (!bounds?.isValid()) return
+
+  mapInstance.value.fitBounds(bounds, {
+    animate: true,
+    duration: 0.45,
+    padding: [120, 120],
+    maxZoom: 1,
+  })
+}
+
+function restoreInitialNicheMapView() {
+  if (!mapInstance.value || !initialNicheMapView.value) return
+
+  mapInstance.value.setView(initialNicheMapView.value.center, initialNicheMapView.value.zoom, {
+    animate: true,
+    duration: 0.45,
+  })
+}
+
 onMounted(async () => {
   if (!mapContainer.value) return
 
@@ -365,6 +409,10 @@ onMounted(async () => {
 
     mapInstance.value.fitBounds(imageBounds)
     mapInstance.value.setMaxBounds(imageBounds)
+    initialNicheMapView.value = {
+      center: mapInstance.value.getCenter(),
+      zoom: mapInstance.value.getZoom(),
+    }
 
     const zoneId = nicheStore.selectedZone?.id
     const side = nicheStore.selectedSide
@@ -417,10 +465,17 @@ watch(
 
 watch(
   () => nicheStore.selectedNiche?.id || nicheStore.selectedNiche?.codigo || null,
-  () => {
+  (newNicheId) => {
     if (!mapInstance.value || !niches.value) return
 
     renderNiches()
+
+    if (newNicheId !== null) {
+      centerSelectedNiche(newNicheId)
+      return
+    }
+
+    restoreInitialNicheMapView()
   },
 )
 
