@@ -5,12 +5,14 @@ import { GeometryService } from '@/services/geometry/GeometryService'
 import { useSelectionStore } from '@/stores/Selection'
 import { useSearchStore } from '@/stores/Search'
 import { useNicheStore } from '@/stores/Niche'
+import { useMapViewStore } from '@/stores/MapView'
 
 import { filterBlockbySection } from '@/utils/geometryFilters'
 
 const selectionStore = useSelectionStore()
 const searchStore = useSearchStore()
 const nicheStore = useNicheStore()
+const mapViewStore = useMapViewStore()
 
 const sections = ref([])
 const blocks = ref([])
@@ -190,6 +192,15 @@ function handleSearchEscape() {
 function handleSearchResult(result) {
   searchStore.selectResult(result)
 }
+
+function resetMap() {
+  searchStore.clearSearch()
+
+  nicheStore.clearZone()
+  selectionStore.clearSelection()
+
+  mapViewStore.requestResetMap()
+}
 </script>
 
 <template>
@@ -197,6 +208,16 @@ function handleSearchResult(result) {
     <h1 class="top-bar-title">Mapa del Panteón</h1>
 
     <div class="top-bar-actions">
+      <button
+        type="button"
+        class="reset-map-button"
+        aria-label="Restablecer mapa"
+        title="Restablecer mapa"
+        @click="resetMap"
+      >
+        <span aria-hidden="true">↻</span>
+      </button>
+
       <select
         :value="selectedLocationValue"
         aria-label="Seleccionar sección o Zona de nichos"
@@ -435,5 +456,42 @@ function handleSearchResult(result) {
   .search-group input {
     width: 220px;
   }
+}
+
+.reset-map-button {
+  flex: 0 0 auto;
+
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgb(0 0 0 / 20%);
+  border-radius: 0.4rem;
+
+  background-color: var(--color-background);
+  color: var(--color-heading);
+
+  font: inherit;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+.reset-map-button:hover {
+  filter: brightness(0.87);
+}
+
+.reset-map-button:active {
+  transform: scale(0.96);
+}
+
+.reset-map-button:focus-visible {
+  outline: 3px solid var(--color-selection);
+  outline-offset: 2px;
 }
 </style>

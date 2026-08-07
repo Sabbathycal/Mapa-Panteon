@@ -12,6 +12,7 @@ import { useAuthStore } from '@/stores/Auth'
 import { useGeometryEditorStore } from '@/stores/GeometryEditor'
 import { useGridEditorStore } from '@/stores/GridEditorStore'
 import { useGeometryDraftStore } from '@/stores/GeometryDraft'
+import { useMapViewStore } from '@/stores/MapView'
 
 import { GeometryService } from '@/services/geometry/GeometryService'
 import { GridGeneratorService } from '@/services/geometry/GridGeneratorService'
@@ -32,6 +33,7 @@ const authStore = useAuthStore()
 const geometryEditorStore = useGeometryEditorStore()
 const gridEditorStore = useGridEditorStore()
 const geometryDraftStore = useGeometryDraftStore()
+const mapViewStore = useMapViewStore()
 
 const mapContainer = ref(null)
 const mapInstance = ref(null)
@@ -505,6 +507,13 @@ watch(
     if (newCount === 0) {
       gridLayers.value?.clearLayers()
     }
+  },
+)
+
+watch(
+  () => mapViewStore.resetRequest,
+  () => {
+    restoreInitialNicheMapView()
   },
 )
 
