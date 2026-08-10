@@ -4,6 +4,11 @@ defineProps({
     type: Object,
     required: true,
   },
+
+  inventory: {
+    type: Object,
+    default: null,
+  },
 })
 
 const emit = defineEmits(['close'])
@@ -65,13 +70,26 @@ const emit = defineEmits(['close'])
               </div>
 
               <div>
+                <dt>Construido:</dt>
+                <dd>
+                  {{
+                    inventory?.isBuilt === true ? 'Sí' : inventory?.isBuilt === false ? 'No' : '-'
+                  }}
+                </dd>
+              </div>
+
+              <div>
                 <dt>Referencia ProCaP:</dt>
-                <dd>{{ property.referencia_procap || '-' }}</dd>
+                <dd>
+                  {{ inventory?.procapReference || property.referencia_procap || '-' }}
+                </dd>
               </div>
 
               <div>
                 <dt>Observaciones:</dt>
-                <dd>{{ property.observaciones || '-' }}</dd>
+                <dd>
+                  {{ inventory?.observations || property.observaciones || '-' }}
+                </dd>
               </div>
             </dl>
           </template>
@@ -124,13 +142,26 @@ const emit = defineEmits(['close'])
               </div>
 
               <div>
+                <dt>Construido:</dt>
+                <dd>
+                  {{
+                    inventory?.isBuilt === true ? 'Sí' : inventory?.isBuilt === false ? 'No' : '-'
+                  }}
+                </dd>
+              </div>
+
+              <div>
                 <dt>Referencia ProCaP:</dt>
-                <dd>{{ property.referencia_procap || '-' }}</dd>
+                <dd>
+                  {{ inventory?.procapReference || property.referencia_procap || '-' }}
+                </dd>
               </div>
 
               <div>
                 <dt>Observaciones:</dt>
-                <dd>{{ property.observaciones || '-' }}</dd>
+                <dd>
+                  {{ inventory?.observations || property.observaciones || '-' }}
+                </dd>
               </div>
             </dl>
           </template>

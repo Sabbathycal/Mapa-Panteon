@@ -124,12 +124,6 @@ function normalizeSearchAliases(value) {
 }
 
 function resolveStatus(row) {
-  const isBuilt = normalizeBoolean(row.Esta_Construido) ?? normalizeBoolean(row.Esta_Construida)
-
-  if (isBuilt === false) {
-    return 'por_construir'
-  }
-
   const burialUses = normalizeNumber(row.Uso_Inhumacion)
   const ashUses = normalizeNumber(row.Usos_Cenizas)
 

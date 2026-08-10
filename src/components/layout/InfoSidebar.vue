@@ -44,8 +44,32 @@ const selectedLot = computed(() => {
   )
 })
 
+const selectedLotInventory = computed(() => {
+  if (!selectedLot.value) {
+    return null
+  }
+
+  return inventoryStore.getLot(
+    selectedLot.value.seccionId,
+    selectedLot.value.manzanaId,
+    selectedLot.value.lote,
+  )
+})
+
 const selectedProperty = computed(() => {
   return selectedNiche.value || selectedLot.value
+})
+
+const selectedPropertyInventory = computed(() => {
+  if (selectedNiche.value) {
+    return selectedNicheInventory.value
+  }
+
+  if (selectedLot.value) {
+    return selectedLotInventory.value
+  }
+
+  return null
 })
 
 const hasSearchQuery = computed(() => {
@@ -81,37 +105,59 @@ const blockSummary = computed(() => {
     separados: 0,
     vendidos: 0,
     ocupados: 0,
+    suspendidos: 0,
+    construidos: 0,
+    sinConstruir: 0,
     sinEstado: 0,
   }
 
   selectedBlockLots.value.forEach((feature) => {
     const properties = feature?.properties ?? {}
 
-    const saleStatus = normalizeStatus(properties.estatus_venta || properties.estatus)
+    const inventoryRecord = inventoryStore.getLotFromGeometry(properties)
 
-    const occupationStatus = normalizeStatus(properties.estatus_ocupacion)
-
-    if (occupationStatus === 'ocupado' || saleStatus === 'ocupado') {
-      summary.ocupados++
-      return
+    if (inventoryRecord?.isBuilt === true) {
+      summary.construidos++
+    } else if (inventoryRecord?.isBuilt === false) {
+      summary.sinConstruir++
     }
 
-    if (saleStatus === 'separado') {
-      summary.separados++
-      return
+    let status = normalizeStatus(inventoryRecord?.status)
+
+    // Fallback GeoJSON
+    if (!status) {
+      const saleStatus = normalizeStatus(properties.estatus_venta || properties.estatus)
+
+      const occupationStatus = normalizeStatus(properties.estatus_ocupacion)
+
+      status = occupationStatus === 'ocupado' ? 'ocupado' : saleStatus
     }
 
-    if (saleStatus === 'vendido') {
-      summary.vendidos++
-      return
-    }
+    switch (status) {
+      case 'disponible':
+        summary.disponibles++
+        break
 
-    if (saleStatus === 'disponible') {
-      summary.disponibles++
-      return
-    }
+      case 'separado':
+        summary.separados++
+        break
 
-    summary.sinEstado++
+      case 'vendido':
+        summary.vendidos++
+        break
+
+      case 'ocupado':
+        summary.ocupados++
+        break
+
+      case 'suspendido':
+        summary.suspendidos++
+        break
+
+      default:
+        summary.sinEstado++
+        break
+    }
   })
 
   return summary
@@ -154,6 +200,11 @@ const lotFilterOptions = computed(() => [
     count: blockSummary.value.ocupados,
   },
   {
+    id: 'suspendido',
+    label: 'Suspendido',
+    count: blockSummary.value.suspendidos,
+  },
+  {
     id: 'sin-estado',
     label: 'Sin estado',
     count: blockSummary.value.sinEstado,
@@ -192,6 +243,11 @@ const nicheFilterOptions = computed(() => {
       id: 'ocupado',
       label: 'Ocupado',
       count: summary.ocupados,
+    },
+    {
+      id: 'suspendido',
+      label: 'Suspendido',
+      count: summary.suspendidos,
     },
     {
       id: 'sin-estado',
@@ -257,36 +313,59 @@ function createNicheSummary(features) {
     separados: 0,
     vendidos: 0,
     ocupados: 0,
+    suspendidos: 0,
+    construidos: 0,
+    sinConstruir: 0,
     sinEstado: 0,
   }
 
   features.forEach((feature) => {
     const properties = feature?.properties ?? {}
 
-    const saleStatus = normalizeStatus(properties.estatus_venta)
-    const occupationStatus = normalizeStatus(properties.estatus_ocupacion)
+    const inventoryRecord = inventoryStore.getNicheFromGeometry(properties)
 
-    if (occupationStatus === 'ocupado' || saleStatus === 'ocupado') {
-      summary.ocupados++
-      return
+    if (inventoryRecord?.isBuilt === true) {
+      summary.construidos++
+    } else if (inventoryRecord?.isBuilt === false) {
+      summary.sinConstruir++
     }
 
-    if (saleStatus === 'separado') {
-      summary.separados++
-      return
+    let status = normalizeStatus(inventoryRecord?.status)
+
+    // Fallback GeoJSON
+    if (!status) {
+      const saleStatus = normalizeStatus(properties.estatus_venta)
+
+      const occupationStatus = normalizeStatus(properties.estatus_ocupacion)
+
+      status = occupationStatus === 'ocupado' ? 'ocupado' : saleStatus
     }
 
-    if (saleStatus === 'vendido') {
-      summary.vendidos++
-      return
-    }
+    switch (status) {
+      case 'disponible':
+        summary.disponibles++
+        break
 
-    if (saleStatus === 'disponible') {
-      summary.disponibles++
-      return
-    }
+      case 'separado':
+        summary.separados++
+        break
 
-    summary.sinEstado++
+      case 'vendido':
+        summary.vendidos++
+        break
+
+      case 'ocupado':
+        summary.ocupados++
+        break
+
+      case 'suspendido':
+        summary.suspendidos++
+        break
+
+      default:
+        summary.sinEstado++
+        break
+    }
   })
 
   return summary
@@ -337,6 +416,19 @@ onMounted(async () => {
           </div>
 
           <div>
+            <dt>Construido:</dt>
+            <dd>
+              {{
+                selectedNicheInventory?.isBuilt === true
+                  ? 'Sí'
+                  : selectedNicheInventory?.isBuilt === false
+                    ? 'No'
+                    : '-'
+              }}
+            </dd>
+          </div>
+
+          <div>
             <dt>Referencia ProCaP:</dt>
             <dd>{{ selectedNiche.referencia_procap || '-' }}</dd>
           </div>
@@ -375,14 +467,27 @@ onMounted(async () => {
 
           <div>
             <dt>Estado:</dt>
+            <dd>{{ selectedLotInventory?.status || '-' }}</dd>
+          </div>
+
+          <div>
+            <dt>Construido:</dt>
             <dd>
-              {{ selectedLot.estatus_ocupacion || selectedLot.estatus_venta || '-' }}
+              {{
+                selectedLotInventory?.isBuilt === true
+                  ? 'Sí'
+                  : selectedLotInventory?.isBuilt === false
+                    ? 'No'
+                    : '-'
+              }}
             </dd>
           </div>
 
           <div>
             <dt>Referencia ProCaP:</dt>
-            <dd>{{ selectedLot.referencia_procap || '-' }}</dd>
+            <dd>
+              {{ selectedLotInventory?.procapReference || selectedLot.referencia_procap || '-' }}
+            </dd>
           </div>
 
           <div class="secondary-property-data">
@@ -406,11 +511,6 @@ onMounted(async () => {
           SECCIÓN {{ selectionStore.selectedSectionId }} — MANZANA
           {{ selectionStore.selectedBlockId }}
         </h2>
-
-        <p>
-          Sección:
-          <strong>{{ selectionStore.selectedSectionId }}</strong>
-        </p>
 
         <p>
           Selecciona un lote o usa
@@ -452,6 +552,37 @@ onMounted(async () => {
         </p>
       </div>
 
+      <div class="status-legend">
+        <h3>Leyenda</h3>
+
+        <div class="status-legend-items">
+          <span>
+            <i class="status-dot disponible"></i>
+            Disponible
+          </span>
+
+          <span>
+            <i class="status-dot separado"></i>
+            Separado
+          </span>
+
+          <span>
+            <i class="status-dot vendido"></i>
+            Vendido
+          </span>
+
+          <span>
+            <i class="status-dot ocupado"></i>
+            Ocupado
+          </span>
+
+          <span>
+            <i class="status-dot suspendido"></i>
+            Suspendido
+          </span>
+        </div>
+      </div>
+
       <section class="block-summary-card">
         <h3>Resumen de manzana</h3>
 
@@ -479,6 +610,21 @@ onMounted(async () => {
           <div>
             <dt>Ocupado:</dt>
             <dd>{{ blockSummary.ocupados }}</dd>
+          </div>
+
+          <div>
+            <dt>Suspendido:</dt>
+            <dd>{{ blockSummary.suspendidos }}</dd>
+          </div>
+
+          <div>
+            <dt>Construidos:</dt>
+            <dd>{{ blockSummary.construidos }}</dd>
+          </div>
+
+          <div>
+            <dt>Por construir:</dt>
+            <dd>{{ blockSummary.sinConstruir }}</dd>
           </div>
 
           <div>
@@ -545,6 +691,38 @@ onMounted(async () => {
           <strong>{{ nicheStore.activeNicheFilter }}</strong>
         </p>
       </div>
+
+      <div class="status-legend">
+        <h3>Leyenda de colores</h3>
+
+        <div class="status-legend-items">
+          <span>
+            <i class="status-dot disponible"></i>
+            Disponible
+          </span>
+
+          <span>
+            <i class="status-dot separado"></i>
+            Separado
+          </span>
+
+          <span>
+            <i class="status-dot vendido"></i>
+            Vendido
+          </span>
+
+          <span>
+            <i class="status-dot ocupado"></i>
+            Ocupado
+          </span>
+
+          <span>
+            <i class="status-dot suspendido"></i>
+            Suspendido
+          </span>
+        </div>
+      </div>
+
       <section v-if="activeNicheSideSummary" class="niche-summary-card">
         <h3>
           Resumen —
@@ -575,6 +753,21 @@ onMounted(async () => {
           <div>
             <dt>Ocupado:</dt>
             <dd>{{ activeNicheSideSummary.summary.ocupados }}</dd>
+          </div>
+
+          <div>
+            <dt>Suspendido:</dt>
+            <dd>{{ activeNicheSideSummary.summary.suspendidos }}</dd>
+          </div>
+
+          <div>
+            <dt>Construidos:</dt>
+            <dd>{{ activeNicheSideSummary.summary.construidos }}</dd>
+          </div>
+
+          <div>
+            <dt>Por construir:</dt>
+            <dd>{{ activeNicheSideSummary.summary.sinConstruir }}</dd>
           </div>
 
           <div v-if="activeNicheSideSummary.summary.sinEstado > 0">
@@ -628,6 +821,7 @@ onMounted(async () => {
     <PropertyDetailsModal
       v-if="isPropertyModalOpen && selectedProperty"
       :property="selectedProperty"
+      :inventory="selectedPropertyInventory"
       @close="closePropertyModal"
     />
   </div>
@@ -1030,5 +1224,56 @@ onMounted(async () => {
 .search-examples li {
   margin: 0.15rem 0;
   line-height: 1.35;
+}
+
+.status-legend {
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.status-legend h3 {
+  margin: 0 0 0.55rem;
+  font-size: 0.9rem;
+}
+
+.status-legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.8rem;
+}
+
+.status-legend-items span {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+}
+
+.status-dot {
+  width: 0.8rem;
+  height: 0.8rem;
+  flex: 0 0 0.8rem;
+  border-radius: 3px;
+  border: 1px solid rgb(0 0 0 / 25%);
+}
+
+.status-dot.disponible {
+  background: var(--color-status-available);
+}
+
+.status-dot.separado {
+  background: var(--color-status-reserved);
+}
+
+.status-dot.vendido {
+  background: var(--color-status-sold);
+}
+
+.status-dot.ocupado {
+  background: var(--color-status-used);
+}
+
+.status-dot.suspendido {
+  background: var(--color-status-suspended);
 }
 </style>
