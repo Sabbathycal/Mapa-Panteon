@@ -3,6 +3,8 @@ const geometryStatusVariables = {
   vendido: '--color-status-sold',
   ocupado: '--color-status-used',
   separado: '--color-status-reserved',
+  suspendido: '--color-status-suspended',
+  por_construir: '--color-status-unbuilt',
 }
 
 function getCSSVar(varName) {

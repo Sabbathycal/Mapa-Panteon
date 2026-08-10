@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useSelectionStore } from '@/stores/Selection'
 import { useNicheStore } from '@/stores/Niche'
 import { useSearchStore } from '@/stores/Search'
+import { useInventoryStore } from '@/stores/Inventory.js'
 
 import { LotService } from '@/services/lot/LotService'
 import { GeometryService } from '@/services/geometry/GeometryService'
@@ -18,7 +19,17 @@ const isPropertyModalOpen = ref(false)
 const selectionStore = useSelectionStore()
 const nicheStore = useNicheStore()
 const searchStore = useSearchStore()
+const inventoryStore = useInventoryStore()
+
 const selectedNiche = computed(() => nicheStore.selectedNiche)
+
+const selectedNicheInventory = computed(() => {
+  if (!selectedNiche.value) {
+    return null
+  }
+
+  return inventoryStore.getNicheFromGeometry(selectedNiche.value)
+})
 
 const selectedLot = computed(() => {
   if (!selectionStore.selectedLotId) {
@@ -321,7 +332,7 @@ onMounted(async () => {
           <div>
             <dt>Estado:</dt>
             <dd>
-              {{ selectedNiche.estatus_ocupacion || selectedNiche.estatus_venta || '-' }}
+              {{ selectedNicheInventory?.status || '-' }}
             </dd>
           </div>
 

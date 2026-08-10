@@ -15,6 +15,7 @@
   "dependencies": {
     "@geoman-io/leaflet-geoman-free": "^2.20.0",
     "leaflet": "^1.9.4",
+    "papaparse": "^5.5.4",
     "pinia": "^3.0.4",
     "vue": "^3.5.38",
     "vue-router": "^5.1.0"

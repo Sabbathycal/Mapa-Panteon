@@ -1,8 +1,12 @@
 import Leaf from 'leaflet'
 import { getGeometryColorByStatus } from '@/utils/geometryStatusColors'
 
-export function createLotLayer(lots, selectedLotId, onLotsSelected) {
+export function createLotLayer(lots, selectedLotId, onLotsSelected, getFeatureStatus) {
   function getStatus(feature) {
+    if (getFeatureStatus) {
+      return getFeatureStatus(feature)
+    }
+
     return (
       feature?.properties?.estatus_ocupacion ||
       feature?.properties?.estatus_venta ||

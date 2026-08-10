@@ -1,8 +1,12 @@
 import Leaf from 'leaflet'
 import { getGeometryColorByStatus } from '@/utils/geometryStatusColors'
 
-export function createNicheLayer(niches, selectedNicheId, onNicheSelected) {
+export function createNicheLayer(niches, selectedNicheId, onNicheSelected, getFeatureStatus) {
   function getStatus(feature) {
+    if (getFeatureStatus) {
+      return getFeatureStatus(feature)
+    }
+
     const properties = feature?.properties ?? {}
 
     return properties.estatus_ocupacion || properties.estatus_venta

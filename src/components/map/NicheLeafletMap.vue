@@ -10,17 +10,19 @@ import { createNicheLayer } from './layers/NicheLayer'
 
 import { useAuthStore } from '@/stores/Auth'
 import { useGeometryEditorStore } from '@/stores/GeometryEditor'
+import { useNicheStore } from '@/stores/Niche'
 import { useGridEditorStore } from '@/stores/GridEditorStore'
 import { useGeometryDraftStore } from '@/stores/GeometryDraft'
 import { useMapViewStore } from '@/stores/MapView'
+import { useInventoryStore } from '@/stores/Inventory'
 
 import { GeometryService } from '@/services/geometry/GeometryService'
 import { GridGeneratorService } from '@/services/geometry/GridGeneratorService'
 
 import { createNicheGeometry } from '@/services/niche/NicheGeometryService'
-import { useNicheStore } from '@/stores/Niche'
 
 const nicheStore = useNicheStore()
+const inventoryStore = useInventoryStore()
 
 const props = defineProps({
   imageSource: {
@@ -79,9 +81,17 @@ function normalizeStatus(value) {
 }
 
 function getNicheStatus(feature) {
+  const inventoryRecord = inventoryStore.getNicheFromGeometry(feature?.properties)
+
+  if (inventoryRecord?.status) {
+    return inventoryRecord.status
+  }
+
+  // Último fallback: GeoJSON
   const properties = feature?.properties ?? {}
 
   const saleStatus = normalizeStatus(properties.estatus_venta)
+
   const occupationStatus = normalizeStatus(properties.estatus_ocupacion)
 
   if (occupationStatus === 'ocupado' || saleStatus === 'ocupado') {
@@ -332,9 +342,14 @@ function renderNiches() {
 
   nichesLayer.value?.remove()
 
-  nichesLayer.value = createNicheLayer(filteredNiches, selectedNicheId, (niche) => {
-    nicheStore.selectNiche(niche)
-  })
+  nichesLayer.value = createNicheLayer(
+    filteredNiches,
+    selectedNicheId,
+    (niche) => {
+      nicheStore.selectNiche(niche)
+    },
+    getNicheStatus,
+  )
 
   nichesLayer.value.addTo(mapInstance.value)
 }

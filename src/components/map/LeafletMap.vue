@@ -7,19 +7,20 @@ import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css'
 
 import 'leaflet/dist/leaflet.css'
 
+import { useGeometryEditorStore } from '@/stores/GeometryEditor'
 import { useSelectionStore } from '@/stores/Selection'
 import { useNicheStore } from '@/stores/Niche'
 import { useAuthStore } from '@/stores/Auth'
 import { useGridEditorStore } from '@/stores/GridEditorStore'
 import { useGeometryDraftStore } from '@/stores/GeometryDraft'
 import { useMapViewStore } from '@/stores/MapView'
+import { useInventoryStore } from '@/stores/Inventory'
 
 import mapImage from '@/assets/images/map/base.png'
 
 import { GeometryService } from '@/services/geometry/GeometryService'
 import { GridGeneratorService } from '@/services/geometry/GridGeneratorService'
 
-import { useGeometryEditorStore } from '@/stores/GeometryEditor'
 import { createSectionLayer } from '@/components/map/layers/SectionLayer'
 import { createBlockLayer } from '@/components/map/layers/BlockLayer'
 import { createLotLayer } from '@/components/map/layers/LotLayer'
@@ -41,6 +42,7 @@ const authStore = useAuthStore()
 const gridEditorStore = useGridEditorStore()
 const geometryDraftStore = useGeometryDraftStore()
 const mapViewStore = useMapViewStore()
+const inventoryStore = useInventoryStore()
 
 const gridLayers = ref(null)
 
@@ -97,6 +99,13 @@ function normalizeStatus(value) {
 }
 
 function getLotStatus(feature) {
+  const inventoryRecord = inventoryStore.getLotFromGeometry(feature?.properties)
+
+  if (inventoryRecord?.status) {
+    return inventoryRecord.status
+  }
+
+  // Último fallback: GeoJSON
   const properties = feature?.properties ?? {}
 
   const saleStatus = normalizeStatus(properties.estatus_venta || properties.estatus)
@@ -170,7 +179,12 @@ function showLotsForBlock(blockId) {
   blockLayer.value?.remove()
   lotLayer.value?.remove()
 
-  lotLayer.value = createLotLayer(filteredLots, selectionStore.selectedLotId, handleLotSelected)
+  lotLayer.value = createLotLayer(
+    filteredLots,
+    selectionStore.selectedLotId,
+    handleLotSelected,
+    getLotStatus,
+  )
 
   lotLayer.value.addTo(mapInstance.value)
 }
