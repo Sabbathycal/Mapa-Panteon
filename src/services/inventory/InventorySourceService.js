@@ -1,18 +1,12 @@
+import { loadInventoryFromSharePoint } from './SharepointInventorySource'
 import { loadInventoryFromCsv } from './CsvInventorySource'
 
 export async function loadInventoryFromBestAvailableSource() {
-  /*
-   * FUTURO:
-   *
-   * try {
-   *   return await loadInventoryFromSharePoint()
-   * } catch (error) {
-   *   console.warn(
-   *     '[Inventory] SharePoint no disponible. Intentando CSV.',
-   *     error,
-   *   )
-   * }
-   */
+  try {
+    return await loadInventoryFromSharePoint()
+  } catch (error) {
+    console.warn('[Inventory] SharePoint no disponible. Intentando CSV.', error)
+  }
 
   try {
     return await loadInventoryFromCsv()

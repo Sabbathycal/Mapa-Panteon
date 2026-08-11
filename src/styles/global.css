@@ -7,33 +7,6 @@
   border-radius: 10%;
 }
 
-.side-selector {
-  display: flex;
-  padding-left: 12px;
-  gap: 12px;
-  margin: 15px 0;
-}
-
-.side-selector button.active {
-  background-color: var(--color-selectSide-button-active);
-  color: black;
-}
-
-.side-selector button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.side-selector .convex-button,
-.side-selector .concave-button {
-  background-color: var(--color-selectSide-button);
-  color: black;
-  font-size: medium;
-  padding: 5px;
-  border-radius: 6px;
-  transition: 0.2s ease;
-}
-
 h1,
 h2,
 h3,

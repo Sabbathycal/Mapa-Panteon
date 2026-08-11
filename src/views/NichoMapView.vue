@@ -36,43 +36,15 @@ const hasConvexImage = computed(() => {
 
 <template>
   <section class="niche-map-view">
-    <!--Boton de Volver al mapa-->
-    <button type="button" @click="nicheStore.clearZone" class="back-button">
-      ← Volver al mapa
-    </button>
+    <!--Titulo de Nicho-->
     <h2>{{ nicheStore.selectedZone?.nombre }} - {{ nicheStore.selectedZone?.id }}</h2>
 
-    <!--Botones de cambio de caras entre concavo y convexo-->
-    <div class="side-selector">
-      <button
-        type="button"
-        class="concave-button"
-        :class="{
-          active: nicheStore.selectedSide === 'concavo',
-        }"
-        :disabled="nicheStore.selectedSide === 'concavo'"
-        @click="nicheStore.selectSide('concavo')"
-      >
-        CÓNCAVO
-      </button>
-
-      <button
-        type="button"
-        class="convex-button"
-        :class="{
-          active: nicheStore.selectedSide === 'convexo',
-        }"
-        :disabled="!hasConvexImage || nicheStore.selectedSide === 'convexo'"
-        @click="nicheStore.selectSide('convexo')"
-      >
-        CONVEXO
-      </button>
-    </div>
-
+    <!--SOLO SALE SI NO HAY IMAGEN CONVEXA - En este caso SPN no tiene CONVEXA-->
     <p v-if="!hasConvexImage" class="missing-image-msg">
       La vista convexa de esta zona todavia no esta disponible.
     </p>
 
+    <!--Mapa Leaflet de Nichos-->
     <NicheLeafletMap
       v-if="selectedImage"
       :key="`${nicheStore.selectedZone?.id}-${nicheStore.selectedSide}`"
@@ -94,7 +66,6 @@ const hasConvexImage = computed(() => {
 
 @media (max-width: 768px) {
   .back-button,
-  .side-selector,
   .missing-image-msg {
     display: none;
   }
