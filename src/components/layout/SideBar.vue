@@ -88,6 +88,39 @@ const sidebarStore = useSidebarStore()
   background-color: var(--color-background);
 }
 
+@media (max-width: 768px) {
+  .sidebar {
+    position: relative;
+
+    width: 100%;
+    height: auto;
+    max-height: 42%;
+
+    flex-shrink: 0;
+
+    padding: 0.75rem;
+
+    border-left: 0;
+    border-top: 1px solid var(--color-border);
+
+    border-radius: 14px 14px 0 0;
+
+    box-shadow: 0 -4px 18px rgb(0 0 0 / 20%);
+  }
+
+  .sidebar-header {
+    height: 2rem;
+    margin-bottom: -2rem;
+  }
+
+  .close-button {
+    width: 2.75rem;
+    height: 2.75rem;
+
+    font-size: 1.35rem;
+  }
+}
+
 /* .sidebar-tabs {
   display: flex;
   gap: 0.5rem;

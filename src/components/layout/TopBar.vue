@@ -208,6 +208,7 @@ function resetMap() {
     <h1 class="top-bar-title">Mapa del Panteón</h1>
 
     <div class="top-bar-actions">
+      <!--BOTON REFRESH MAPA-->
       <button
         type="button"
         class="reset-map-button"
@@ -218,6 +219,7 @@ function resetMap() {
         <span aria-hidden="true">↻</span>
       </button>
 
+      <!--SELECT de seccion o zona de nicho-->
       <select
         :value="selectedLocationValue"
         aria-label="Seleccionar sección o Zona de nichos"
@@ -246,6 +248,7 @@ function resetMap() {
         </optgroup>
       </select>
 
+      <!--SELECT de manzana o cara de nicho-->
       <select
         :value="isNicheLocation ? nicheStore.selectedSide : (selectionStore.selectedBlockId ?? '')"
         :disabled="!selectionStore.selectedSectionId && !nicheStore.selectedZone"
@@ -274,6 +277,7 @@ function resetMap() {
         </template>
       </select>
 
+      <!--Barra de busqueda con boton respectivo-->
       <div class="search-wrapper">
         <div class="search-group">
           <input
@@ -444,17 +448,81 @@ function resetMap() {
   cursor: pointer;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .top-bar {
-    align-items: flex-start;
+    min-height: auto;
+    padding: 0.65rem;
+
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.55rem;
+  }
+
+  .top-bar-title {
+    font-size: 1.55rem;
+    line-height: 1.1;
+    text-align: center;
   }
 
   .top-bar-actions {
-    flex-wrap: wrap;
+    width: 100%;
+
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.45rem;
+  }
+
+  .top-bar-actions select,
+  .search-group input,
+  .top-bar-actions button {
+    min-width: 0;
+    height: 42px;
+  }
+
+  .reset-map-button {
+    width: 42px;
+    height: 42px;
+  }
+
+  .top-bar-actions select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .search-wrapper {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .search-group {
+    width: 100%;
+    gap: 0.4rem;
   }
 
   .search-group input {
-    width: 220px;
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+
+  .search-group button {
+    flex: 0 0 auto;
+  }
+
+  .search-results {
+    left: 0;
+    right: 0;
+
+    width: 100%;
+    max-height: min(45vh, 320px);
+  }
+
+  .user-button {
+    grid-column: 1 / -1;
+
+    width: 100%;
+    min-width: 0;
   }
 }
 

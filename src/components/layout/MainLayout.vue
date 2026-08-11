@@ -59,15 +59,19 @@ watch(sidebarContext, (currentContext, previousContext) => {
 
 <template>
   <div class="app-layout">
+    <!--Barra superior-->
     <TopBar />
 
     <div class="app-content">
+      <!--Sidebar izquierdo/ADMIN ONLY-->
       <AdminToolbar />
 
+      <!--contenido principal-->
       <main class="main-content">
         <RouterView />
       </main>
 
+      <!--Boton de regresar al sidebar (bottombar en movil)-->
       <button
         v-if="hasSidebarContext && !sidebarStore.isOpen"
         type="button"
@@ -76,9 +80,11 @@ watch(sidebarContext, (currentContext, previousContext) => {
         title="Mostrar panel"
         @click="sidebarStore.openSidebar"
       >
-        ‹
+        <span class="desktop-sidebar-icon">‹</span>
+        <span class="mobile-sidebar-icon">⌃</span>
       </button>
 
+      <!--Sidebar derecho-->
       <Sidebar v-if="sidebarStore.isOpen" />
     </div>
   </div>
@@ -133,5 +139,52 @@ watch(sidebarContext, (currentContext, previousContext) => {
 
 .open-sidebar-button:hover {
   background-color: var(--color-background);
+}
+
+@media (max-width: 768px) {
+  .app-layout {
+    height: 100dvh;
+  }
+
+  .app-content {
+    position: relative;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .main-content {
+    width: 100%;
+    height: 100%;
+  }
+
+  .open-sidebar-button {
+    top: auto;
+    right: 50%;
+    bottom: 0;
+
+    width: 3.5rem;
+    height: 2.25rem;
+
+    border-right: 1px solid var(--color-border-2);
+    border-bottom: 0;
+    border-radius: 8px 8px 0 0;
+
+    transform: translateX(50%);
+  }
+}
+
+.mobile-sidebar-icon {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .desktop-sidebar-icon {
+    display: none;
+  }
+
+  .mobile-sidebar-icon {
+    display: inline;
+  }
 }
 </style>

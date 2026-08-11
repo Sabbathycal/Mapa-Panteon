@@ -36,11 +36,13 @@ const hasConvexImage = computed(() => {
 
 <template>
   <section class="niche-map-view">
+    <!--Boton de Volver al mapa-->
     <button type="button" @click="nicheStore.clearZone" class="back-button">
       ← Volver al mapa
     </button>
     <h2>{{ nicheStore.selectedZone?.nombre }} - {{ nicheStore.selectedZone?.id }}</h2>
 
+    <!--Botones de cambio de caras entre concavo y convexo-->
     <div class="side-selector">
       <button
         type="button"
@@ -88,5 +90,22 @@ const hasConvexImage = computed(() => {
   padding: 1rem;
   box-sizing: border-box;
   overflow: auto;
+}
+
+@media (max-width: 768px) {
+  .back-button,
+  .side-selector,
+  .missing-image-msg {
+    display: none;
+  }
+
+  .niche-map-view {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .niche-map-view > h2 {
+    display: none;
+  }
 }
 </style>
