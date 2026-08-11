@@ -25,6 +25,46 @@ function validateRecords(records) {
   }
 }
 
+function parseSpanishDate(value) {
+  const text = String(value ?? '').trim()
+
+  if (!text) return null
+
+  const match = text.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{1,2}):(\d{2})\s+([ap])\.\s*m\.$/i)
+
+  if (!match) return null
+
+  const [, day, month, year, rawHour, minute, period] = match
+
+  let hour = Number(rawHour)
+
+  if (period.toLowerCase() === 'p' && hour !== 12) {
+    hour += 12
+  }
+
+  if (period.toLowerCase() === 'a' && hour === 12) {
+    hour = 0
+  }
+
+  return new Date(Number(year), Number(month) - 1, Number(day), hour, Number(minute))
+}
+
+function getLatestInventoryUpdate(rows) {
+  let latestDate = null
+  let latestOriginalValue = null
+
+  for (const row of rows) {
+    const parsedDate = parseSpanishDate(row.Fecha_Actualizacion)
+
+    if (parsedDate && (!latestDate || parsedDate > latestDate)) {
+      latestDate = parsedDate
+      latestOriginalValue = row.Fecha_Actualizacion
+    }
+  }
+
+  return latestOriginalValue
+}
+
 export async function loadInventoryFromCsv() {
   const response = await fetch(CSV_URL, {
     cache: 'no-store',
@@ -60,5 +100,9 @@ export async function loadInventoryFromCsv() {
 
   validateRecords(records)
 
-  return records
+  return {
+    records,
+    source: 'csv',
+    lastUpdatedAt: getLatestInventoryUpdate(parsed.data),
+  }
 }

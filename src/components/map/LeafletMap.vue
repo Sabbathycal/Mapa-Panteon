@@ -21,6 +21,7 @@ import mapImage from '@/assets/images/map/base.png'
 import { GeometryService } from '@/services/geometry/GeometryService'
 import { GridGeneratorService } from '@/services/geometry/GridGeneratorService'
 
+import InventoryStatusControl from '@/components/map/InventoryStatusControl.vue'
 import { createSectionLayer } from '@/components/map/layers/SectionLayer'
 import { createBlockLayer } from '@/components/map/layers/BlockLayer'
 import { createLotLayer } from '@/components/map/layers/LotLayer'
@@ -641,7 +642,9 @@ onBeforeUnmount(() => {
 <template>
   <div class="map-wrapper">
     <div ref="mapContainer" class="leaflet-map"></div>
+    <InventoryStatusControl />
 
+    <!-- centrar mapa -->
     <button
       v-if="!isLoading && !loadingError"
       type="button"
@@ -653,6 +656,7 @@ onBeforeUnmount(() => {
       <span aria-hidden="true">◎</span>
     </button>
 
+    <!--Mensajes de Cargando Mapa-->
     <div v-if="isLoading" class="map-loading-overlay">
       <div class="map-loading-card">
         <span class="map-loading-spinner" aria-hidden="true"></span>

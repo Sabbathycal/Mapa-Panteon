@@ -16,6 +16,7 @@ import { useGeometryDraftStore } from '@/stores/GeometryDraft'
 import { useMapViewStore } from '@/stores/MapView'
 import { useInventoryStore } from '@/stores/Inventory'
 
+import InventoryStatusControl from '@/components/map/InventoryStatusControl.vue'
 import { GeometryService } from '@/services/geometry/GeometryService'
 import { GridGeneratorService } from '@/services/geometry/GridGeneratorService'
 
@@ -545,6 +546,9 @@ onBeforeUnmount(() => {
   <div class="niche-map-wrapper">
     <div ref="mapContainer" class="niche-leaflet-map"></div>
 
+    <InventoryStatusControl />
+
+    <!--Centrar Mapa-->
     <button
       v-if="!isLoading && !loadingError"
       type="button"
@@ -556,6 +560,7 @@ onBeforeUnmount(() => {
       <span aria-hidden="true">◎</span>
     </button>
 
+    <!--Mensajes de  Cargando Nichos-->
     <div v-if="isLoading" class="map-loading-overlay">
       <div class="map-loading-card">
         <span class="map-loading-spinner" aria-hidden="true"></span>

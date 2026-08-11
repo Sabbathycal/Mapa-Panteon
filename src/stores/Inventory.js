@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
-import { loadInventoryFromCsv } from '@/services/inventory/CsvInventorySource'
+import { loadInventoryFromBestAvailableSource } from '@/services/inventory/InventorySourceService'
 
 export const useInventoryStore = defineStore('inventory', () => {
   const records = ref([])
@@ -9,9 +9,14 @@ export const useInventoryStore = defineStore('inventory', () => {
   const isLoading = ref(false)
   const error = ref(null)
 
+  const csvWarningAcknowledged = ref(false)
+  const geoJsonWarningAcknowledged = ref(false)
+
   // Más adelante tendrá:
   // 'sharepoint' | 'csv' | 'geojson' | null
   const source = ref(null)
+  const lastUpdatedAt = ref(null)
+  const sourceError = ref(null)
 
   const recordsByReferenceId = computed(() => {
     return new Map(records.value.map((record) => [record.referenceId, record]))
@@ -52,24 +57,40 @@ export const useInventoryStore = defineStore('inventory', () => {
     error.value = null
 
     try {
-      // Por ahora estamos desarrollando contra el respaldo CSV.
-      // Después esta función intentará:
-      //
-      // SharePoint
-      //   ↓ falla
-      // CSV
-      //   ↓ falla
-      // GeoJSON
+      const result = await loadInventoryFromBestAvailableSource()
 
-      const csvRecords = await loadInventoryFromCsv()
+      records.value = result.records
+      source.value = result.source
 
-      records.value = csvRecords
-      source.value = 'csv'
+      if (result.source === 'csv') {
+        csvWarningAcknowledged.value = false
+      }
 
-      console.info(`[Inventory] ${csvRecords.length} registros cargados desde CSV.`)
+      if (result.source === 'geojson') {
+        geoJsonWarningAcknowledged.value = false
+      }
+
+      lastUpdatedAt.value = result.lastUpdatedAt ?? null
+
+      sourceError.value = result.sourceError ?? null
+
+      if (result.source === 'csv') {
+        console.info(`[Inventory] ${result.records.length} registros cargados desde CSV.`)
+
+        console.info(`[Inventory] Última actualización: ${result.lastUpdatedAt ?? 'desconocida'}.`)
+      }
+
+      if (result.source === 'geojson') {
+        console.warn(
+          '[Inventory] Usando GeoJSON como último respaldo. Los datos administrativos pueden no ser confiables.',
+        )
+      }
     } catch (loadError) {
       records.value = []
       source.value = null
+      lastUpdatedAt.value = null
+      sourceError.value = null
+
       error.value = loadError
 
       console.error('[Inventory] No fue posible cargar el inventario:', loadError)
@@ -177,10 +198,20 @@ export const useInventoryStore = defineStore('inventory', () => {
     return getLot(section, block, code)
   }
 
+  function acknowledgeCsvWarning() {
+    csvWarningAcknowledged.value = true
+  }
+
+  function acknowledgeGeoJsonWarning() {
+    geoJsonWarningAcknowledged.value = true
+  }
+
   function clearInventory() {
     records.value = []
     source.value = null
     error.value = null
+    lastUpdatedAt.value = null
+    sourceError.value = null
   }
 
   return {
@@ -189,12 +220,17 @@ export const useInventoryStore = defineStore('inventory', () => {
     isLoading,
     error,
     source,
+    lastUpdatedAt,
+    sourceError,
     //--
     recordsByReferenceId,
     lotRecords,
     nicheRecords,
     lotsByLocation,
     nichesByLocation,
+    //--
+    csvWarningAcknowledged,
+    geoJsonWarningAcknowledged,
     //-----------------------
     loadInventory,
     getByReferenceId,
@@ -202,6 +238,8 @@ export const useInventoryStore = defineStore('inventory', () => {
     getLotFromGeometry,
     getNiche,
     getNicheFromGeometry,
+    acknowledgeCsvWarning,
+    acknowledgeGeoJsonWarning,
     clearInventory,
   }
 })
