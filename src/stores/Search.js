@@ -4,6 +4,7 @@ import { ref } from 'vue'
 import { PropertySearchService } from '@/services/search/PropertySearchService'
 import { useSelectionStore } from '@/stores/Selection'
 import { useNicheStore } from './Niche'
+import { useInventoryStore } from './Inventory'
 
 export const useSearchStore = defineStore('search', () => {
   const query = ref('')
@@ -46,11 +47,16 @@ export const useSearchStore = defineStore('search', () => {
     isSearching.value = true
 
     try {
+      const inventoryStore = useInventoryStore()
+
       results.value = PropertySearchService.searchProperties(
         lotFeatures,
         nicheFeatures,
         query.value,
-        options,
+        {
+          ...options,
+          inventoryRecords: inventoryStore.records,
+        },
       )
 
       isOpen.value = true

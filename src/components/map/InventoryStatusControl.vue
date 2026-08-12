@@ -102,7 +102,7 @@ watch(source, () => {
         {{ sourceDescription }}
       </p>
 
-      <p v-if="source === 'csv'" class="inventory-update-date">
+      <p v-if="source === 'sharepoint' || source === 'csv'" class="inventory-update-date">
         <strong>Última actualización:</strong><br />
         {{ inventoryStore.lastUpdatedAt || 'Desconocida' }}
       </p>

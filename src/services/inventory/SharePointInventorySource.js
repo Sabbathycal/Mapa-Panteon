@@ -36,6 +36,50 @@ function getRetryDelay(response, attempt) {
   return 1000 * 2 ** attempt
 }
 
+function parseSharePointDate(value) {
+  const text = String(value ?? '').trim()
+
+  if (!text) {
+    return null
+  }
+
+  const date = new Date(text)
+
+  if (Number.isNaN(date.getTime())) {
+    return null
+  }
+
+  return date
+}
+
+function formatInventoryDate(date) {
+  return new Intl.DateTimeFormat('es-MX', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  })
+    .format(date)
+    .replace('a. m.', 'a. m.')
+    .replace('p. m.', 'p. m.')
+}
+
+function getLatestInventoryUpdate(rows) {
+  let latestDate = null
+
+  for (const row of rows) {
+    const parsedDate = parseSharePointDate(row.Fecha_Actualizacion)
+
+    if (parsedDate && (!latestDate || parsedDate > latestDate)) {
+      latestDate = parsedDate
+    }
+  }
+
+  return latestDate ? formatInventoryDate(latestDate) : null
+}
+
 async function fetchGraphPage(url, accessToken) {
   let lastError = null
 
@@ -134,6 +178,6 @@ export async function loadInventoryFromSharePoint() {
   return {
     records,
     source: 'sharepoint',
-    lastUpdatedAt: null,
+    lastUpdatedAt: getLatestInventoryUpdate(rows),
   }
 }
