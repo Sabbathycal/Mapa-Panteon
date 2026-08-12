@@ -2,9 +2,9 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import { loadInventoryFromBestAvailableSource } from '@/services/inventory/InventorySourceService'
-import { loadInventoryFromSharePoint } from '@/services/inventory/SharepointInventorySource'
+import { loadInventoryFromSharePoint } from '@/services/inventory/SharePointInventorySource'
 
-const SHAREPOINT_RECOVERY_INTERVAL = 5 * 60 * 1000
+const INVENTORY_RECOVERY_INTERVAL = 10 * 1000
 
 export const useInventoryStore = defineStore('inventory', () => {
   const records = ref([])
@@ -19,8 +19,8 @@ export const useInventoryStore = defineStore('inventory', () => {
   const lastUpdatedAt = ref(null)
   const sourceError = ref(null)
 
-  let sharePointRecoveryTimer = null
-  let isRecoveringSharePoint = false
+  let inventoryRecoveryTimer = null
+  let isRecoveringInventory = false
 
   const recordsByReferenceId = computed(() => {
     return new Map(records.value.map((record) => [record.referenceId, record]))
@@ -58,67 +58,130 @@ export const useInventoryStore = defineStore('inventory', () => {
     return index
   })
 
-  function stopSharePointRecovery() {
-    if (sharePointRecoveryTimer) {
-      clearTimeout(sharePointRecoveryTimer)
-      sharePointRecoveryTimer = null
+  function stopInventoryRecovery() {
+    if (inventoryRecoveryTimer) {
+      clearTimeout(inventoryRecoveryTimer)
+      inventoryRecoveryTimer = null
     }
   }
 
-  function scheduleSharePointRecovery() {
-    stopSharePointRecovery()
-
-    if (source.value !== 'csv') {
-      return
-    }
-
-    sharePointRecoveryTimer = setTimeout(() => {
-      tryRecoverSharePoint()
-    }, SHAREPOINT_RECOVERY_INTERVAL)
+  function shouldRecoverInventory() {
+    return source.value === 'csv' || source.value === 'geojson'
   }
 
-  async function tryRecoverSharePoint() {
-    if (source.value !== 'csv') {
-      stopSharePointRecovery()
+  function scheduleInventoryRecovery() {
+    stopInventoryRecovery()
+
+    if (!shouldRecoverInventory()) {
       return
     }
 
-    if (isRecoveringSharePoint) {
-      return
-    }
+    inventoryRecoveryTimer = setTimeout(() => {
+      tryRecoverInventory()
+    }, INVENTORY_RECOVERY_INTERVAL)
+  }
 
-    isRecoveringSharePoint = true
+  function applyInventoryResult(result) {
+    records.value = result.records
+    source.value = result.source
+    lastUpdatedAt.value = result.lastUpdatedAt ?? null
+    sourceError.value = result.sourceError ?? null
+    error.value = null
+  }
 
+  async function recoverFromCsv() {
     console.info('[Inventory] Intentando restablecer conexión con SharePoint...')
 
-    try {
-      const result = await loadInventoryFromSharePoint()
+    const result = await loadInventoryFromSharePoint()
 
-      if (result.source !== 'sharepoint') {
-        throw new Error('La recuperación respondió con una fuente distinta de SharePoint.')
-      }
+    if (result.source !== 'sharepoint') {
+      throw new Error('La recuperación respondió con una fuente distinta de SharePoint.')
+    }
 
-      records.value = result.records
-      source.value = 'sharepoint'
-      lastUpdatedAt.value = result.lastUpdatedAt ?? null
-      sourceError.value = null
-      error.value = null
+    applyInventoryResult(result)
 
-      stopSharePointRecovery()
+    console.info(
+      `[Inventory] Conexión con SharePoint restablecida. ${result.records.length} registros cargados.`,
+    )
+  }
+
+  async function recoverFromGeoJson() {
+    console.info('[Inventory] Intentando encontrar una fuente de inventario más confiable...')
+
+    const result = await loadInventoryFromBestAvailableSource()
+
+    if (result.source === 'geojson') {
+      console.warn(
+        '[Inventory] SharePoint y CSV continúan sin estar disponibles. Se mantiene GeoJSON.',
+      )
+
+      sourceError.value = result.sourceError ?? null
+
+      return
+    }
+
+    applyInventoryResult(result)
+
+    if (result.source === 'sharepoint') {
+      console.info(
+        `[Inventory] Inventario recuperado desde SharePoint. ${result.records.length} registros cargados.`,
+      )
+
+      return
+    }
+
+    if (result.source === 'csv') {
+      csvWarningAcknowledged.value = false
 
       console.info(
-        `[Inventory] Conexión con SharePoint restablecida. ${result.records.length} registros cargados.`,
+        `[Inventory] Respaldo CSV recuperado. ${result.records.length} registros cargados.`,
       )
-    } catch (recoveryError) {
-      console.warn(
-        '[Inventory] SharePoint continúa sin estar disponible. Se mantiene el respaldo CSV.',
-        recoveryError,
-      )
-    } finally {
-      isRecoveringSharePoint = false
 
-      if (source.value === 'csv') {
-        scheduleSharePointRecovery()
+      console.info(`[Inventory] Última actualización: ${result.lastUpdatedAt ?? 'desconocida'}.`)
+    }
+  }
+
+  async function tryRecoverInventory() {
+    if (!shouldRecoverInventory()) {
+      stopInventoryRecovery()
+      return
+    }
+
+    if (isRecoveringInventory) {
+      return
+    }
+
+    isRecoveringInventory = true
+
+    const previousSource = source.value
+
+    try {
+      if (previousSource === 'csv') {
+        await recoverFromCsv()
+      } else if (previousSource === 'geojson') {
+        await recoverFromGeoJson()
+      }
+
+      if (source.value === 'sharepoint') {
+        stopInventoryRecovery()
+      }
+    } catch (recoveryError) {
+      if (previousSource === 'csv') {
+        console.warn(
+          '[Inventory] SharePoint continúa sin estar disponible. Se mantiene el respaldo CSV.',
+          recoveryError,
+        )
+      } else {
+        console.warn(
+          '[Inventory] No fue posible recuperar una fuente de inventario más confiable. Se mantiene GeoJSON.',
+          recoveryError,
+        )
+      }
+    } finally {
+      isRecoveringInventory = false
+
+      if (shouldRecoverInventory()) {
+        scheduleInventoryRecovery()
       }
     }
   }
@@ -129,13 +192,12 @@ export const useInventoryStore = defineStore('inventory', () => {
     isLoading.value = true
     error.value = null
 
-    stopSharePointRecovery()
+    stopInventoryRecovery()
 
     try {
       const result = await loadInventoryFromBestAvailableSource()
 
-      records.value = result.records
-      source.value = result.source
+      applyInventoryResult(result)
 
       if (result.source === 'csv') {
         csvWarningAcknowledged.value = false
@@ -144,9 +206,6 @@ export const useInventoryStore = defineStore('inventory', () => {
       if (result.source === 'geojson') {
         geoJsonWarningAcknowledged.value = false
       }
-
-      lastUpdatedAt.value = result.lastUpdatedAt ?? null
-      sourceError.value = result.sourceError ?? null
 
       if (result.source === 'sharepoint') {
         console.info(`[Inventory] ${result.records.length} registros cargados desde SharePoint.`)
@@ -157,13 +216,15 @@ export const useInventoryStore = defineStore('inventory', () => {
 
         console.info(`[Inventory] Última actualización: ${result.lastUpdatedAt ?? 'desconocida'}.`)
 
-        scheduleSharePointRecovery()
+        scheduleInventoryRecovery()
       }
 
       if (result.source === 'geojson') {
         console.warn(
           '[Inventory] Usando GeoJSON como último respaldo. Los datos administrativos pueden no ser confiables.',
         )
+
+        scheduleInventoryRecovery()
       }
     } catch (loadError) {
       records.value = []
@@ -290,7 +351,7 @@ export const useInventoryStore = defineStore('inventory', () => {
   }
 
   function clearInventory() {
-    stopSharePointRecovery()
+    stopInventoryRecovery()
 
     records.value = []
     source.value = null
@@ -298,27 +359,27 @@ export const useInventoryStore = defineStore('inventory', () => {
     lastUpdatedAt.value = null
     sourceError.value = null
 
-    isRecoveringSharePoint = false
+    isRecoveringInventory = false
   }
 
   return {
     records,
-
+    //--
     isLoading,
     error,
     source,
     lastUpdatedAt,
     sourceError,
-
+    //--
     recordsByReferenceId,
     lotRecords,
     nicheRecords,
     lotsByLocation,
     nichesByLocation,
-
+    //--
     csvWarningAcknowledged,
     geoJsonWarningAcknowledged,
-
+    //------------------------------
     loadInventory,
     getByReferenceId,
     getLot,

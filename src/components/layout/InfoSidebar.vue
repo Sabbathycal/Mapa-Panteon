@@ -384,10 +384,12 @@ onMounted(async () => {
 
 <template>
   <div class="info-sidebar">
+    <!--BOTON DE VOLVER-->
     <button v-if="canGoBack" type="button" class="back-button" @click="handleGoBack">
       ← Volver
     </button>
 
+    <!--INFO DE NICHO-->
     <section v-if="selectedNiche" class="property-summary">
       <h2>Nicho</h2>
 
@@ -445,6 +447,7 @@ onMounted(async () => {
       </button>
     </section>
 
+    <!--INFO DE LOTE-->
     <section v-else-if="selectedLot" class="property-summary">
       <h2>Lote</h2>
 
@@ -502,6 +505,7 @@ onMounted(async () => {
       </button>
     </section>
 
+    <!--INFO de pre-lote-->
     <section
       v-else-if="selectionStore.selectedBlockId && !nicheStore.selectedZone"
       class="block-panel"
@@ -635,6 +639,7 @@ onMounted(async () => {
       </section>
     </section>
 
+    <!--Prompt al seleccionar seccion-->
     <section
       v-else-if="selectionStore.selectedSectionId && !nicheStore.selectedZone"
       class="section-prompt"
@@ -644,6 +649,7 @@ onMounted(async () => {
       <p>Seleccione una <strong>MANZANA</strong> en el mapa.</p>
     </section>
 
+    <!--INFO de pre-nicho-->
     <section v-else-if="nicheStore.selectedZone" class="niche-zone-panel">
       <header class="niche-zone-header">
         <h2>
@@ -778,6 +784,7 @@ onMounted(async () => {
       </section>
     </section>
 
+    <!--Prompt al buscar en la barra de buscador-->
     <div v-else-if="searchStore.isSearchActive" class="search-prompt">
       <h2>Buscar propiedad</h2>
 
@@ -816,8 +823,10 @@ onMounted(async () => {
       </template>
     </div>
 
+    <!--Prompt si todas las anteriores fallan-->
     <p v-else>Haz clic en cualquier elemento del mapa.</p>
 
+    <!--FICHA DE INFORMACION-->
     <PropertyDetailsModal
       v-if="isPropertyModalOpen && selectedProperty"
       :property="selectedProperty"
