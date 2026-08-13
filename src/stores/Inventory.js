@@ -4,7 +4,7 @@ import { defineStore } from 'pinia'
 import { loadInventoryFromBestAvailableSource } from '@/services/inventory/InventorySourceService'
 import { loadInventoryFromSharePoint } from '@/services/inventory/SharePointInventorySource'
 
-const INVENTORY_RECOVERY_INTERVAL = 10 * 1000
+const INVENTORY_RECOVERY_INTERVAL = 5 * 60 * 1000
 
 export const useInventoryStore = defineStore('inventory', () => {
   const records = ref([])
